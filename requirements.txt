@@ -1,2 +1,1 @@
 goodtables==1.0.0a16
-SQLAlchemy==1.1.11
