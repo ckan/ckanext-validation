@@ -1,1 +1,2 @@
+ckantoolkit>=0.0.3
 goodtables==1.0.0a16
