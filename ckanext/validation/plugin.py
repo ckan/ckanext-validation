@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import logging
 
 import ckan.plugins as p
@@ -17,13 +19,13 @@ class ValidationPlugin(p.SingletonPlugin):
     # IConfigurer
 
     def update_config(self, config_):
-        t.add_template_directory(config_, 'templates')
-        t.add_public_directory(config_, 'public')
-        t.add_resource('fanstatic', 'validation')
+        t.add_template_directory(config_, u'templates')
+        t.add_public_directory(config_, u'public')
+        t.add_resource(u'fanstatic', u'validation')
 
     # IActions
 
     def get_actions(self):
         return {
-            'resource_validation_run': resource_validation_run
+            u'resource_validation_run': resource_validation_run
         }

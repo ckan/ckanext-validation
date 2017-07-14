@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 import logging
 import json
 
@@ -11,31 +13,31 @@ log = logging.getLogger(__name__)
 
 def run_validation_job(resource):
 
-    log.debug('Validating resource {}'.format(resource['id']))
+    log.debug(u'Validating resource {}'.format(resource['id']))
 
     source = None
-    if resource.get('url_type') == 'upload':
+    if resource.get(u'url_type') == u'upload':
         upload = uploader.get_resource_uploader(resource)
         if isinstance(upload, uploader.ResourceUpload):
-            source = upload.get_path(resource['id'])
+            source = upload.get_path(resource[u'id'])
     if not source:
-        source = resource['url']
+        source = resource[u'url']
 
-    schema = resource.get('schema')
+    schema = resource.get(u'schema')
     if schema and isinstance(schema, basestring):
         schema = json.loads(schema)
 
-    _format = resource['format'].lower()
+    _format = resource[u'format'].lower()
 
     _validate_table(source, _format=_format, schema=schema)
 
 
-def _validate_table(source, _format='csv', schema=None):
+def _validate_table(source, _format=u'csv', schema=None):
 
     inspector = Inspector()
 
     report = inspector.inspect(source, format=_format, schema=schema)
 
-    log.debug('Source: %s' % source)
+    log.debug(u'Source: %s' % source)
 
     return report
