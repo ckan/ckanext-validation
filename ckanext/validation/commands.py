@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+import sys
+
 import click
 
 from ckan.lib.cli import (
@@ -7,7 +9,8 @@ from ckan.lib.cli import (
     paster_click_group,
     click_config_option,
 )
-from ckan.plugins import toolkit as t
+
+from ckanext.validation.model import create_tables, tables_exist
 
 
 validation_group = paster_click_group(
@@ -15,16 +18,17 @@ validation_group = paster_click_group(
 
 
 @validation_group.command(
-    u'run',
-    help=u'run fam')
+    u'init-db',
+    help=u'Initialize database tables')
 @click.help_option(u'-h', u'--help')
 @click_config_option
-@click.pass_context
-def set_permissions(ctx, config):
-    load_config(config or ctx.obj['config'])
-    t.enqueue_job(run_validation, ['Caracola'])
-    print "Hola"
+def init_db(config):
+    load_config(config)
 
+    if tables_exist():
+        print(u'Validation tables already exist')
+        sys.exit(1)
 
-def run_validation(text):
-    print text
+    create_tables()
+
+    print(u'Validation tables created')

@@ -10,6 +10,10 @@ To install ckanext-validation, activate your CKAN virtualenv and run:
     cd ckanext-validation
     python setup.py develop
 
+Create the database tables running:
+    
+    paster validation init-db -c ../route/to/ini/file
+
 Once installed, add the `validation` plugin to the `ckan.plugins` configuration option on your INI file:
 
     ckan.plugins = ... validation
