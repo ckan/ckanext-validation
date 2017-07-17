@@ -4,8 +4,7 @@ dist: trusty
 python:
     - "2.7"
 env:
-    - CKANVERSION=master
-    - PGVERSION=9.4
+    - CKANVERSION=master PGVERSION=9.4
 services:
     - redis-server
 install:
