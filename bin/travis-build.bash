@@ -36,6 +36,7 @@ cd -
 echo "Installing ckanext-validation and its requirements..."
 python setup.py develop
 pip install -r requirements.txt
+paster validation init-db -c test.ini
 
 echo "Moving test.ini into a subdir..."
 mkdir subdir
