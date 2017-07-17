@@ -7,7 +7,6 @@ echo "This is travis-build.bash..."
 TRAVIS_PGVERSION='9.1'
 if [ $PGVERSION != $TRAVIS_PGVERSION ]
 then
-  sudo -u postgres pg_dropcluster --stop $TRAVIS_PGVERSION main
   # Make psql use $PGVERSION
   export PGCLUSTER=$PGVERSION/main
 fi
