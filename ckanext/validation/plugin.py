@@ -6,7 +6,8 @@ import ckan.plugins as p
 import ckantoolkit as t
 
 from ckanext.validation.model import tables_exist
-from ckanext.validation.logic import resource_validation_run
+from ckanext.validation.logic import (
+    resource_validation_run, resource_validation_show)
 
 
 log = logging.getLogger(__name__)
@@ -37,5 +38,6 @@ to create the database tables:
 
     def get_actions(self):
         return {
-            u'resource_validation_run': resource_validation_run
+            u'resource_validation_run': resource_validation_run,
+            u'resource_validation_show': resource_validation_show
         }
