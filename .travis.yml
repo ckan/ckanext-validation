@@ -4,7 +4,7 @@ dist: trusty
 python:
     - "2.7"
 env:
-    - CKANVERSION=master PGVERSION=9.4
+    - CKANVERSION=master PGVERSION=9.3
 services:
     - redis-server
 install:
@@ -13,3 +13,6 @@ install:
 script: sh bin/travis-run.sh
 after_success:
     - coveralls
+cache:
+  directories:
+    - $HOME/.cache/pip
