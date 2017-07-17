@@ -3,6 +3,16 @@ set -e
 
 echo "This is travis-build.bash..."
 
+# Drop Travis' postgres cluster if we're building using a different pg version
+TRAVIS_PGVERSION='9.1'
+if [ $PGVERSION != $TRAVIS_PGVERSION ]
+then
+  # Make psql use $PGVERSION
+  export PGCLUSTER=$PGVERSION/main
+fi
+echo "Postgres version"
+psql --version
+
 echo "Installing the packages that CKAN requires..."
 sudo apt-get update -qq
 sudo apt-get install postgresql-$PGVERSION solr-jetty
@@ -36,6 +46,7 @@ cd -
 echo "Installing ckanext-validation and its requirements..."
 python setup.py develop
 pip install -r requirements.txt
+paster --plugin=ckanext-validation validation init-db -c ckan/test-core.ini
 
 echo "Moving test.ini into a subdir..."
 mkdir subdir

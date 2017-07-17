@@ -6,7 +6,7 @@ import logging
 
 from sqlalchemy import Column, Unicode, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSON
 
 from ckan.model.meta import metadata
 
@@ -28,8 +28,8 @@ class Validation(Base):
     status = Column(Unicode, default=u'created')
     created = Column(DateTime, default=datetime.datetime.utcnow)
     finished = Column(DateTime)
-    report = Column(JSONB)
-    error = Column(JSONB)
+    report = Column(JSON)
+    error = Column(JSON)
 
 
 def create_tables():
