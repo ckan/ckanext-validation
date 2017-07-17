@@ -3,6 +3,15 @@ set -e
 
 echo "This is travis-build.bash..."
 
+# Drop Travis' postgres cluster if we're building using a different pg version
+TRAVIS_PGVERSION='9.1'
+if [ $PGVERSION != $TRAVIS_PGVERSION ]
+then
+  sudo -u postgres pg_dropcluster --stop $TRAVIS_PGVERSION main
+  # Make psql use $PGVERSION
+  export PGCLUSTER=$PGVERSION/main
+fi
+
 echo "Installing the packages that CKAN requires..."
 sudo apt-get update -qq
 sudo apt-get install postgresql-$PGVERSION solr-jetty
