@@ -10,6 +10,8 @@ then
   # Make psql use $PGVERSION
   export PGCLUSTER=$PGVERSION/main
 fi
+echo "Postgres version"
+psql --version
 
 echo "Installing the packages that CKAN requires..."
 sudo apt-get update -qq
