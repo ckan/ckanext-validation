@@ -5,8 +5,10 @@ from nose.tools import assert_equals
 
 from ckan.model import Session
 from ckan.lib.uploader import ResourceUpload
-from ckan.tests.helpers import reset_db
+from ckan.tests.helpers import call_action, reset_db
 from ckan.tests import factories
+
+import ckantoolkit
 
 from ckanext.validation.model import create_tables, tables_exist, Validation
 from ckanext.validation.jobs import run_validation_job, Inspector, uploader
@@ -119,7 +121,6 @@ mock_report_valid_local_file = {
 }
 
 
-
 class TestValidationJob(object):
 
     def setup(self):
@@ -129,7 +130,8 @@ class TestValidationJob(object):
 
     @mock.patch.object(Inspector, 'inspect')
     @mock.patch.object(Session, 'commit')
-    def test_job_run_no_schema(self, mock_commit, mock_inspect):
+    @mock.patch.object(ckantoolkit, 'get_action')
+    def test_job_run_no_schema(self, mock_toolkit, mock_commit, mock_inspect):
 
         resource = factories.Resource(
             url='http://example.com/file.csv', format='csv')
@@ -143,7 +145,8 @@ class TestValidationJob(object):
 
     @mock.patch.object(Inspector, 'inspect')
     @mock.patch.object(Session, 'commit')
-    def test_job_run_schema(self, mock_commit, mock_inspect):
+    @mock.patch.object(ckantoolkit, 'get_action')
+    def test_job_run_schema(self, mock_toolkit, mock_commit, mock_inspect):
 
         schema = {
             'fields': [
@@ -167,8 +170,9 @@ class TestValidationJob(object):
     @mock.patch.object(uploader, 'get_resource_uploader',
                        return_value=mock_get_resource_uploader({}))
     @mock.patch.object(Session, 'commit')
+    @mock.patch.object(ckantoolkit, 'get_action')
     def test_job_run_uploaded_file(
-            self, mock_commit, mock_uploader, mock_inspect):
+            self, mock_toolkit, mock_commit, mock_uploader, mock_inspect):
 
         resource = factories.Resource(
             url='', url_type='upload', format='csv')
@@ -242,3 +246,22 @@ class TestValidationJob(object):
             Validation.resource_id == resource['id']).one()
 
         assert validation.report['tables'][0]['source'].startswith('http')
+
+    @mock.patch.object(Inspector, 'inspect', return_value=mock_report_valid)
+    def test_job_run_valid_stores_status_in_resource(self, mock_inspect):
+
+        resource = factories.Resource(
+            url='http://example.com/file.csv', format='csv')
+
+        run_validation_job(resource)
+
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).one()
+
+        updated_resource = call_action('resource_show', id=resource['id'])
+
+        assert_equals(updated_resource['validation_status'], validation.status)
+        assert_equals(
+            updated_resource['validation_timestamp'],
+            validation.finished.isoformat())
+

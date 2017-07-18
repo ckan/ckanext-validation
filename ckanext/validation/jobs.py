@@ -9,6 +9,8 @@ from goodtables import Inspector
 from ckan.model import Session
 import ckan.lib.uploader as uploader
 
+import ckantoolkit as t
+
 from ckanext.validation.model import Validation
 
 
@@ -58,8 +60,17 @@ def run_validation_job(resource):
         validation.error = {
             'message': '\n'.join(report['warnings']) or u'No tables found'}
     validation.finished = datetime.datetime.utcnow()
+
     Session.add(validation)
     Session.commit()
+
+    # Store result status in resource
+    t.get_action('resource_patch')(
+        {'ignore_auth': True,
+         'user': t.get_action('get_site_user')({'ignore_auth': True})['name']},
+        {'id': resource['id'],
+         'validation_status': validation.status,
+         'validation_timestamp': validation.finished.isoformat()})
 
 
 def _validate_table(source, _format=u'csv', schema=None):
