@@ -3,13 +3,15 @@ import datetime
 from nose.tools import assert_raises, assert_equals
 import mock
 
-from ckan.model import Session
-from ckan.tests.helpers import call_action, reset_db
+from ckan import model
+from ckan.tests.helpers import call_action, call_auth, reset_db
 from ckan.tests import factories
 
 from ckanext.validation.model import create_tables, tables_exist, Validation
 
 import ckantoolkit as t
+
+Session = model.Session
 
 
 class TestResourceValidationRun(object):
@@ -180,3 +182,118 @@ class TestResourceValidationShow(object):
             validation_show['created'], validation.created.isoformat())
         assert_equals(
             validation_show['finished'], validation.finished.isoformat())
+
+
+class TestAuth(object):
+
+    def setup(self):
+        reset_db()
+        if not tables_exist():
+            create_tables()
+
+    def test_run_anon(self):
+
+        resource = factories.Resource()
+
+        context = {
+            'user': None,
+            'model': model
+        }
+
+        assert_raises(t.NotAuthorized,
+                      call_auth, 'resource_validation_run', context=context,
+                      resource_id=resource['id'])
+
+    def test_run_sysadmin(self):
+
+        resource = factories.Resource()
+        sysadmin = factories.Sysadmin()
+
+        context = {
+            'user': sysadmin['name'],
+            'model': model
+        }
+
+        assert_equals(call_auth('resource_validation_run', context=context,
+                                resource_id=resource['id']),
+                      True)
+
+    def test_run_non_auth_user(self):
+
+        user = factories.User()
+        org = factories.Organization()
+        dataset = factories.Dataset(
+            owner_org=org['id'], resources=[factories.Resource()])
+
+        context = {
+            'user': user['name'],
+            'model': model
+        }
+
+        assert_raises(t.NotAuthorized,
+                      call_auth, 'resource_validation_run', context=context,
+                      resource_id=dataset['resources'][0]['id'])
+
+    def test_run_auth_user(self):
+
+        user = factories.User()
+        org = factories.Organization(
+            users=[{'name': user['name'], 'capacity': 'editor'}])
+        dataset = factories.Dataset(
+            owner_org=org['id'], resources=[factories.Resource()])
+
+        context = {
+            'user': user['name'],
+            'model': model
+        }
+
+        assert_equals(call_auth('resource_validation_run', context=context,
+                                resource_id=dataset['resources'][0]['id']),
+                      True)
+
+    def test_show_anon(self):
+
+        resource = factories.Resource()
+
+        context = {
+            'user': None,
+            'model': model
+        }
+
+        assert_equals(call_auth('resource_validation_show', context=context,
+                                resource_id=resource['id']),
+                      True)
+
+    def test_show_anon_public_dataset(self):
+
+        user = factories.User()
+        org = factories.Organization()
+        dataset = factories.Dataset(
+            owner_org=org['id'], resources=[factories.Resource()],
+            private=False)
+
+        context = {
+            'user': user['name'],
+            'model': model
+        }
+
+        assert_equals(call_auth('resource_validation_show', context=context,
+                                resource_id=dataset['resources'][0]['id']),
+                      True)
+
+    def test_show_anon_private_dataset(self):
+
+        user = factories.User()
+        org = factories.Organization()
+        dataset = factories.Dataset(
+            owner_org=org['id'], resources=[factories.Resource()],
+            private=True)
+
+        context = {
+            'user': user['name'],
+            'model': model
+        }
+
+        assert_raises(t.NotAuthorized,
+                      call_auth, 'resource_validation_run', context=context,
+                      resource_id=dataset['resources'][0]['id'])

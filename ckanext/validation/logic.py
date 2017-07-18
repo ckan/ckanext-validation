@@ -11,6 +11,21 @@ from ckanext.validation.jobs import run_validation_job
 SUPPORTED_FORMATS = [u'csv', u'xls', u'xlsx']
 
 
+def auth_resource_validation_run(context, data_dict):
+    if t.check_access(
+            u'resource_update', context, {u'id': data_dict[u'resource_id']}):
+        return {u'success': True}
+    return {u'success': False}
+
+
+@t.auth_allow_anonymous_access
+def auth_resource_validation_show(context, data_dict):
+    if t.check_access(
+            u'resource_show', context, {u'id': data_dict[u'resource_id']}):
+        return {u'success': True}
+    return {u'success': False}
+
+
 def resource_validation_run(context, data_dict):
     u'''
     Start a validation job against a resource.
@@ -25,6 +40,8 @@ def resource_validation_run(context, data_dict):
     :rtype: string
 
     '''
+
+    t.check_access(u'resource_validation_run', context, data_dict)
 
     if not data_dict.get(u'resource_id'):
         raise t.ValidationError({u'resource_id': u'Missing value'})
@@ -87,6 +104,8 @@ def resource_validation_show(context, data_dict):
     :rtype: dict
 
     '''
+
+    t.check_access(u'resource_validation_show', context, data_dict)
 
     if not data_dict.get(u'resource_id'):
         raise t.ValidationError({u'resource_id': u'Missing value'})

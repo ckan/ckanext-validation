@@ -7,7 +7,8 @@ import ckantoolkit as t
 
 from ckanext.validation.model import tables_exist
 from ckanext.validation.logic import (
-    resource_validation_run, resource_validation_show)
+    resource_validation_run, resource_validation_show,
+    auth_resource_validation_run, auth_resource_validation_show)
 
 
 log = logging.getLogger(__name__)
@@ -15,8 +16,8 @@ log = logging.getLogger(__name__)
 
 class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
-
     p.implements(p.IActions)
+    p.implements(p.IAuthFunctions)
 
     # IConfigurer
 
@@ -40,4 +41,12 @@ to create the database tables:
         return {
             u'resource_validation_run': resource_validation_run,
             u'resource_validation_show': resource_validation_show
+        }
+
+    # IAuthFunctions
+
+    def get_auth_functions(self):
+        return {
+            u'resource_validation_run': auth_resource_validation_run,
+            u'resource_validation_show': auth_resource_validation_show
         }

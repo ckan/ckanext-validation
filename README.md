@@ -24,7 +24,9 @@ Once installed, add the `validation` plugin to the `ckan.plugins` configuration 
 
 ## Action functions
 
-The `validation` plugin adds two new API actions to create and display validation reports:
+The `validation` plugin adds two new API actions to create and display validation reports. 
+By default `resource_validation_run` and `resource_validation_show` inherit whatever auth is in place
+for `resource_update` and `resource_show` respectively.
 
 #### `resource_validation_run`
 
