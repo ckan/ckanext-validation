@@ -94,6 +94,32 @@ mock_report_error = {
 }
 
 
+mock_report_valid_local_file = {
+    'error-count': 0,
+    'table-count': 1,
+    'tables': [
+        {
+            'error-count': 0,
+            'errors': [],
+            'headers': [
+                'name',
+                'ward',
+                'party',
+                'other'
+            ],
+            'row-count': 79,
+            'source': '/data/resources/31f/d4c/1e-9c82-424b-b78b-48cd08db6e64',
+            'time': 0.007,
+            'valid': True
+        }
+    ],
+    'time': 0.009,
+    'valid': True,
+    'warnings': []
+}
+
+
+
 class TestValidationJob(object):
 
     def setup(self):
@@ -199,3 +225,20 @@ class TestValidationJob(object):
         assert_equals(validation.report, None)
         assert_equals(validation.error, {'message': 'Some warning'})
         assert validation.finished
+
+    @mock.patch.object(Inspector, 'inspect',
+                       return_value=mock_report_valid_local_file)
+    @mock.patch.object(uploader, 'get_resource_uploader',
+                       return_value=mock_get_resource_uploader({}))
+    def test_job_run_uploaded_file_replaces_paths(
+            self, mock_uploader, mock_inspect):
+
+        resource = factories.Resource(
+                url='', url_type='upload', format='csv')
+
+        run_validation_job(resource)
+
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).one()
+
+        assert validation.report['tables'][0]['source'].startswith('http')

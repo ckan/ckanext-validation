@@ -45,6 +45,11 @@ def run_validation_job(resource):
 
     report = _validate_table(source, _format=_format, schema=schema)
 
+    # Hide uploaded files
+    for table in report.get('tables', []):
+        if table['source'].startswith('/'):
+            table['source'] = resource['url']
+
     if report['table-count'] > 0:
         validation.status = u'success' if report[u'valid'] else u'failure'
         validation.report = report
