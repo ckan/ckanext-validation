@@ -6,9 +6,7 @@ import ckantoolkit as t
 
 from ckanext.validation.model import Validation
 from ckanext.validation.jobs import run_validation_job
-
-# TODO: configurable
-SUPPORTED_FORMATS = [u'csv', u'xls', u'xlsx']
+from ckanext.validation import settings
 
 
 def auth_resource_validation_run(context, data_dict):
@@ -50,10 +48,11 @@ def resource_validation_run(context, data_dict):
         {}, {u'id': data_dict[u'resource_id']})
 
     # Ensure format is supported
-    if not resource.get(u'format', u'').lower() in SUPPORTED_FORMATS:
+    if not resource.get(u'format', u'').lower() in settings.SUPPORTED_FORMATS:
         raise t.ValidationError(
             {u'format': u'Unsupported resource format.' +
-             u'Must be one of {}'.format(u','.join(SUPPORTED_FORMATS))})
+             u'Must be one of {}'.format(
+                u','.join(settings.SUPPORTED_FORMATS))})
 
     # Ensure there is a URL or file upload
     if not resource.get(u'url') and not resource.get(u'url_type') == u'upload':
