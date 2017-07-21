@@ -21,6 +21,31 @@ Once installed, add the `validation` plugin to the `ckan.plugins` configuration 
 
     ckan.plugins = ... validation
 
+## Configuration options
+
+The following options on your INI file can be used to configure the extension behaviour:
+
+#### `ckanext.validation.run_on_create`
+
+```
+ckanext.validation.run_on_create = false
+```
+
+Default value: `True`
+
+Perform an automatic validation every time a resource is created (if the format is suitable).
+
+
+#### `ckanext.validation.run_on_update`
+
+```
+ckanext.validation.run_on_update = false
+```
+
+Default value: `True`
+
+Perform an automatic validation every time a resource is updated (if the format is suitable).
+
 
 ## Action functions
 

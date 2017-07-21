@@ -57,6 +57,27 @@ to create the database tables:
 
     resources_to_validate = {}
 
+    def after_create(self, context, resource):
+
+        if not t.config.get(u'ckanext.validation.run_on_create', True):
+            return
+
+        needs_validation = False
+        if ((
+            # File uploaded
+            resource.get(u'url_type') == u'upload' or
+            # URL defined
+            resource.get(u'url')
+            ) and (
+            # Make sure format is supported
+            resource.get(u'format', u'').lower() in
+                settings.SUPPORTED_FORMATS
+                )):
+            needs_validation = True
+
+        if needs_validation:
+            _run_validation(resource['id'])
+
     def before_update(self, context, current_resource, updated_resource):
 
         if not t.config.get(u'ckanext.validation.run_on_update', True):
@@ -65,39 +86,45 @@ to create the database tables:
         needs_validation = False
         if ((
             # New file uploaded
-            updated_resource.get('upload') or
+            updated_resource.get(u'upload') or
             # External URL changed
-            updated_resource.get('url') != current_resource.get('url') or
+            updated_resource.get(u'url') != current_resource.get(u'url') or
             # Schema changed
-            updated_resource.get('schema') != current_resource.get('schema') or
+            (updated_resource.get(u'schema') !=
+             current_resource.get(u'schema')) or
             # Format changed
-            (updated_resource.get('format').lower() !=
-             current_resource.get('format').lower())
+            (updated_resource.get(u'format', u'').lower() !=
+             current_resource.get(u'format', u'').lower())
             ) and (
             # Make sure format is supported
-            updated_resource.get('format').lower() in
+            updated_resource.get(u'format', u'').lower() in
                 settings.SUPPORTED_FORMATS
                 )):
             needs_validation = True
 
         if needs_validation:
-            self.resources_to_validate[updated_resource['id']] = True
+            self.resources_to_validate[updated_resource[u'id']] = True
 
     def after_update(self, context, updated_resource):
 
         if not t.config.get(u'ckanext.validation.run_on_update', True):
             return
 
-        resource_id = updated_resource['id']
+        resource_id = updated_resource[u'id']
 
         if resource_id in self.resources_to_validate:
             del self.resources_to_validate[resource_id]
 
-            try:
-                t.get_action('resource_validation_run')(
-                    {'ignore_auth': True},
-                    {'resource_id': resource_id})
-            except t.ValidationError as e:
-                log.warning(
-                    'Could not run validation for resource {}: {}'.format(
-                        resource_id, str(e)))
+            _run_validation(resource_id)
+
+
+def _run_validation(resource_id):
+
+    try:
+        t.get_action(u'resource_validation_run')(
+            {u'ignore_auth': True},
+            {u'resource_id': resource_id})
+    except t.ValidationError as e:
+        log.warning(
+            u'Could not run validation for resource {}: {}'.format(
+                resource_id, str(e)))
