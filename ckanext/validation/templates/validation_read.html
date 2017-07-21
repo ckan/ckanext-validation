@@ -1,0 +1,39 @@
+{% extends "package/base.html" %}
+
+{% block breadcrumb_content_selected %}{% endblock %}
+{% block breadcrumb_content %}
+  {{ super() }}
+
+  <li><a href="{{ h.url_for(controller='package', action='resource_read', id=dataset.id, resource_id=resource.id ) }}">{{ h.resource_display_name(resource)|truncate(30) }}</a></li>
+  <li class="active"><a href="">Validation Report</a></li>
+{% endblock %}
+
+{% block pre_primary %}
+
+    <section class="module module-validation">
+      <div class="module-content">
+        <div class="actions">
+
+        </div>
+
+        <h1 class="page-heading">{{ h.resource_display_name(resource) | truncate(50) }}</h1>
+        {% if resource.url and h.is_url(resource.url) %}
+          <p class="text-muted ellipsis">{{ _('URL:') }} <a class="resource-url-analytics" href="{{ resource.url }}" title="{{ resource.url }}">{{ resource.url }}</a></p>
+        {% elif resource.url %}
+          <p class="text-muted break-word">{{ _('URL:') }} {{ resource.url }}</p>
+        {% endif %}
+
+        Validation: {{ validation }}
+      </div>
+    </section>
+
+{% endblock %}
+
+
+{% block primary %}
+
+{% endblock %}
+
+{% block secondary %}
+
+{% endblock %}

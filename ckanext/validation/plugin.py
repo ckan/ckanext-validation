@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
     p.implements(p.IActions)
+    p.implements(p.IRoutes, inherit=True)
     p.implements(p.IAuthFunctions)
     p.implements(p.IResourceController, inherit=True)
 
@@ -36,6 +37,19 @@ to create the database tables:
         t.add_template_directory(config_, u'templates')
         t.add_public_directory(config_, u'public')
         t.add_resource(u'fanstatic', u'validation')
+
+    # IRoutes
+
+    def before_map(self, map_):
+
+        controller = u'ckanext.validation.controller:ValidationController'
+
+        map_.connect(
+            u'validation_read',
+            u'/dataset/{id}/resource/{resource_id}/validation',
+            controller=controller, action=u'validation')
+
+        return map_
 
     # IActions
 
