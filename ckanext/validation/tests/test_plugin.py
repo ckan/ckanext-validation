@@ -3,7 +3,7 @@ from nose.tools import assert_equals
 
 from ckan.tests.helpers import call_action, reset_db
 from ckan.tests import factories
-
+from ckan.tests.helpers import change_config
 import ckantoolkit
 
 from ckanext.validation.model import create_tables, tables_exist
@@ -92,3 +92,15 @@ class TestResourceControllerHooks(object):
 
         assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
         assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
+
+    @change_config('ckanext.validation.run_on_update', False)
+    @mock.patch.object(ckantoolkit, 'enqueue_job')
+    def test_validation_does_not_run_when_config_false(self, mock_enqueue):
+
+        resource = factories.Resource(format='CSV')
+
+        resource['url'] = 'http://some.new.url'
+
+        call_action('resource_update', {}, **resource)
+
+        mock_enqueue.assert_not_called()

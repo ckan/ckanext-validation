@@ -59,6 +59,9 @@ to create the database tables:
 
     def before_update(self, context, current_resource, updated_resource):
 
+        if not t.config.get(u'ckanext.validation.run_on_update', True):
+            return
+
         needs_validation = False
         if ((
             # New file uploaded
@@ -81,6 +84,10 @@ to create the database tables:
             self.resources_to_validate[updated_resource['id']] = True
 
     def after_update(self, context, updated_resource):
+
+        if not t.config.get(u'ckanext.validation.run_on_update', True):
+            return
+
         resource_id = updated_resource['id']
 
         if resource_id in self.resources_to_validate:
