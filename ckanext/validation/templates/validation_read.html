@@ -28,6 +28,13 @@
         {{ h.get_validation_badge(resource)|safe }}
 		</h1>
 
+        <div class="validation-details">
+            <div>{{ _('Validation timestamp') }}: {{ h.render_datetime(resource.validation_timestamp, with_hours=True) }}</div>
+            {% if validation.report %}
+            <div>{{ _('Duration') }}: {{ validation.report.time }}s</div>
+            {% endif %}
+        </div>
+
         <div id="report"></div>
 
       </div>
