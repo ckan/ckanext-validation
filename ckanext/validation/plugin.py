@@ -10,6 +10,7 @@ from ckanext.validation.model import tables_exist
 from ckanext.validation.logic import (
     resource_validation_run, resource_validation_show,
     auth_resource_validation_run, auth_resource_validation_show)
+from ckanext.validation.helpers import get_validation_badge
 
 
 log = logging.getLogger(__name__)
@@ -21,6 +22,7 @@ class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IAuthFunctions)
     p.implements(p.IResourceController, inherit=True)
+    p.implements(p.ITemplateHelpers)
 
     # IConfigurer
 
@@ -65,6 +67,13 @@ to create the database tables:
         return {
             u'resource_validation_run': auth_resource_validation_run,
             u'resource_validation_show': auth_resource_validation_show
+        }
+
+    # ITemplateHelpers
+
+    def get_helpers(self):
+        return {
+            'get_validation_badge': get_validation_badge,
         }
 
     # IResourceController

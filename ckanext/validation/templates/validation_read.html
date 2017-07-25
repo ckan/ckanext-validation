@@ -1,5 +1,13 @@
 {% extends "package/base.html" %}
 
+{%- block subtitle %}{{ _('Validation Report') }}{% endblock -%}
+
+
+{% block links -%}
+  {{ super() }}
+  <link rel="stylesheet" href="//unpkg.com/goodtables-ui/dist/goodtables-ui.min.css">
+{% endblock %}
+
 {% block breadcrumb_content_selected %}{% endblock %}
 {% block breadcrumb_content %}
   {{ super() }}
@@ -16,24 +24,30 @@
 
         </div>
 
-        <h1 class="page-heading">{{ h.resource_display_name(resource) | truncate(50) }}</h1>
-        {% if resource.url and h.is_url(resource.url) %}
-          <p class="text-muted ellipsis">{{ _('URL:') }} <a class="resource-url-analytics" href="{{ resource.url }}" title="{{ resource.url }}">{{ resource.url }}</a></p>
-        {% elif resource.url %}
-          <p class="text-muted break-word">{{ _('URL:') }} {{ resource.url }}</p>
-        {% endif %}
+        <h1 class="page-heading">{{ h.resource_display_name(resource) | truncate(50) }}
+        {{ h.get_validation_badge(resource)|safe }}
+		</h1>
 
-        Validation: {{ validation }}
+        <div id="report"></div>
+
       </div>
     </section>
 
 {% endblock %}
 
 
-{% block primary %}
+{% block primary %}{% endblock %}
 
-{% endblock %}
+{% block secondary %}{% endblock %}
 
-{% block secondary %}
+
+{%- block scripts %}
+  {{ super() }}
+  <script src="//unpkg.com/goodtables-ui/dist/goodtables-ui.min.js"></script>
+  <script>
+    var report = {{ validation.report|tojson|safe }}
+    var element = document.getElementById('report')
+    goodtablesUI.render(goodtablesUI.Report, {report}, element)
+  </script>
 
 {% endblock %}
