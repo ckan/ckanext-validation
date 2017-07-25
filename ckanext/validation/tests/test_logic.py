@@ -4,7 +4,7 @@ from nose.tools import assert_raises, assert_equals
 import mock
 
 from ckan import model
-from ckan.tests.helpers import call_action, call_auth, reset_db
+from ckan.tests.helpers import call_action, call_auth, reset_db, change_config
 from ckan.tests import factories
 
 from ckanext.validation.model import create_tables, tables_exist, Validation
@@ -97,6 +97,7 @@ class TestResourceValidationRun(object):
         assert_equals(validation.report, None)
         assert_equals(validation.error, None)
 
+    @change_config('ckanext.validation.run_on_create', False)
     @mock.patch('ckantoolkit.enqueue_job')
     def test_resource_validation_resets_existing_validation_object(
             self, mock_enqueue_job):
@@ -147,6 +148,7 @@ class TestResourceValidationShow(object):
             t.ObjectNotFound,
             call_action, 'resource_validation_show', resource_id='not_exists')
 
+    @change_config('ckanext.validation.run_on_create', False)
     def test_resource_validation_show_validation_does_not_exists(self):
 
         resource = factories.Resource(format='csv')
@@ -156,6 +158,7 @@ class TestResourceValidationShow(object):
             call_action, 'resource_validation_show',
             resource_id=resource['id'])
 
+    @change_config('ckanext.validation.run_on_create', False)
     def test_resource_validation_show_returns_all_fields(self):
 
         resource = factories.Resource(format='csv')
