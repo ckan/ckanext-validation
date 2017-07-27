@@ -2,7 +2,7 @@ import datetime
 
 from nose.tools import assert_equals
 
-from ckan.tests.helpers import reset_db
+from ckan.tests.helpers import reset_db, _get_test_app
 from ckan.tests import factories
 
 from ckantoolkit import config
@@ -22,8 +22,16 @@ class TestHelpers(object):
         if not tables_exist():
             create_tables()
 
+        app = _get_test_app()
+        cls.request_context = app.flask_app.test_request_context()
+        cls.request_context.push()
+
+
     @classmethod
     def teardown_class(cls):
+
+        cls.request_context.pop()
+
         config.clear()
         config.update(cls._original_config)
 
