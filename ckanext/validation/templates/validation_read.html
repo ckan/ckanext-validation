@@ -1,12 +1,7 @@
 {% extends "package/base.html" %}
 
+
 {%- block subtitle %}{{ _('Validation Report') }}{% endblock -%}
-
-
-{% block links -%}
-  {{ super() }}
-  <link rel="stylesheet" href="//unpkg.com/goodtables-ui/dist/goodtables-ui.min.css">
-{% endblock %}
 
 {% block breadcrumb_content_selected %}{% endblock %}
 {% block breadcrumb_content %}
@@ -26,7 +21,7 @@
 
         <h1 class="page-heading">{{ h.resource_display_name(resource) | truncate(50) }}
         {{ h.get_validation_badge(resource)|safe }}
-		</h1>
+        </h1>
 
         <div class="validation-details">
             <div>{{ _('Validation timestamp') }}: {{ h.render_datetime(resource.validation_timestamp, with_hours=True) }}</div>
@@ -35,10 +30,15 @@
             {% endif %}
         </div>
 
-        <div id="report"></div>
+        {% if validation.report %}
+            <div id="report" data-module="validation-report" data-module-report="{{ validation.report|tojson}}"></div>
+        {% endif %}
 
+        </div>
       </div>
     </section>
+
+   {% resource 'ckanext-validation/report' %}
 
 {% endblock %}
 
@@ -46,15 +46,3 @@
 {% block primary %}{% endblock %}
 
 {% block secondary %}{% endblock %}
-
-
-{%- block scripts %}
-  {{ super() }}
-  <script src="//unpkg.com/goodtables-ui/dist/goodtables-ui.min.js"></script>
-  <script>
-    var report = {{ validation.report|tojson|safe }}
-    var element = document.getElementById('report')
-    goodtablesUI.render(goodtablesUI.Report, {report}, element)
-  </script>
-
-{% endblock %}
