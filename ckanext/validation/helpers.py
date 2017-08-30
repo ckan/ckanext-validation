@@ -1,9 +1,13 @@
 # encoding: utf-8
 from ckan.lib.helpers import url_for_static
-from ckantoolkit import url_for, _
+from ckantoolkit import url_for, _, config, asbool
 
 
-def get_validation_badge(resource):
+def get_validation_badge(resource, in_listing=False):
+
+    if in_listing and not asbool(
+            config.get('ckanext.validation.show_badges_in_listings', True)):
+        return ''
 
     if not resource.get('validation_status'):
         return ''
@@ -29,7 +33,7 @@ def get_validation_badge(resource):
         '/images/badges/data-{}-flat.svg'.format(status))
 
     return '''
-<a href="{validation_url}">
+<a href="{validation_url}" class="validation-badge">
     <img src="{badge_url}" alt="{alt}" title="{title}"/>
 </a>'''.format(
         validation_url=validation_url,

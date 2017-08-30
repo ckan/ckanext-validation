@@ -1,0 +1,11 @@
+{% ckan_extends %}
+
+{% block resource_item_title %}
+{{ super() }}
+{{ h.get_validation_badge(res, in_listing=True)|safe }}
+
+
+{% resource 'ckanext-validation/main' %}
+{% endblock %}
+
+
