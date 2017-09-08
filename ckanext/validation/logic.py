@@ -1,12 +1,45 @@
 # encoding: utf-8
 
 import datetime
+import json
+
+import tableschema
 
 import ckantoolkit as t
 
 from ckanext.validation.model import Validation
 from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings
+
+
+# Validators
+
+
+def schema_validator(value, context):
+
+    if not value:
+        return
+
+    msg = None
+    try:
+        descriptor = json.loads(str(value))
+
+        tableschema.validate(descriptor)
+    except ValueError as e:
+        msg = u'JSON error in Table Schema descriptor: {}'.format(e)
+
+    except tableschema.exceptions.ValidationError as e:
+        errors = []
+        for error in e.errors:
+            errors.append(error.message)
+        msg = u'Invalid Table Schema: {}'.format(u', '.join(errors))
+
+    if msg:
+        raise t.Invalid(msg)
+
+    return value
+
+# Auth
 
 
 def auth_resource_validation_run(context, data_dict):
@@ -22,6 +55,9 @@ def auth_resource_validation_show(context, data_dict):
             u'resource_show', context, {u'id': data_dict[u'resource_id']}):
         return {u'success': True}
     return {u'success': False}
+
+
+# Actions
 
 
 def resource_validation_run(context, data_dict):
@@ -115,7 +151,8 @@ def resource_validation_show(context, data_dict):
         Validation.resource_id == data_dict['resource_id']).one_or_none()
 
     if not validation:
-        raise t.ObjectNotFound('No validation report exists for this resource')
+        raise t.Objectt.ObjectNotFound(
+            'No validation report exists for this resource')
 
     return _validation_dictize(validation)
 

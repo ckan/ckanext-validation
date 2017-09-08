@@ -1,0 +1,14 @@
+{
+  "scheming_presets_version": 1,
+  "about": "Presets related to data validation",
+  "about_url": "",
+  "presets": [
+    {
+      "preset_name": "schema",
+      "values": {
+        "validators": "ignore_missing schema_validator",
+        "form_snippet": "textarea.html"
+      }
+    }
+  ]
+}
