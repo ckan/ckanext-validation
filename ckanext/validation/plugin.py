@@ -10,8 +10,15 @@ from ckanext.validation.model import tables_exist
 from ckanext.validation.logic import (
     resource_validation_run, resource_validation_show,
     auth_resource_validation_run, auth_resource_validation_show,
-    schema_validator)
-from ckanext.validation.helpers import get_validation_badge
+)
+from ckanext.validation.helpers import (
+    get_validation_badge,
+    display_json_value,
+)
+from ckanext.validation.validators import (
+    resource_schema_validator,
+    load_json,
+)
 
 
 log = logging.getLogger(__name__)
@@ -60,8 +67,7 @@ to create the database tables:
     def get_actions(self):
         return {
             u'resource_validation_run': resource_validation_run,
-            u'resource_validation_show': resource_validation_show
-        }
+            u'resource_validation_show': resource_validation_show        }
 
     # IAuthFunctions
 
@@ -76,6 +82,7 @@ to create the database tables:
     def get_helpers(self):
         return {
             'get_validation_badge': get_validation_badge,
+            'display_json_value': display_json_value
         }
 
     # IResourceController
@@ -145,7 +152,8 @@ to create the database tables:
     # IValidators
     def get_validators(self):
         return {
-            'schema_validator': schema_validator
+            'resource_schema_validator': resource_schema_validator,
+            'load_json': load_json
         }
 
 

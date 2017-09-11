@@ -4,10 +4,12 @@
   "about_url": "",
   "presets": [
     {
-      "preset_name": "schema",
+      "preset_name": "resource_schema",
       "values": {
-        "validators": "ignore_missing schema_validator",
-        "form_snippet": "textarea.html"
+        "validators": "ignore_missing resource_schema_validator",
+        "output_validators": "load_json",
+        "form_snippet": "json.html",
+        "display_snippet": "json.html"
       }
     }
   ]

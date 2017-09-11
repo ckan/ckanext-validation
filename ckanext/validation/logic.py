@@ -12,32 +12,7 @@ from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings
 
 
-# Validators
-
-
-def schema_validator(value, context):
-
-    if not value:
-        return
-
-    msg = None
-    try:
-        descriptor = json.loads(str(value))
-
-        tableschema.validate(descriptor)
-    except ValueError as e:
-        msg = u'JSON error in Table Schema descriptor: {}'.format(e)
-
-    except tableschema.exceptions.ValidationError as e:
-        errors = []
-        for error in e.errors:
-            errors.append(error.message)
-        msg = u'Invalid Table Schema: {}'.format(u', '.join(errors))
-
-    if msg:
-        raise t.Invalid(msg)
-
-    return value
+log = logging.getLogger(__name__)
 
 # Auth
 

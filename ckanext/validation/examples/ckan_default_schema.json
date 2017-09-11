@@ -107,7 +107,7 @@
     {
       "field_name": "schema",
       "label": "Schema",
-      "preset": "schema"
+      "preset": "resource_schema"
     }
   ]
 }

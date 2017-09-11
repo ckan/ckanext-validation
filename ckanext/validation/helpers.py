@@ -1,4 +1,6 @@
 # encoding: utf-8
+import json
+
 from ckan.lib.helpers import url_for_static
 from ckantoolkit import url_for, _, config, asbool
 
@@ -40,3 +42,11 @@ def get_validation_badge(resource, in_listing=False):
         badge_url=badge_url,
         alt=messages[status],
         title=resource.get('validation_timestamp', ''))
+
+
+def display_json_value(value, indent=True):
+
+    try:
+        return json.dumps(value, indent=indent)
+    except ValueError:
+        return value
