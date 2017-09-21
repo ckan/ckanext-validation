@@ -6,8 +6,8 @@
     {
       "preset_name": "resource_schema",
       "values": {
-        "validators": "ignore_missing resource_schema_validator",
-        "output_validators": "load_json",
+        "validators": "ignore_missing scheming_valid_json resource_schema_validator",
+        "output_validators": "scheming_load_json",
         "form_snippet": "json.html",
         "display_snippet": "json.html"
       }

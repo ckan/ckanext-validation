@@ -42,11 +42,3 @@ def get_validation_badge(resource, in_listing=False):
         badge_url=badge_url,
         alt=messages[status],
         title=resource.get('validation_timestamp', ''))
-
-
-def display_json_value(value, indent=True):
-
-    try:
-        return json.dumps(value, indent=indent)
-    except ValueError:
-        return value

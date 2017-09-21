@@ -13,11 +13,9 @@ from ckanext.validation.logic import (
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
-    display_json_value,
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
-    load_json,
 )
 
 
@@ -82,7 +80,6 @@ to create the database tables:
     def get_helpers(self):
         return {
             'get_validation_badge': get_validation_badge,
-            'display_json_value': display_json_value
         }
 
     # IResourceController
@@ -153,7 +150,6 @@ to create the database tables:
     def get_validators(self):
         return {
             'resource_schema_validator': resource_schema_validator,
-            'load_json': load_json
         }
 
 

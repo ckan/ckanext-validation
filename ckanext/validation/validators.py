@@ -36,15 +36,3 @@ def resource_schema_validator(value, context):
         raise Invalid(msg)
 
     return value
-
-
-# Output validators
-
-
-def load_json(value, context):
-    if isinstance(value, basestring):
-        try:
-            return json.loads(value)
-        except ValueError:
-            return value
-    return value
