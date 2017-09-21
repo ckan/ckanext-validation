@@ -21,6 +21,7 @@ def resource_schema_validator(value, context):
 
         except ValueError as e:
             msg = u'JSON error in Table Schema descriptor: {}'.format(e)
+            raise Invalid(msg)
     else:
         descriptor = value
 
@@ -35,4 +36,4 @@ def resource_schema_validator(value, context):
     if msg:
         raise Invalid(msg)
 
-    return value
+    return json.dumps(descriptor)
