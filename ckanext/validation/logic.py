@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 import datetime
-import json
+import logging
 
 import tableschema
 
@@ -126,7 +126,7 @@ def resource_validation_show(context, data_dict):
         Validation.resource_id == data_dict['resource_id']).one_or_none()
 
     if not validation:
-        raise t.Objectt.ObjectNotFound(
+        raise t.ObjectNotFound(
             'No validation report exists for this resource')
 
     return _validation_dictize(validation)
