@@ -36,6 +36,12 @@ cd ckan
 paster db init -c test-core.ini
 cd -
 
+echo "Installing other extensions requirements..."
+git clone https://github.com/ckan/ckanext-scheming
+cd ckanext-scheming
+pip install -r requirements.txt
+cd -
+
 echo "Installing ckanext-validation and its requirements..."
 python setup.py develop
 pip install -r requirements.txt
