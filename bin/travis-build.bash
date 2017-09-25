@@ -40,6 +40,7 @@ echo "Installing other extensions requirements..."
 git clone https://github.com/ckan/ckanext-scheming
 cd ckanext-scheming
 pip install -r requirements.txt
+python setup.py develop
 cd -
 
 echo "Installing ckanext-validation and its requirements..."
