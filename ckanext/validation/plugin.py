@@ -10,6 +10,8 @@ from ckanext.validation.model import tables_exist
 from ckanext.validation.logic import (
     resource_validation_run, resource_validation_show,
     auth_resource_validation_run, auth_resource_validation_show,
+    resource_create as custom_resource_create,
+    resource_update as custom_resource_update,
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
@@ -65,7 +67,10 @@ to create the database tables:
     def get_actions(self):
         return {
             u'resource_validation_run': resource_validation_run,
-            u'resource_validation_show': resource_validation_show        }
+            u'resource_validation_show': resource_validation_show,
+#            u'resource_create': custom_resource_create,
+#            u'resource_update': custom_resource_update
+        }
 
     # IAuthFunctions
 

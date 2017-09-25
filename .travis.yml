@@ -6,7 +6,7 @@ python:
 env:
     - CKAN_VERSION=master
 services:
-    - postgres
+    - postgresql
     - redis-server
 install:
     - bash bin/travis-build.bash
