@@ -175,7 +175,7 @@ class TestValidationJob(object):
             self, mock_toolkit, mock_commit, mock_uploader, mock_inspect):
 
         resource = factories.Resource(
-            url='', url_type='upload', format='csv')
+            url='__upload', url_type='upload', format='csv')
 
         run_validation_job(resource)
 
@@ -238,7 +238,7 @@ class TestValidationJob(object):
             self, mock_uploader, mock_inspect):
 
         resource = factories.Resource(
-                url='', url_type='upload', format='csv')
+                url='__upload', url_type='upload', format='csv')
 
         run_validation_job(resource)
 

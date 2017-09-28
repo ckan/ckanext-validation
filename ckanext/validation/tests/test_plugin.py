@@ -73,9 +73,18 @@ class TestResourceControllerHooksUpdate(object):
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_run_on_schema_change(self, mock_enqueue):
 
-        resource = factories.Resource(format='CSV', schema={'a': 'b'})
+        resource = factories.Resource(format='CSV', schema={
+            'fields': [
+                {'name': 'code'}
+            ]
+        })
 
-        resource['schema'] = {'c': 'd'}
+        resource['schema'] = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'date'}
+            ]
+        }
 
         call_action('resource_update', {}, **resource)
 
