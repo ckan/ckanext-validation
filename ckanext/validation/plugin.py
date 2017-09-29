@@ -11,13 +11,17 @@ from ckanext.validation.logic import (
     resource_validation_run, resource_validation_show,
     auth_resource_validation_run, auth_resource_validation_show,
     resource_create as custom_resource_create,
-    resource_update as custom_resource_update,
+    # resource_update as custom_resource_update,
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
+)
+from ckanext.validation.utils import (
+    get_create_mode_from_config,
+    get_update_mode_from_config,
 )
 
 
@@ -68,8 +72,8 @@ to create the database tables:
         return {
             u'resource_validation_run': resource_validation_run,
             u'resource_validation_show': resource_validation_show,
-#            u'resource_create': custom_resource_create,
-#            u'resource_update': custom_resource_update
+            u'resource_create': custom_resource_create,
+            # u'resource_update': custom_resource_update
         }
 
     # IAuthFunctions
@@ -93,7 +97,7 @@ to create the database tables:
 
     def after_create(self, context, resource):
 
-        if not t.config.get(u'ckanext.validation.run_on_create', True):
+        if not get_create_mode_from_config() == u'async':
             return
 
         needs_validation = False
@@ -110,11 +114,11 @@ to create the database tables:
             needs_validation = True
 
         if needs_validation:
-            _run_validation(resource['id'])
+            _run_async_validation(resource['id'])
 
     def before_update(self, context, current_resource, updated_resource):
 
-        if not t.config.get(u'ckanext.validation.run_on_update', True):
+        if not get_update_mode_from_config() == u'async':
             return
 
         needs_validation = False
@@ -149,7 +153,7 @@ to create the database tables:
         if resource_id in self.resources_to_validate:
             del self.resources_to_validate[resource_id]
 
-            _run_validation(resource_id)
+            _run_async_validation(resource_id)
 
     # IValidators
     def get_validators(self):
@@ -158,12 +162,13 @@ to create the database tables:
         }
 
 
-def _run_validation(resource_id):
+def _run_async_validation(resource_id):
 
     try:
         t.get_action(u'resource_validation_run')(
             {u'ignore_auth': True},
-            {u'resource_id': resource_id})
+            {u'resource_id': resource_id,
+             u'async': True})
     except t.ValidationError as e:
         log.warning(
             u'Could not run validation for resource {}: {}'.format(

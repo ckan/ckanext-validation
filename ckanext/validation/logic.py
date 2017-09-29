@@ -11,6 +11,9 @@ import ckantoolkit as t
 from ckanext.validation.model import Validation
 from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings
+from ckanext.validation.utils import (
+    get_create_mode_from_config,
+)
 
 
 log = logging.getLogger(__name__)
@@ -59,6 +62,9 @@ def resource_validation_run(context, data_dict):
     resource = t.get_action(u'resource_show')(
         {}, {u'id': data_dict[u'resource_id']})
 
+    # TODO: limit to sysadmins
+    async_job = data_dict.get(u'async', True)
+
     # Ensure format is supported
     if not resource.get(u'format', u'').lower() in settings.SUPPORTED_FORMATS:
         raise t.ValidationError(
@@ -91,7 +97,10 @@ def resource_validation_run(context, data_dict):
     Session.add(validation)
     Session.commit()
 
-    t.enqueue_job(run_validation_job, [resource])
+    if async_job:
+        t.enqueue_job(run_validation_job, [resource])
+    else:
+        run_validation_job(resource)
 
 
 def resource_validation_show(context, data_dict):
@@ -149,142 +158,16 @@ def _validation_dictize(validation):
     return out
 
 
-def resource_update(context, data_dict):
-    '''Update a resource.
-
-    To update a resource you must be authorized to update the dataset that the
-    resource belongs to.
-
-    For further parameters see
-    :py:func:`~ckan.logic.action.create.resource_create`.
-
-    :param id: the id of the resource to update
-    :type id: string
-
-    :returns: the updated resource
-    :rtype: string
-
-    '''
-    model = context['model']
-    id = t.get_or_bust(data_dict, "id")
-
-    if not data_dict.get('url'):
-        data_dict['url'] = ''
-
-    resource = model.Resource.get(id)
-    context["resource"] = resource
-    old_resource_format = resource.format
-
-    if not resource:
-        log.debug('Could not find resource %s', id)
-        raise t.Objectt.ObjectNotFound(t._('Resource was not found.'))
-
-    t.check_access('resource_update', context, data_dict)
-    del context["resource"]
-
-    package_id = resource.package.id
-    pkg_dict = t.get_action('package_show')(
-        dict(context, return_type='dict'),
-        {'id': package_id})
-
-    for n, p in enumerate(pkg_dict['resources']):
-        if p['id'] == id:
-            break
-    else:
-        log.error('Could not find resource %s after all', id)
-        raise t.Objectt.ObjectNotFound(t._('Resource was not found.'))
-
-    # Persist the datastore_active extra if already present and not provided
-    if ('datastore_active' in resource.extras and
-            'datastore_active' not in data_dict):
-        data_dict['datastore_active'] = resource.extras['datastore_active']
-
-    for plugin in plugins.PluginImplementations(plugins.IResourceController):
-        plugin.before_update(context, pkg_dict['resources'][n], data_dict)
-
-    upload = uploader.get_resource_uploader(data_dict)
-
-    if 'mimetype' not in data_dict:
-        if hasattr(upload, 'mimetype'):
-            data_dict['mimetype'] = upload.mimetype
-
-    if 'size' not in data_dict and 'url_type' in data_dict:
-        if hasattr(upload, 'filesize'):
-            data_dict['size'] = upload.filesize
-
-    pkg_dict['resources'][n] = data_dict
-
-    try:
-        context['defer_commit'] = True
-        context['use_cache'] = False
-        updated_pkg_dict = t.get_action('package_update')(context, pkg_dict)
-        context.pop('defer_commit')
-    except t.ValidationError, e:
-        try:
-            raise t.ValidationError(e.error_dict['resources'][-1])
-        except (KeyError, IndexError):
-            raise t.ValidationError(e.error_dict)
-
-    upload.upload(id, uploader.get_max_resource_size())
-
-#    raise t.ValidationError({'validation': 'kaput'})
-
-    model.repo.commit()
-
-    resource = t.get_action('resource_show')(context, {'id': id})
-
-    if old_resource_format != resource['format']:
-        t.get_action('resource_create_default_resource_views')(
-            {'model': context['model'], 'user': context['user'],
-             'ignore_auth': True},
-            {'package': updated_pkg_dict,
-             'resource': resource})
-
-    for plugin in plugins.PluginImplementations(plugins.IResourceController):
-        plugin.after_update(context, resource)
-
-    return resource
-
-
 def resource_create(context, data_dict):
     '''Appends a new resource to a datasets list of resources.
 
-    :param package_id: id of package that the resource should be added to.
+    This is duplicate of the CKAN core resource_create action, with just the
+    addition of a synchronous data validation step.
 
-    :type package_id: string
-    :param url: url of resource
-    :type url: string
-    :param revision_id: (optional)
-    :type revision_id: string
-    :param description: (optional)
-    :type description: string
-    :param format: (optional)
-    :type format: string
-    :param hash: (optional)
-    :type hash: string
-    :param name: (optional)
-    :type name: string
-    :param resource_type: (optional)
-    :type resource_type: string
-    :param mimetype: (optional)
-    :type mimetype: string
-    :param mimetype_inner: (optional)
-    :type mimetype_inner: string
-    :param cache_url: (optional)
-    :type cache_url: string
-    :param size: (optional)
-    :type size: int
-    :param created: (optional)
-    :type created: iso date string
-    :param last_modified: (optional)
-    :type last_modified: iso date string
-    :param cache_last_updated: (optional)
-    :type cache_last_updated: iso date string
-    :param upload: (optional)
-    :type upload: FieldStorage (optional) needs multipart/form-data
-
-    :returns: the newly created resource
-    :rtype: dictionary
+    This is of course not ideal but it's the only way right now to hook
+    reliably into the creation process without overcomplicating things.
+    Hopefully future versions of CKAN will incorporate more flexible hook
+    points that will allow a better approach.
 
     '''
     model = context['model']
@@ -334,30 +217,13 @@ def resource_create(context, data_dict):
     upload.upload(resource_id,
                   uploader.get_max_resource_size())
 
-    if data_dict['format'].lower() == 'csv':
-        import json
-        from ckanext.validation.jobs import _validate_table
-        source = None
-        if data_dict.get(u'url_type') == u'upload':
-            source = upload.get_path(resource_id)
-        if not source:
-            source = data_dict[u'url']
+    # Custom code starts
 
-        schema = data_dict.get(u'schema')
-        if schema and isinstance(schema, basestring):
-            schema = json.loads(schema)
+    if get_create_mode_from_config() == u'sync':
+        _run_sync_validation(resource_id, upload)
 
-        _format = data_dict[u'format'].lower()
+    # Custom code ends
 
-        report = _validate_table(source, _format=_format, schema=schema)
-
-        # Hide uploaded files
-        for table in report.get(u'tables', []):
-            if table[u'source'].startswith(u'/'):
-                table[u'source'] = data_dict[u'url']
-
-        if not report['valid']:
-            raise t.ValidationError({u'validation': [t._('kaput, here\'s a link to the <a href="/">report</a> or the report: {}.'.format(report))]})
     model.repo.commit()
 
     #  Run package show again to get out actual last_resource
@@ -380,3 +246,31 @@ def resource_create(context, data_dict):
 
     return resource
 
+
+def _run_sync_validation(resource_id):
+
+    try:
+        t.get_action(u'resource_validation_run')(
+            {u'ignore_auth': True},
+            {u'resource_id': resource_id,
+             u'async': False})
+    except t.ValidationError as e:
+        log.info(
+            u'Could not run validation for resource {}: {}'.format(
+                resource_id, str(e)))
+        return
+
+    validation = t.get_action(u'resource_validation_show')(
+        {u'ignore_auth': True},
+        {u'resource_id': resource_id})
+
+    report = validation['report']
+
+    if not report['valid']:
+
+        # TODO: delete validation
+
+        # TODO: delete file upload
+
+        raise t.ValidationError({
+            u'validation': [report]})
