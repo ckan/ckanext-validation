@@ -220,7 +220,7 @@ def resource_create(context, data_dict):
     # Custom code starts
 
     if get_create_mode_from_config() == u'sync':
-        _run_sync_validation(resource_id, upload)
+        _run_sync_validation(resource_id)
 
     # Custom code ends
 

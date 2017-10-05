@@ -1,15 +1,25 @@
 import datetime
+import StringIO
+import io
 
 from nose.tools import assert_raises, assert_equals
 import mock
 
 from ckan import model
-from ckan.tests.helpers import call_action, call_auth, reset_db, change_config
+from ckan.tests.helpers import (
+    call_action, call_auth, reset_db, change_config,
+    FunctionalTestBase
+)
 from ckan.tests import factories
 
-from ckanext.validation.model import create_tables, tables_exist, Validation
-
 import ckantoolkit as t
+
+from ckanext.validation.model import create_tables, tables_exist, Validation
+from ckanext.validation.tests.helpers import (
+        VALID_CSV, INVALID_CSV,
+        mock_uploads, MockFieldStorage
+)
+
 
 Session = model.Session
 
@@ -300,3 +310,66 @@ class TestAuth(object):
         assert_raises(t.NotAuthorized,
                       call_auth, 'resource_validation_run', context=context,
                       resource_id=dataset['resources'][0]['id'])
+
+
+class TestResourceValidationOnCreate(FunctionalTestBase):
+
+    def setup(self):
+
+        super(TestResourceValidationOnCreate, self).setup()
+
+        if not tables_exist():
+            create_tables()
+
+    @mock_uploads
+    @change_config('ckanext.validation.run_on_create_sync', True)
+    def test_validation_fails_on_upload(self, mock_open):
+
+        invalid_file = StringIO.StringIO()
+        invalid_file.write(INVALID_CSV)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        dataset = factories.Dataset()
+
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            with assert_raises(t.ValidationError) as e:
+
+                    call_action(
+                        'resource_create',
+                        package_id=dataset['id'],
+                        format='CSV',
+                        upload=mock_upload
+                    )
+
+        assert 'validation' in e.exception.error_dict
+        assert 'missing-value' in str(e.exception)
+        assert 'Row 2 has a missing value in column 4' in str(e.exception)
+
+    @mock_uploads
+    @change_config('ckanext.validation.run_on_create_sync', True)
+    def test_validation_passes_on_upload(self, mock_open):
+
+        invalid_file = StringIO.StringIO()
+        invalid_file.write(VALID_CSV)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        dataset = factories.Dataset()
+
+        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
+
+        with mock.patch('io.open', return_value=valid_stream):
+
+            resource = call_action(
+                'resource_create',
+                package_id=dataset['id'],
+                format='CSV',
+                upload=mock_upload
+            )
+
+        assert_equals(resource['validation_status'], 'success')
+        assert 'validation_timestamp' in resource

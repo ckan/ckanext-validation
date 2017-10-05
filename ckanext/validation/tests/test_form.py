@@ -1,14 +1,19 @@
 import json
+import io
+import mock
 
 from nose.tools import assert_in, assert_equals
 
-
 from ckantoolkit.tests.factories import Sysadmin, Dataset
 from ckantoolkit.tests.helpers import (
-    FunctionalTestBase, submit_and_follow, call_action, reset_db
+    FunctionalTestBase, submit_and_follow, webtest_submit, call_action,
+    reset_db, change_config
 )
 
 from ckanext.validation.model import create_tables, tables_exist
+from ckanext.validation.tests.helpers import (
+        VALID_CSV, INVALID_CSV, mock_uploads
+)
 
 
 def _get_resource_new_page_as_sysadmin(app, id):
@@ -109,3 +114,55 @@ class TestResourceSchemaForm(FunctionalTestBase):
         dataset = call_action('package_show', id=dataset['id'])
 
         assert_equals(dataset['resources'][0]['schema'], value)
+
+
+class TestResourceValidationOnCreateForm(FunctionalTestBase):
+
+    def setup(self):
+        reset_db()
+        if not tables_exist():
+            create_tables()
+
+    @mock_uploads
+    @change_config('ckanext.validation.run_on_create_sync', True)
+    def test_resource_form_create_valid(self, mock_open):
+        dataset = Dataset()
+
+        app = self._get_test_app()
+        env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
+        form = response.forms['resource-edit']
+
+        upload = ('upload', 'valid.csv', VALID_CSV)
+
+        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
+
+        with mock.patch('io.open', return_value=valid_stream):
+
+            submit_and_follow(app, form, env, 'save', upload_files=[upload])
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['validation_status'], 'success')
+        assert 'validation_timestamp' in dataset['resources'][0]
+
+    @mock_uploads
+    @change_config('ckanext.validation.run_on_create_sync', True)
+    def test_resource_form_create_invalid(self, mock_open):
+        dataset = Dataset()
+
+        app = self._get_test_app()
+        env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
+        form = response.forms['resource-edit']
+
+        upload = ('upload', 'invalid.csv', INVALID_CSV)
+
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            response = webtest_submit(
+                form, 'save', upload_files=[upload], extra_environ=env)
+
+        assert_in('validation', response.body)
+        assert_in('missing-value', response.body)
+        assert_in('Row 2 has a missing value in column 4', response.body)
