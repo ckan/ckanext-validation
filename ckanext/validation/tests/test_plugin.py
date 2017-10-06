@@ -17,7 +17,7 @@ class TestResourceControllerHooksUpdate(object):
         if not tables_exist():
             create_tables()
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_does_not_run_on_other_fields(self, mock_enqueue):
 
@@ -29,7 +29,7 @@ class TestResourceControllerHooksUpdate(object):
 
         mock_enqueue.assert_not_called()
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_does_not_run_on_other_formats(self, mock_enqueue):
 
@@ -39,7 +39,7 @@ class TestResourceControllerHooksUpdate(object):
 
         mock_enqueue.assert_not_called()
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_run_on_upload(self, mock_enqueue):
 
@@ -54,7 +54,7 @@ class TestResourceControllerHooksUpdate(object):
         assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
         assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_run_on_url_change(self, mock_enqueue):
 
@@ -69,7 +69,7 @@ class TestResourceControllerHooksUpdate(object):
         assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
         assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_run_on_schema_change(self, mock_enqueue):
 
@@ -93,7 +93,7 @@ class TestResourceControllerHooksUpdate(object):
         assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
         assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_run_on_format_change(self, mock_enqueue):
 
@@ -108,8 +108,8 @@ class TestResourceControllerHooksUpdate(object):
         assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
         assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
 
-    @change_config('ckanext.validation.run_on_create', False)
-    @change_config('ckanext.validation.run_on_update', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
+    @change_config('ckanext.validation.run_on_update_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_does_not_run_when_config_false(self, mock_enqueue):
 
@@ -156,7 +156,7 @@ class TestResourceControllerHooksCreate(object):
         assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
         assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(ckantoolkit, 'enqueue_job')
     def test_validation_does_not_run_when_config_false(self, mock_enqueue):
 

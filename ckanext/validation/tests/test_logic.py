@@ -7,8 +7,7 @@ import mock
 
 from ckan import model
 from ckan.tests.helpers import (
-    call_action, call_auth, reset_db, change_config,
-    FunctionalTestBase
+    call_action, call_auth, change_config, reset_db, FunctionalTestBase
 )
 from ckan.tests import factories
 
@@ -27,7 +26,12 @@ Session = model.Session
 class TestResourceValidationRun(object):
 
     def setup(self):
+
+        # We don't use FunctionalTestBase here as we need to change the config
+        # in individual tests
+
         reset_db()
+
         if not tables_exist():
             create_tables()
 
@@ -107,7 +111,7 @@ class TestResourceValidationRun(object):
         assert_equals(validation.report, None)
         assert_equals(validation.error, None)
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch('ckantoolkit.enqueue_job')
     def test_resource_validation_resets_existing_validation_object(
             self, mock_enqueue_job):
@@ -139,10 +143,12 @@ class TestResourceValidationRun(object):
         assert_equals(validation.error, None)
 
 
-class TestResourceValidationShow(object):
+class TestResourceValidationShow(FunctionalTestBase):
 
     def setup(self):
-        reset_db()
+
+        super(TestResourceValidationShow, self).setup()
+
         if not tables_exist():
             create_tables()
 
@@ -158,7 +164,7 @@ class TestResourceValidationShow(object):
             t.ObjectNotFound,
             call_action, 'resource_validation_show', resource_id='not_exists')
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     def test_resource_validation_show_validation_does_not_exists(self):
 
         resource = factories.Resource(format='csv')
@@ -168,7 +174,7 @@ class TestResourceValidationShow(object):
             call_action, 'resource_validation_show',
             resource_id=resource['id'])
 
-    @change_config('ckanext.validation.run_on_create', False)
+    @change_config('ckanext.validation.run_on_create_async', False)
     def test_resource_validation_show_returns_all_fields(self):
 
         resource = factories.Resource(format='csv')
@@ -197,10 +203,12 @@ class TestResourceValidationShow(object):
             validation_show['finished'], validation.finished.isoformat())
 
 
-class TestAuth(object):
+class TestAuth(FunctionalTestBase):
 
     def setup(self):
-        reset_db()
+
+        super(TestAuth, self).setup()
+
         if not tables_exist():
             create_tables()
 
@@ -314,6 +322,10 @@ class TestAuth(object):
 
 class TestResourceValidationOnCreate(FunctionalTestBase):
 
+    @classmethod
+    def _apply_config_changes(cls, cfg):
+        cfg['ckanext.validation.run_on_create_sync'] = True
+
     def setup(self):
 
         super(TestResourceValidationOnCreate, self).setup()
@@ -322,7 +334,6 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
             create_tables()
 
     @mock_uploads
-    @change_config('ckanext.validation.run_on_create_sync', True)
     def test_validation_fails_on_upload(self, mock_open):
 
         invalid_file = StringIO.StringIO()
@@ -350,7 +361,6 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
         assert 'Row 2 has a missing value in column 4' in str(e.exception)
 
     @mock_uploads
-    @change_config('ckanext.validation.run_on_create_sync', True)
     def test_validation_passes_on_upload(self, mock_open):
 
         invalid_file = StringIO.StringIO()

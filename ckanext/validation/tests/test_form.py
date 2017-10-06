@@ -118,13 +118,16 @@ class TestResourceSchemaForm(FunctionalTestBase):
 
 class TestResourceValidationOnCreateForm(FunctionalTestBase):
 
+    @classmethod
+    def _apply_config_changes(cls, cfg):
+        cfg['ckanext.validation.run_on_create_sync'] = True
+
     def setup(self):
         reset_db()
         if not tables_exist():
             create_tables()
 
     @mock_uploads
-    @change_config('ckanext.validation.run_on_create_sync', True)
     def test_resource_form_create_valid(self, mock_open):
         dataset = Dataset()
 
@@ -146,7 +149,6 @@ class TestResourceValidationOnCreateForm(FunctionalTestBase):
         assert 'validation_timestamp' in dataset['resources'][0]
 
     @mock_uploads
-    @change_config('ckanext.validation.run_on_create_sync', True)
     def test_resource_form_create_invalid(self, mock_open):
         dataset = Dataset()
 

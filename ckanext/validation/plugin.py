@@ -69,12 +69,17 @@ to create the database tables:
     # IActions
 
     def get_actions(self):
-        return {
+        new_actions = {
             u'resource_validation_run': resource_validation_run,
             u'resource_validation_show': resource_validation_show,
-            u'resource_create': custom_resource_create,
-            # u'resource_update': custom_resource_update
         }
+
+        if get_create_mode_from_config() == u'sync':
+            new_actions[u'resource_create'] = custom_resource_create
+        # if get_update_mode_from_config() == u'async':
+        #    new_actions[u'resource_update'] = custom_resource_update
+
+        return new_actions
 
     # IAuthFunctions
 
@@ -145,7 +150,7 @@ to create the database tables:
 
     def after_update(self, context, updated_resource):
 
-        if not t.config.get(u'ckanext.validation.run_on_update', True):
+        if not get_update_mode_from_config() == u'async':
             return
 
         resource_id = updated_resource[u'id']
