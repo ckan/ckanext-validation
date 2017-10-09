@@ -13,6 +13,7 @@ from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings
 from ckanext.validation.utils import (
     get_create_mode_from_config,
+    delete_local_uploaded_file,
 )
 
 
@@ -257,7 +258,7 @@ def resource_create(context, data_dict):
     # Custom code starts
 
     if get_create_mode_from_config() == u'sync':
-        _run_sync_validation(resource_id)
+        _run_sync_validation(resource_id, upload=(upload.filename is not None))
 
     # Custom code ends
 
@@ -284,7 +285,7 @@ def resource_create(context, data_dict):
     return resource
 
 
-def _run_sync_validation(resource_id):
+def _run_sync_validation(resource_id, upload=False):
 
     try:
         t.get_action(u'resource_validation_run')(
@@ -311,7 +312,9 @@ def _run_sync_validation(resource_id):
             {u'resource_id': resource_id}
         )
 
-        # TODO: delete file upload
+        # Delete uploaded file
+        if upload:
+            delete_local_uploaded_file(resource_id)
 
         raise t.ValidationError({
             u'validation': [report]})
