@@ -28,6 +28,13 @@ def auth_resource_validation_run(context, data_dict):
     return {u'success': False}
 
 
+def auth_resource_validation_delete(context, data_dict):
+    if t.check_access(
+            u'resource_update', context, {u'id': data_dict[u'resource_id']}):
+        return {u'success': True}
+    return {u'success': False}
+
+
 @t.auth_allow_anonymous_access
 def auth_resource_validation_show(context, data_dict):
     if t.check_access(
@@ -140,6 +147,36 @@ def resource_validation_show(context, data_dict):
             'No validation report exists for this resource')
 
     return _validation_dictize(validation)
+
+
+def resource_validation_delete(context, data_dict):
+    u'''
+    Remove the validation job result for a particular resource.
+    It also deletes the underlying Validation object.
+
+    :param resource_id: id of the resource to remove validation from
+    :type resource_id: string
+
+    :rtype: None
+
+    '''
+
+    t.check_access(u'resource_validation_delete', context, data_dict)
+
+    if not data_dict.get(u'resource_id'):
+        raise t.ValidationError({u'resource_id': u'Missing value'})
+
+    Session = context['model'].Session
+
+    validation = Session.query(Validation).filter(
+        Validation.resource_id == data_dict['resource_id']).one_or_none()
+
+    if not validation:
+        raise t.ObjectNotFound(
+            'No validation report exists for this resource')
+
+    Session.delete(validation)
+    Session.commit()
 
 
 def _validation_dictize(validation):

@@ -9,7 +9,9 @@ from ckanext.validation import settings
 from ckanext.validation.model import tables_exist
 from ckanext.validation.logic import (
     resource_validation_run, resource_validation_show,
+    resource_validation_delete,
     auth_resource_validation_run, auth_resource_validation_show,
+    auth_resource_validation_delete,
     resource_create as custom_resource_create,
     # resource_update as custom_resource_update,
 )
@@ -72,6 +74,7 @@ to create the database tables:
         new_actions = {
             u'resource_validation_run': resource_validation_run,
             u'resource_validation_show': resource_validation_show,
+            u'resource_validation_delete': resource_validation_delete,
         }
 
         if get_create_mode_from_config() == u'sync':
@@ -86,7 +89,8 @@ to create the database tables:
     def get_auth_functions(self):
         return {
             u'resource_validation_run': auth_resource_validation_run,
-            u'resource_validation_show': auth_resource_validation_show
+            u'resource_validation_show': auth_resource_validation_show,
+            u'resource_validation_delete': auth_resource_validation_delete,
         }
 
     # ITemplateHelpers

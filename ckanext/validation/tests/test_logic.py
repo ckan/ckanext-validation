@@ -203,6 +203,56 @@ class TestResourceValidationShow(FunctionalTestBase):
             validation_show['finished'], validation.finished.isoformat())
 
 
+class TestResourceValidationDelete(FunctionalTestBase):
+
+    def setup(self):
+
+        super(TestResourceValidationDelete, self).setup()
+
+        if not tables_exist():
+            create_tables()
+
+    def test_resource_validation_delete_param_missing(self):
+
+        assert_raises(
+            t.ValidationError,
+            call_action, 'resource_validation_delete')
+
+    def test_resource_validation_delete_not_exists(self):
+
+        assert_raises(
+            t.ObjectNotFound,
+            call_action, 'resource_validation_delete',
+            resource_id='not_exists')
+
+    @change_config('ckanext.validation.run_on_create_async', False)
+    def test_resource_validation_delete_removes_object(self):
+
+        resource = factories.Resource(format='csv')
+        timestamp = datetime.datetime.utcnow()
+        validation = Validation(
+            resource_id=resource['id'],
+            created=timestamp,
+            finished=timestamp,
+            status='valid',
+            report={'some': 'report'},
+            error={'some': 'error'})
+        Session.add(validation)
+        Session.commit()
+
+        count_before = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).count()
+
+        assert_equals(count_before, 1)
+
+        call_action('resource_validation_delete', resource_id=resource['id'])
+
+        count_after = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).count()
+
+        assert_equals(count_after, 0)
+
+
 class TestAuth(FunctionalTestBase):
 
     def setup(self):
@@ -269,6 +319,66 @@ class TestAuth(FunctionalTestBase):
         }
 
         assert_equals(call_auth('resource_validation_run', context=context,
+                                resource_id=dataset['resources'][0]['id']),
+                      True)
+
+    def test_delete_anon(self):
+
+        resource = factories.Resource()
+
+        context = {
+            'user': None,
+            'model': model
+        }
+
+        assert_raises(t.NotAuthorized,
+                      call_auth, 'resource_validation_delete', context=context,
+                      resource_id=resource['id'])
+
+    def test_delete_sysadmin(self):
+
+        resource = factories.Resource()
+        sysadmin = factories.Sysadmin()
+
+        context = {
+            'user': sysadmin['name'],
+            'model': model
+        }
+
+        assert_equals(call_auth('resource_validation_delete', context=context,
+                                resource_id=resource['id']),
+                      True)
+
+    def test_delete_non_auth_user(self):
+
+        user = factories.User()
+        org = factories.Organization()
+        dataset = factories.Dataset(
+            owner_org=org['id'], resources=[factories.Resource()])
+
+        context = {
+            'user': user['name'],
+            'model': model
+        }
+
+        assert_raises(t.NotAuthorized,
+                      call_auth, 'resource_validation_delete', context=context,
+                      resource_id=dataset['resources'][0]['id'])
+
+    def test_delete_auth_user(self):
+
+        user = factories.User()
+        org = factories.Organization(
+            users=[{'name': user['name'], 'capacity': 'editor'}])
+        dataset = factories.Dataset(
+            owner_org=org['id'], resources=[factories.Resource()])
+
+        context = {
+            'user': user['name'],
+            'model': model
+        }
+
+        assert_equals(call_auth('resource_validation_delete', context=context,
                                 resource_id=dataset['resources'][0]['id']),
                       True)
 
