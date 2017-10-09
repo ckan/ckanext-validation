@@ -471,6 +471,34 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
         assert 'Row 2 has a missing value in column 4' in str(e.exception)
 
     @mock_uploads
+    def test_validation_fails_no_validation_object_stored(self, mock_open):
+
+        invalid_file = StringIO.StringIO()
+        invalid_file.write(INVALID_CSV)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        dataset = factories.Dataset()
+
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+
+        validation_count_before = model.Session.query(Validation).count()
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            with assert_raises(t.ValidationError):
+                call_action(
+                    'resource_create',
+                    package_id=dataset['id'],
+                    format='CSV',
+                    upload=mock_upload
+                )
+
+        validation_count_after = model.Session.query(Validation).count()
+
+        assert_equals(validation_count_after, validation_count_before)
+
+    @mock_uploads
     def test_validation_passes_on_upload(self, mock_open):
 
         invalid_file = StringIO.StringIO()

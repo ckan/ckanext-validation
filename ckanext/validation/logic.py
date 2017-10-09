@@ -305,7 +305,11 @@ def _run_sync_validation(resource_id):
 
     if not report['valid']:
 
-        # TODO: delete validation
+        # Delete validation object
+        t.get_action(u'resource_validation_delete')(
+            {u'ignore_auth': True},
+            {u'resource_id': resource_id}
+        )
 
         # TODO: delete file upload
 
