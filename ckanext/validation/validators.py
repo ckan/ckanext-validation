@@ -18,6 +18,9 @@ def resource_schema_validator(value, context):
     if isinstance(value, basestring):
         try:
             descriptor = json.loads(str(value))
+            if not isinstance(descriptor, dict):
+                msg = u'Invalid Table Schema descriptor: {}'.format(value)
+                raise Invalid(msg)
 
         except ValueError as e:
             msg = u'JSON error in Table Schema descriptor: {}'.format(e)

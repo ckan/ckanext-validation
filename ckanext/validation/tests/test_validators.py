@@ -27,6 +27,18 @@ class TestValidators(object):
 
         assert_raises(Invalid, resource_schema_validator, schema, {})
 
+    def test_resource_schema_valid_json_not_a_dict_string(self):
+
+        schema = '[a,2]'
+
+        assert_raises(Invalid, resource_schema_validator, schema, {})
+
+    def test_resource_schema_valid_json_empty_string(self):
+
+        schema = '""'
+
+        assert_raises(Invalid, resource_schema_validator, schema, {})
+
     def test_resource_schema_invalid_schema_object(self):
 
         schema = {'a': 1}
