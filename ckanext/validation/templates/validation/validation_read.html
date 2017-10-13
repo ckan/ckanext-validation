@@ -31,7 +31,7 @@
         </div>
 
         {% if validation.report %}
-            <div id="report" data-module="validation-report" data-module-report="{{ validation.report|tojson}}"></div>
+            <div id="report" data-module="validation-report" data-module-report="{{ h.dump_json_value(validation.report) }}"></div>
         {% endif %}
 
         </div>

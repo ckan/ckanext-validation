@@ -62,3 +62,18 @@ Data validation errors found, please check the <a {params}>report</a>.''')
             break
 
     return report, errors
+
+
+def dump_json_value(value, indent=None):
+    """
+    Returns the object passed serialized as a JSON string.
+
+    :param value: The object to serialize.
+    :returns: The serialized object, or the original value if it could not be
+        serialized.
+    :rtype: string
+    """
+    try:
+        return json.dumps(value, indent=indent, sort_keys=True)
+    except (TypeError, ValueError):
+        return value
