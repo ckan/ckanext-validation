@@ -2,7 +2,7 @@
 import json
 
 from ckan.lib.helpers import url_for_static
-from ckantoolkit import url_for, _, config, asbool
+from ckantoolkit import url_for, _, config, asbool, literal
 
 
 def get_validation_badge(resource, in_listing=False):
@@ -42,3 +42,23 @@ def get_validation_badge(resource, in_listing=False):
         badge_url=badge_url,
         alt=messages[status],
         title=resource.get('validation_timestamp', ''))
+
+
+def validation_extract_report_from_errors(errors):
+
+    report = None
+    for error in errors.keys():
+        if error == 'validation':
+            report = errors[error][0]
+            msg = _('''
+Data validation errors found, please check the <a {params}>report</a>.''')
+            params = [
+                'href="#validation-report"',
+                'data-module="modal-dialog"',
+                'data-module-div="validation-report-dialog"',
+            ]
+            new_error = literal(msg.format(params=' '.join(params)))
+            errors[error] = [new_error]
+            break
+
+    return report, errors

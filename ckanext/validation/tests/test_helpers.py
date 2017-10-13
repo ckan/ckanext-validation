@@ -1,36 +1,32 @@
 import datetime
 
-from nose.tools import assert_equals
+from nose.tools import assert_equals, assert_in
 
-from ckan.tests.helpers import reset_db, _get_test_app
+from ckan.tests.helpers import reset_db
 from ckan.tests import factories
 
 from ckantoolkit import config
 
-from ckanext.validation.helpers import get_validation_badge
+from ckanext.validation.helpers import (
+    get_validation_badge,
+    validation_extract_report_from_errors,
+)
 from ckanext.validation.model import create_tables, tables_exist
 
 
-class TestHelpers(object):
+class TestBadges(object):
 
     @classmethod
     def setup_class(cls):
         cls._original_config = dict(config)
-        config['ckanext.validation.run_on_create'] = False
+        config['ckanext.validation.run_on_create_sync'] = False
 
         reset_db()
         if not tables_exist():
             create_tables()
 
-        app = _get_test_app()
-        cls.request_context = app.flask_app.test_request_context()
-        cls.request_context.push()
-
-
     @classmethod
     def teardown_class(cls):
-
-        cls.request_context.pop()
 
         config.clear()
         config.update(cls._original_config)
@@ -107,3 +103,35 @@ class TestHelpers(object):
         assert 'src="/images/badges/data-unknown-flat.svg"' in out
         assert 'alt="Data validation unknown"' in out
         assert 'title=""' in out
+
+
+class TestExtractReportFromErrors(object):
+
+    def test_report_extracted(self):
+
+        errors = {
+          'some_field': ['Some error'],
+          'validation': [{'error-count': 8}]
+        }
+
+        report, errors = validation_extract_report_from_errors(errors)
+
+        assert_equals(report, {'error-count': 8})
+        assert_equals(errors['some_field'], ['Some error'])
+        assert str(errors['validation'][0]).strip().startswith(
+            'Data validation errors found')
+
+        assert_in('data-module="modal-dialog"', str(errors['validation'][0]))
+
+    def test_report_not_extracted(self):
+
+        errors = {
+          'some_field': ['Some error'],
+          'some_other_field': ['Some other error']
+        }
+
+        report, errors = validation_extract_report_from_errors(errors)
+
+        assert report is None
+        assert_equals(errors['some_field'], ['Some error'])
+        assert_equals(errors['some_other_field'], ['Some other error'])

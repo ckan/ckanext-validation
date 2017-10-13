@@ -17,6 +17,7 @@ from ckanext.validation.logic import (
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
+    validation_extract_report_from_errors,
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
@@ -98,6 +99,7 @@ to create the database tables:
     def get_helpers(self):
         return {
             'get_validation_badge': get_validation_badge,
+            'validation_extract_report_from_errors': validation_extract_report_from_errors,
         }
 
     # IResourceController

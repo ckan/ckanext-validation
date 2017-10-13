@@ -1,0 +1,13 @@
+{% ckan_extends %}
+
+{% set validation_report, errors = h.validation_extract_report_from_errors(errors) %}
+{% block errors_list %}
+  {{ super() }}
+
+  {% if validation_report %}
+
+	{% snippet 'validation/snippets/validation_report_dialog.html', validation_report=validation_report %} 
+
+  {% endif %}
+ 
+{% endblock %}
