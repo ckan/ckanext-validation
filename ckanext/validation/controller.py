@@ -26,7 +26,7 @@ class ValidationController(BaseController):
             c.package = c.pkg_dict = dataset
             c.resource = resource
 
-            return render(u'validation_read.html', extra_vars={
+            return render(u'validation/validation_read.html', extra_vars={
                 u'validation': validation,
                 u'resource': resource,
                 u'dataset': dataset,
