@@ -1,5 +1,4 @@
 ckantoolkit>=0.0.3
-goodtables==1.0.0a16
-tableschema==1.0.1
+goodtables==1.5.1
 #TODO pin version when json preset is merged
 -e git+https://github.com/ckan/ckanext-scheming.git#egg=ckanext-scheming
