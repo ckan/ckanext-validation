@@ -3,15 +3,15 @@ import json
 
 from nose.tools import assert_equals
 
-from ckan.model import Session
-from ckan.lib.uploader import ResourceUpload
-from ckan.tests.helpers import call_action, reset_db
-from ckan.tests import factories
-
 import ckantoolkit
 
+from ckan.lib.uploader import ResourceUpload
+from ckan.tests.helpers import call_action, reset_db, change_config
+from ckan.tests import factories
+
 from ckanext.validation.model import create_tables, tables_exist, Validation
-from ckanext.validation.jobs import run_validation_job, Inspector, uploader
+from ckanext.validation.jobs import (
+    run_validation_job, Inspector, uploader, Session)
 
 
 class MockUploader(ResourceUpload):
@@ -128,13 +128,18 @@ class TestValidationJob(object):
         if not tables_exist():
             create_tables()
 
+    @change_config('ckanext.validation.run_on_create_async', False)
     @mock.patch.object(Inspector, 'inspect')
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
-    def test_job_run_no_schema(self, mock_toolkit, mock_commit, mock_inspect):
+    def test_job_run_no_schema(
+         self, mock_get_action, mock_commit, mock_inspect):
 
-        resource = factories.Resource(
-            url='http://example.com/file.csv', format='csv')
+        resource = {
+            'id': 'test',
+            'url': 'http://example.com/file.csv',
+            'format': 'csv',
+        }
 
         run_validation_job(resource)
 
@@ -146,18 +151,20 @@ class TestValidationJob(object):
     @mock.patch.object(Inspector, 'inspect')
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
-    def test_job_run_schema(self, mock_toolkit, mock_commit, mock_inspect):
-
+    def test_job_run_schema(
+         self, mock_get_action, mock_commit, mock_inspect):
         schema = {
             'fields': [
                 {'name': 'id', 'type': 'integer'},
                 {'name': 'description', 'type': 'string'}
             ]
         }
-
-        resource = factories.Resource(
-            url='http://example.com/file.csv', format='csv',
-            schema=json.dumps(schema))
+        resource = {
+            'id': 'test',
+            'url': 'http://example.com/file.csv',
+            'format': 'csv',
+            'schema': json.dumps(schema),
+        }
 
         run_validation_job(resource)
 
@@ -172,10 +179,14 @@ class TestValidationJob(object):
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
     def test_job_run_uploaded_file(
-            self, mock_toolkit, mock_commit, mock_uploader, mock_inspect):
+            self, mock_get_action, mock_commit, mock_uploader, mock_inspect):
 
-        resource = factories.Resource(
-            url='__upload', url_type='upload', format='csv')
+        resource = {
+            'id': 'test',
+            'url': '__upload',
+            'url_type': 'upload',
+            'format': 'csv',
+        }
 
         run_validation_job(resource)
 
