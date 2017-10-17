@@ -50,6 +50,9 @@ def validation_extract_report_from_errors(errors):
     for error in errors.keys():
         if error == 'validation':
             report = errors[error][0]
+            # Remove full path from table source
+            source = report['tables'][0]['source']
+            report['tables'][0]['source'] = source.split('/')[-1]
             msg = _('''
 Data validation errors found, please check the <a {params}>report</a>.''')
             params = [
