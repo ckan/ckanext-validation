@@ -1,0 +1,7 @@
+#validation-report-dialog  {
+  background-color: red;
+}
+
+#validation-report-dialog .modal-dialog {
+  width: 50%;
+}

@@ -1,0 +1,18 @@
+@media only screen and (min-width : 320px) {
+  #validation-report-dialog .modal-dialog {
+	width: 100%;
+  }
+}
+
+@media only screen and (min-width : 992px) {
+  #validation-report-dialog .modal-dialog {
+	width: 60%;
+  }
+
+}
+
+@media only screen and (min-width : 1200px) {
+  #validation-report-dialog .modal-dialog {
+	width: 50%;
+  }
+}
