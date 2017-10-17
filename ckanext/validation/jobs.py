@@ -3,6 +3,7 @@
 import logging
 import datetime
 import json
+import re
 
 from goodtables import Inspector
 
@@ -51,6 +52,8 @@ def run_validation_job(resource):
     for table in report.get('tables', []):
         if table['source'].startswith('/'):
             table['source'] = resource['url']
+    for index, warning in enumerate(report.get('warnings', [])):
+        report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
 
     if report['table-count'] > 0:
         validation.status = u'success' if report[u'valid'] else u'failure'

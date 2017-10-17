@@ -1,5 +1,7 @@
 import mock
+import StringIO
 import json
+import io
 
 from nose.tools import assert_equals
 
@@ -12,6 +14,9 @@ from ckan.tests import factories
 from ckanext.validation.model import create_tables, tables_exist, Validation
 from ckanext.validation.jobs import (
     run_validation_job, Inspector, uploader, Session)
+from ckanext.validation.tests.helpers import (
+        mock_uploads, MockFieldStorage
+)
 
 
 class MockUploader(ResourceUpload):
@@ -276,3 +281,31 @@ class TestValidationJob(object):
             updated_resource['validation_timestamp'],
             validation.finished.isoformat())
 
+    @mock_uploads
+    def test_job_local_paths_are_hidden(self, mock_open):
+
+        invalid_csv = 'id,type\n' + '1,a,\n' * 1010
+        invalid_file = StringIO.StringIO()
+
+        invalid_file.write(invalid_csv)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        resource = factories.Resource(format='csv', upload=mock_upload)
+
+        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv))
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            run_validation_job(resource)
+
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).one()
+
+        source = validation.report['tables'][0]['source']
+        assert source.startswith('http')
+        assert source.endswith('invalid.csv')
+
+        warning = validation.report['warnings'][0]
+        assert_equals(
+            warning, 'Table inspection has reached 1000 row(s) limit')
