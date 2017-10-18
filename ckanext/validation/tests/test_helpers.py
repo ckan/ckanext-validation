@@ -109,14 +109,20 @@ class TestExtractReportFromErrors(object):
 
     def test_report_extracted(self):
 
-        errors = {
-          'some_field': ['Some error'],
-          'validation': [{'error-count': 8}]
+        report = {
+            'tables': [{'source': '/some/path'}],
+            'error-count': 8
         }
 
-        report, errors = validation_extract_report_from_errors(errors)
+        errors = {
+          'some_field': ['Some error'],
+          'validation': [report],
+        }
 
-        assert_equals(report, {'error-count': 8})
+        extracted_report, errors = validation_extract_report_from_errors(
+            errors)
+
+        assert_equals(extracted_report, report)
         assert_equals(errors['some_field'], ['Some error'])
         assert str(errors['validation'][0]).strip().startswith(
             'Data validation errors found')
