@@ -65,3 +65,17 @@ class TestValidators(object):
         value = resource_schema_validator(schema, {})
 
         assert_equals(value, schema)
+
+    def test_resource_schema_valid_schema_url(self):
+
+        schema = 'https://example.com/schema.json'
+
+        value = resource_schema_validator(schema, {})
+
+        assert_equals(value, schema)
+
+    def test_resource_schema_invalid_wrong_url(self):
+
+        schema = '/some/wrong/url/schema.json'
+
+        assert_raises(Invalid, resource_schema_validator, schema, {})

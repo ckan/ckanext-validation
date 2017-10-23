@@ -16,6 +16,10 @@ def resource_schema_validator(value, context):
     msg = None
 
     if isinstance(value, basestring):
+
+        if value.lower().startswith('http'):
+            return value
+
         try:
             descriptor = json.loads(str(value))
             if not isinstance(descriptor, dict):

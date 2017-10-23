@@ -521,3 +521,96 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
 
         assert_equals(resource['validation_status'], 'success')
         assert 'validation_timestamp' in resource
+
+
+class TestSchemaFields(FunctionalTestBase):
+
+    def setup(self):
+
+        super(TestSchemaFields, self).setup()
+
+        if not tables_exist():
+            create_tables()
+
+    def test_schema_field(self):
+
+        dataset = factories.Dataset()
+
+        resource = call_action(
+            'resource_create',
+            package_id=dataset['id'],
+            url='http://example.com/file.csv',
+            schema='{"fields":[{"name":"id"}]}'
+        )
+
+        assert_equals(resource['schema'], {'fields': [{'name': 'id'}]})
+
+        assert 'schema_upload' not in resource
+        assert 'schema_url' not in resource
+
+    def test_schema_field_url(self):
+
+        url = 'https://example.com/schema.json'
+
+        dataset = factories.Dataset()
+
+        resource = call_action(
+            'resource_create',
+            package_id=dataset['id'],
+            url='http://example.com/file.csv',
+            schema=url
+        )
+
+        assert_equals(resource['schema'], url)
+
+        assert 'schema_upload' not in resource
+        assert 'schema_url' not in resource
+
+    def test_schema_url_field(self):
+
+        url = 'https://example.com/schema.json'
+
+        dataset = factories.Dataset()
+
+        resource = call_action(
+            'resource_create',
+            package_id=dataset['id'],
+            url='http://example.com/file.csv',
+            schema_url=url
+        )
+
+        assert_equals(resource['schema'], url)
+
+        assert 'schema_upload' not in resource
+        assert 'schema_url' not in resource
+
+    def test_schema_url_field_wrong_url(self):
+
+        url = 'not-a-url'
+
+        assert_raises(
+            t.ValidationError, call_action, 'resource_create',
+            url='http://example.com/file.csv',
+            schema_url=url
+        )
+
+    @mock_uploads
+    def test_schema_upload_field(self, mock_open):
+
+        schema_file = StringIO.StringIO('{"fields":[{"name":"category"}]}')
+
+        mock_upload = MockFieldStorage(schema_file, 'schema.json')
+
+        dataset = factories.Dataset()
+
+        resource = call_action(
+            'resource_create',
+            package_id=dataset['id'],
+            url='http://example.com/file.csv',
+            schema_upload=mock_upload
+        )
+
+        assert_equals(resource['schema'], {'fields': [{'name': 'category'}]})
+
+        assert 'schema_upload' not in resource
+        assert 'schema_url' not in resource

@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 import logging
+import cgi
 
 import ckan.plugins as p
 import ckantoolkit as t
@@ -99,12 +100,45 @@ to create the database tables:
 
     def get_helpers(self):
         return {
-            'get_validation_badge': get_validation_badge,
-            'validation_extract_report_from_errors': validation_extract_report_from_errors,
-            'dump_json_value': dump_json_value,
+            u'get_validation_badge': get_validation_badge,
+            u'validation_extract_report_from_errors': validation_extract_report_from_errors,
+            u'dump_json_value': dump_json_value,
         }
 
     # IResourceController
+
+    def _process_schema_fields(self, data_dict):
+        u'''
+        Normalize the different ways of providing the `schema` field
+
+        1. If `schema_upload` is provided and it's a valid file, the contents
+           are read into `schema`.
+        2. If `schema_url` is provided and looks like a valid URL, it's copied
+           to `schema`
+        3. If `schema_json` is provided, it's copied to `schema`.
+
+        All the 3 `schema_*` fields are removed from the data_dict.
+        Note that the data_dict still needs to pass validation
+        '''
+
+        schema_upload = data_dict.pop(u'schema_upload', None)
+        schema_url = data_dict.pop(u'schema_url', None)
+        schema_json = data_dict.pop(u'schema_json', None)
+
+        if isinstance(schema_upload, cgi.FieldStorage):
+            data_dict[u'schema'] = schema_upload.file.read()
+        elif schema_url:
+            if (not isinstance(schema_url, basestring) or
+                    not schema_url.lower()[:4] == u'http'):
+                raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
+            data_dict[u'schema'] = schema_url
+        elif schema_json:
+            data_dict[u'schema'] = schema_json
+
+        return data_dict
+
+    def before_create(self, context, data_dict):
+        return self._process_schema_fields(data_dict)
 
     resources_to_validate = {}
 
@@ -131,8 +165,10 @@ to create the database tables:
 
     def before_update(self, context, current_resource, updated_resource):
 
+        updated_resource = self._process_schema_fields(updated_resource)
+
         if not get_update_mode_from_config() == u'async':
-            return
+            return updated_resource
 
         needs_validation = False
         if ((
@@ -155,6 +191,8 @@ to create the database tables:
 
         if needs_validation:
             self.resources_to_validate[updated_resource[u'id']] = True
+
+        return updated_resource
 
     def after_update(self, context, updated_resource):
 

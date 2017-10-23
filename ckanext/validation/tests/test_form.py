@@ -50,7 +50,9 @@ class TestResourceSchemaForm(FunctionalTestBase):
         env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
         form = response.forms['resource-edit']
         assert_in('schema', form.fields)
-        assert_equals(form.fields['schema'][0].tag, 'textarea')
+        assert_equals(form.fields['schema'][0].tag, 'input')
+        assert_equals(form.fields['schema_json'][0].tag, 'textarea')
+        assert_equals(form.fields['schema_url'][0].tag, 'input')
 
     def test_resource_form_create(self):
         dataset = Dataset()
@@ -67,8 +69,50 @@ class TestResourceSchemaForm(FunctionalTestBase):
         }
         json_value = json.dumps(value)
 
-        form['url'] = 'http://example.com/data.csv'
+        form['url'] = 'https://example.com/data.csv'
         form['schema'] = json_value
+
+        submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['schema'], value)
+
+    def test_resource_form_create_json(self):
+        dataset = Dataset()
+
+        app = self._get_test_app()
+        env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
+        form = response.forms['resource-edit']
+
+        value = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'department'}
+            ]
+        }
+        json_value = json.dumps(value)
+
+        form['url'] = 'https://example.com/data.csv'
+        form['schema_json'] = json_value
+
+        submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['schema'], value)
+
+    def test_resource_form_create_url(self):
+        dataset = Dataset()
+
+        app = self._get_test_app()
+        env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
+        form = response.forms['resource-edit']
+
+        value = 'https://example.com/schemas.json'
+
+        form['url'] = 'https://example.com/data.csv'
+        form['schema_json'] = value
 
         submit_and_follow(app, form, env, 'save')
 
@@ -85,7 +129,7 @@ class TestResourceSchemaForm(FunctionalTestBase):
         }
         dataset = Dataset(
             resources=[{
-                'url': 'http://example.com/data.csv',
+                'url': 'https://example.com/data.csv',
                 'schema': value
             }]
         )
@@ -95,7 +139,11 @@ class TestResourceSchemaForm(FunctionalTestBase):
             app, dataset['id'], dataset['resources'][0]['id'])
         form = response.forms['resource-edit']
 
-        assert_equals(form['schema'].value, json.dumps(value, indent=2))
+        assert_equals(
+            form['schema'].value, json.dumps(value, indent=None))
+
+        # Clear current value
+        form['schema_json'] = ''
 
         value = {
             'fields': [
@@ -108,6 +156,78 @@ class TestResourceSchemaForm(FunctionalTestBase):
         json_value = json.dumps(value)
 
         form['schema'] = json_value
+
+        submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['schema'], value)
+
+    def test_resource_form_update_json(self):
+        value = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'department'}
+            ]
+        }
+        dataset = Dataset(
+            resources=[{
+                'url': 'https://example.com/data.csv',
+                'schema': value
+            }]
+        )
+
+        app = self._get_test_app()
+        env, response = _get_resource_update_page_as_sysadmin(
+            app, dataset['id'], dataset['resources'][0]['id'])
+        form = response.forms['resource-edit']
+
+        assert_equals(
+            form['schema_json'].value, json.dumps(value, indent=2))
+
+        value = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'department'},
+                {'name': 'date'}
+            ]
+        }
+
+        json_value = json.dumps(value)
+
+        form['schema_json'] = json_value
+
+        submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['schema'], value)
+
+    def test_resource_form_update_url(self):
+        value = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'department'}
+            ]
+        }
+        dataset = Dataset(
+            resources=[{
+                'url': 'https://example.com/data.csv',
+                'schema': value
+            }]
+        )
+
+        app = self._get_test_app()
+        env, response = _get_resource_update_page_as_sysadmin(
+            app, dataset['id'], dataset['resources'][0]['id'])
+        form = response.forms['resource-edit']
+
+        assert_equals(
+            form['schema_json'].value, json.dumps(value, indent=2))
+
+        value = 'https://example.com/schema.json'
+
+        form['schema_url'] = value
 
         submit_and_follow(app, form, env, 'save')
 

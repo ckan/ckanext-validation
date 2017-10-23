@@ -45,7 +45,10 @@ def mock_uploads(func):
 
 
 class MockFieldStorage(cgi.FieldStorage):
+
     def __init__(self, fp, filename):
+
         self.file = fp
         self.filename = filename
         self.name = 'upload'
+        self.list = None
