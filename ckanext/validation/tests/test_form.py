@@ -1,18 +1,19 @@
 import json
 import io
 import mock
+import StringIO
 
 from nose.tools import assert_in, assert_equals
 
 from ckantoolkit.tests.factories import Sysadmin, Dataset
 from ckantoolkit.tests.helpers import (
     FunctionalTestBase, submit_and_follow, webtest_submit, call_action,
-    reset_db, change_config
+    reset_db
 )
 
 from ckanext.validation.model import create_tables, tables_exist
 from ckanext.validation.tests.helpers import (
-        VALID_CSV, INVALID_CSV, mock_uploads
+    VALID_CSV, INVALID_CSV, mock_uploads, MockFieldStorage
 )
 
 
@@ -97,6 +98,32 @@ class TestResourceSchemaForm(FunctionalTestBase):
         form['schema_json'] = json_value
 
         submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['schema'], value)
+
+    @mock_uploads
+    def test_resource_form_create_upload(self, mock_open):
+        dataset = Dataset()
+
+        app = self._get_test_app()
+        env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
+        form = response.forms['resource-edit']
+
+        value = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'department'}
+            ]
+        }
+        json_value = json.dumps(value)
+
+        upload = ('schema_upload', 'schema.json', json_value)
+        form['url'] = 'https://example.com/data.csv'
+
+        webtest_submit(
+                form, 'save', upload_files=[upload], extra_environ=env)
 
         dataset = call_action('package_show', id=dataset['id'])
 
@@ -230,6 +257,48 @@ class TestResourceSchemaForm(FunctionalTestBase):
         form['schema_url'] = value
 
         submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['schema'], value)
+
+    def test_resource_form_update_upload(self):
+        value = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'department'}
+            ]
+        }
+        dataset = Dataset(
+            resources=[{
+                'url': 'https://example.com/data.csv',
+                'schema': value
+            }]
+        )
+
+        app = self._get_test_app()
+        env, response = _get_resource_update_page_as_sysadmin(
+            app, dataset['id'], dataset['resources'][0]['id'])
+        form = response.forms['resource-edit']
+
+        assert_equals(
+            form['schema_json'].value, json.dumps(value, indent=2))
+
+        value = {
+            'fields': [
+                {'name': 'code'},
+                {'name': 'department'},
+                {'name': 'date'}
+            ]
+        }
+
+        json_value = json.dumps(value)
+
+        upload = ('schema_upload', 'schema.json', json_value)
+        form['url'] = 'https://example.com/data.csv'
+
+        webtest_submit(
+                form, 'save', upload_files=[upload], extra_environ=env)
 
         dataset = call_action('package_show', id=dataset['id'])
 

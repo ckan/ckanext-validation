@@ -13,20 +13,21 @@
        >
     <div id="resource-schema-buttons">
       <label>{{ _('Data Schema') }}</label>
-      <div class="form-group controls"></div>
+      <div class="form-group controls">
+
+      </div>
     </div>
 
-    {# Schema JSON #}
-    {{ form.textarea(
-          'schema_json',
-          id='field-schema-json',
-          label=h.scheming_language_text('Data Schema JSON definition'),
-          value=h.scheming_display_json_value(value, indent=field.get('indent', 2)) if (value and is_json) else None,
-          error=errors['schema'] if is_json else None,
-          attrs=field.form_attrs or {"class": "form-control"}
+    {# Schema Upload #}
+    {{ form.input(
+        'schema_upload',
+        label='Upload Data Schema',
+        id='field-schema-upload',
+        type='file',
+        error='',
+        classes=['control-full']
         )
-    }}
-
+     }}
 
     {# Schema URL #}
     {{ form.input(
@@ -40,6 +41,18 @@
           classes=['control-full']
         )
     }}
+
+    {# Schema JSON #}
+    {{ form.textarea(
+          'schema_json',
+          id='field-schema-json',
+          label=h.scheming_language_text('Data Schema JSON definition'),
+          value=h.scheming_display_json_value(value, indent=field.get('indent', 2)) if (value and is_json) else None,
+          error=errors['schema'] if is_json else None,
+          attrs=field.form_attrs or {"class": "form-control"}
+        )
+    }}
+
 
 
     {# Actual field containing the value #}

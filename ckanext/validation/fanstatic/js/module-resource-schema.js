@@ -31,14 +31,15 @@ this.ckan.module('resource-schema', function($) {
       $.proxyAll(this, /_on/);
       var options = this.options;
 
-      // firstly setup the fields
-      // var field_upload = 'input[name="' + options.field_upload + '"]';
+      var field_upload = 'input[name="schema_upload"]';
       var field_url = 'input[name="schema_url"]';
       var field_json = 'textarea[name="schema_json"]';
 
       this.input = $(field_url, this.el);
+      this.field_upload = $(field_upload, this.el).parents('.form-group');
       this.field_url = $(field_url, this.el).parents('.form-group');
       this.field_json = $(field_json, this.el).parents('.form-group');
+      this.field_upload_input = $('input', this.field_upload);
       this.field_url_input = $('input', this.field_url);
       this.field_json_input = $('textarea', this.field_json);
       this.field_schema_input = $('#field-schema');
@@ -46,9 +47,13 @@ this.ckan.module('resource-schema', function($) {
       // this is the location for the upload/link data/image label
       this.buttons_div = $("#resource-schema-buttons");
       this.label = $('label', this.buttons_div);
+
+      this.label_url = $('label', this.field_url);
       // determines if the resource is a data resource
       this.is_data_resource = (this.options.field_url === 'url') && (this.options.field_upload === 'upload');
 
+
+      this.field_upload_input.on('change', this._onInputChange);
       this.field_url_input.focus()
         .on('blur', this._onURLBlur);
       this.field_json_input.focus()
@@ -69,6 +74,22 @@ this.ckan.module('resource-schema', function($) {
         .appendTo(this.el);
       */
 
+      // Button to set upload a schema file
+      this.button_upload = $('<a href="javascript:;" class="btn btn-default">' +
+                          '<i class="fa fa-cloud-upload"></i>' +
+                          this._('Upload') + '</a>')
+        .prop('title', this._('Upload a Data Schema file from your computer'))
+        .on('click', this._onFromUpload);
+      $('.controls', this.buttons_div).append(this.button_upload);
+
+      // Button to set the field to be a URL
+      this.button_url = $('<a href="javascript:;" class="btn btn-default">' +
+                          '<i class="fa fa-globe"></i>' +
+                          this._('Link') + '</a>')
+        .prop('title', this._('URL for a Data Schema file available on the Internet'))
+        .on('click', this._onFromWeb);
+      $('.controls', this.buttons_div).append(this.button_url);
+
       // Button to set the field to be a JSON text
       this.button_json = $('<a href="javascript:;" class="btn btn-default">' +
                           '<i class="fa fa-code"></i>' +
@@ -76,14 +97,6 @@ this.ckan.module('resource-schema', function($) {
         .prop('title', this._('Enter manually a Table Schema JSON object'))
         .on('click', this._onFromJSON);
       $('.controls', this.buttons_div).append(this.button_json);
-
-      // Button to set the field to be a URL
-      this.button_url = $('<a href="javascript:;" class="btn btn-default">' +
-                          '<i class="fa fa-globe"></i>' +
-                          this._('Link') + '</a>')
-        .prop('title', this._('Link to a URL on the internet (you can also link to an API)'))
-        .on('click', this._onFromWeb);
-      $('.controls', this.buttons_div).append(this.button_url);
 
       /*
       // Button to attach local file to the form
@@ -121,20 +134,17 @@ this.ckan.module('resource-schema', function($) {
 
       // Fields storage. Used in this.changeState
       this.fields = $('<i />')
-//        .add(this.button_upload)
+        .add(this.button_upload)
         .add(this.button_url)
         .add(this.button_json)
+        .add(this.field_upload)
         .add(this.field_url)
         .add(this.field_json);
 
       if (options.is_url) {
         this._showOnlyFieldUrl();
-
-//        this._updateUrlLabel(this._('Data Schema URL'));
       } else if (options.is_json) {
         this._showOnlyFieldJSON();
-
-//        this._updateUrlLabel(this._('Data Schema JSON Definition'));
       } else {
         this._showOnlyButtons();
       }
@@ -150,11 +160,13 @@ this.ckan.module('resource-schema', function($) {
      * Returns nothing.
      */
     _updateUrlLabel: function(label_text) {
-      if (! this.is_data_resource) {
-        return;
-      }
-
       this.label.text(label_text);
+    },
+
+    _onFromUpload: function() {
+
+      this.field_upload_input.click()
+
     },
 
     /* Event listener for when someone sets the field to URL mode
@@ -166,13 +178,7 @@ this.ckan.module('resource-schema', function($) {
 
       this.field_url_input.focus()
         .on('blur', this._onFromWebBlur);
-      /*
-      if (this.options.is_upload) {
-        this.field_clear.val('true');
-      }
-      */
 
-      this._updateUrlLabel(this._('URL'));
     },
 
     /* Event listener for when someone sets the field to JSON text mode
@@ -182,12 +188,6 @@ this.ckan.module('resource-schema', function($) {
     _onFromJSON: function() {
       this._showOnlyFieldJSON();
 
-      /*
-      if (this.options.is_upload) {
-        this.field_clear.val('true');
-      }
-      */
-      this._updateUrlLabel(this._('JSON'));
     },
 
     /* Event listener for resetting the URL field back to the blank state
@@ -201,6 +201,10 @@ this.ckan.module('resource-schema', function($) {
       this.field_url_input.prop('readonly', false);
 
       this.field_schema_input.val('');
+
+      this._updateUrlLabel(this._('Data Schema'));
+
+      this.label_url.text(this._('Data Schema URL'))
     },
 
     /* Event listener for resetting the JSON text field back to the blank state
@@ -216,31 +220,10 @@ this.ckan.module('resource-schema', function($) {
       this.field_schema_input.val('');
     },
 
-    /* Event listener for when someone chooses a file to upload
-     *
-     * Returns nothing.
-     */
-    _onInputChange: function() {
-      var file_name = this.input.val().split(/^C:\\fakepath\\/).pop();
-      this.field_url_input.val(file_name);
-      this.field_url_input.prop('readonly', true);
-
-      this.field_clear.val('');
-
-      this._showOnlyFieldUrl();
-
-      this._autoName(file_name);
-
-      this._updateUrlLabel(this._('File'));
-    },
-
-    /* Show only the buttons, hiding all others
-     *
-     * Returns nothing.
-     */
     _showOnlyButtons: function() {
       this.fields.hide();
       this.label.show();
+      this.button_upload.show()
       this.button_url.show()
       this.button_json.show()
     },
@@ -257,22 +240,6 @@ this.ckan.module('resource-schema', function($) {
       this.field_json.show();
     },
 
-    /* Event listener for when a user mouseovers the hidden file input
-     *
-     * Returns nothing.
-     */
-    _onInputMouseOver: function() {
-//      this.button_upload.addClass('hover');
-    },
-
-    /* Event listener for when a user mouseouts the hidden file input
-     *
-     * Returns nothing.
-     */
-    _onInputMouseOut: function() {
-//      this.button_upload.removeClass('hover');
-    },
-
     _onURLBlur: function() {
       var url = this.field_url_input.val();
       if (url) {
@@ -285,7 +252,34 @@ this.ckan.module('resource-schema', function($) {
       if (json) {
         this.field_schema_input.val(json);
       }
-    }
+    },
+
+    _onInputChange: function() {
+      var file_name = this.field_upload_input.val().split(/^C:\\fakepath\\/).pop();
+
+      this.field_url_input.val(file_name);
+      this.field_url_input.prop('readonly', true);
+
+      this.label_url.text(this._('Uploaded Data Schema'))
+      this._showOnlyFieldUrl();
+    },
+
+    _fileNameFromUpload: function(url) {
+      // If it's a local CKAN image return the entire URL.
+      if (/^\/base\/images/.test(url)) {
+        return url;
+      }
+
+      // remove fragment (#)
+      url = url.substring(0, (url.indexOf("#") === -1) ? url.length : url.indexOf("#"));
+      // remove query string
+      url = url.substring(0, (url.indexOf("?") === -1) ? url.length : url.indexOf("?"));
+      // extract the filename
+      url = url.substring(url.lastIndexOf("/") + 1, url.length);
+
+      return url; // filename
+    },
+
 
   };
 });
