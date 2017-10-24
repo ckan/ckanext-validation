@@ -305,6 +305,87 @@ class TestResourceSchemaForm(FunctionalTestBase):
         assert_equals(dataset['resources'][0]['schema'], value)
 
 
+class TestResourceValidationOptionsForm(FunctionalTestBase):
+
+    def setup(self):
+        reset_db()
+        if not tables_exist():
+            create_tables()
+
+    def test_resource_form_includes_json_fields(self):
+        dataset = Dataset()
+
+        app = self._get_test_app()
+        env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
+        form = response.forms['resource-edit']
+        assert_in('validation_options', form.fields)
+        assert_equals(form.fields['validation_options'][0].tag, 'textarea')
+
+    def test_resource_form_create(self):
+        dataset = Dataset()
+
+        app = self._get_test_app()
+        env, response = _get_resource_new_page_as_sysadmin(app, dataset['id'])
+        form = response.forms['resource-edit']
+
+        value = {
+            'delimiter': ';',
+            'headers': 2,
+            'skip_rows': ['#'],
+        }
+        json_value = json.dumps(value)
+
+        form['url'] = 'https://example.com/data.csv'
+        form['validation_options'] = json_value
+
+        submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['validation_options'], value)
+
+    def test_resource_form_update(self):
+        value = {
+            'delimiter': ';',
+            'headers': 2,
+            'skip_rows': ['#'],
+        }
+
+        dataset = Dataset(
+            resources=[{
+                'url': 'https://example.com/data.csv',
+                'validation_options': value
+            }]
+        )
+
+        app = self._get_test_app()
+        env, response = _get_resource_update_page_as_sysadmin(
+            app, dataset['id'], dataset['resources'][0]['id'])
+        form = response.forms['resource-edit']
+
+        assert_equals(
+            form['validation_options'].value, json.dumps(
+                value, indent=2, sort_keys=True))
+
+        value = {
+            'delimiter': ';',
+            'headers': 2,
+            'skip_rows': ['#'],
+            'skip_tests': ['blank-rows'],
+        }
+
+        json_value = json.dumps(value)
+
+        form['url'] = 'https://example.com/data.csv'
+        form['validation_options'] = json_value
+
+        submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['validation_options'], value)
+
+
 class TestResourceValidationOnCreateForm(FunctionalTestBase):
 
     @classmethod

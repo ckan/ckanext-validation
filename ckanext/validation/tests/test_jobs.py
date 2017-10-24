@@ -13,7 +13,7 @@ from ckan.tests import factories
 
 from ckanext.validation.model import create_tables, tables_exist, Validation
 from ckanext.validation.jobs import (
-    run_validation_job, Inspector, uploader, Session)
+    run_validation_job, uploader, Session)
 from ckanext.validation.tests.helpers import (
         mock_uploads, MockFieldStorage
 )
@@ -134,11 +134,11 @@ class TestValidationJob(object):
             create_tables()
 
     @change_config('ckanext.validation.run_on_create_async', False)
-    @mock.patch.object(Inspector, 'inspect')
+    @mock.patch('ckanext.validation.jobs.validate')
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
     def test_job_run_no_schema(
-         self, mock_get_action, mock_commit, mock_inspect):
+         self, mock_get_action, mock_commit, mock_validate):
 
         resource = {
             'id': 'test',
@@ -148,16 +148,16 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        mock_inspect.assert_called_with(
+        mock_validate.assert_called_with(
             'http://example.com/file.csv',
             format='csv',
             schema=None)
 
-    @mock.patch.object(Inspector, 'inspect')
+    @mock.patch('ckanext.validation.jobs.validate')
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
     def test_job_run_schema(
-         self, mock_get_action, mock_commit, mock_inspect):
+         self, mock_get_action, mock_commit, mock_validate):
         schema = {
             'fields': [
                 {'name': 'id', 'type': 'integer'},
@@ -173,18 +173,18 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        mock_inspect.assert_called_with(
+        mock_validate.assert_called_with(
             'http://example.com/file.csv',
             format='csv',
             schema=schema)
 
-    @mock.patch.object(Inspector, 'inspect')
+    @mock.patch('ckanext.validation.jobs.validate')
     @mock.patch.object(uploader, 'get_resource_uploader',
                        return_value=mock_get_resource_uploader({}))
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
     def test_job_run_uploaded_file(
-            self, mock_get_action, mock_commit, mock_uploader, mock_inspect):
+            self, mock_get_action, mock_commit, mock_uploader, mock_validate):
 
         resource = {
             'id': 'test',
@@ -195,13 +195,14 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        mock_inspect.assert_called_with(
+        mock_validate.assert_called_with(
             '/tmp/example/{}'.format(resource['id']),
             format='csv',
             schema=None)
 
-    @mock.patch.object(Inspector, 'inspect', return_value=mock_report_valid)
-    def test_job_run_valid_stores_validation_object(self, mock_inspect):
+    @mock.patch('ckanext.validation.jobs.validate',
+                return_value=mock_report_valid)
+    def test_job_run_valid_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(
             url='http://example.com/file.csv', format='csv')
@@ -215,8 +216,9 @@ class TestValidationJob(object):
         assert_equals(validation.report, mock_report_valid)
         assert validation.finished
 
-    @mock.patch.object(Inspector, 'inspect', return_value=mock_report_invalid)
-    def test_job_run_invalid_stores_validation_object(self, mock_inspect):
+    @mock.patch('ckanext.validation.jobs.validate',
+                return_value=mock_report_invalid)
+    def test_job_run_invalid_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(
             url='http://example.com/file.csv', format='csv')
@@ -230,8 +232,9 @@ class TestValidationJob(object):
         assert_equals(validation.report, mock_report_invalid)
         assert validation.finished
 
-    @mock.patch.object(Inspector, 'inspect', return_value=mock_report_error)
-    def test_job_run_error_stores_validation_object(self, mock_inspect):
+    @mock.patch('ckanext.validation.jobs.validate',
+                return_value=mock_report_error)
+    def test_job_run_error_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(
             url='http://example.com/file.csv', format='csv')
@@ -246,12 +249,12 @@ class TestValidationJob(object):
         assert_equals(validation.error, {'message': 'Some warning'})
         assert validation.finished
 
-    @mock.patch.object(Inspector, 'inspect',
-                       return_value=mock_report_valid_local_file)
+    @mock.patch('ckanext.validation.jobs.validate',
+                return_value=mock_report_valid_local_file)
     @mock.patch.object(uploader, 'get_resource_uploader',
                        return_value=mock_get_resource_uploader({}))
     def test_job_run_uploaded_file_replaces_paths(
-            self, mock_uploader, mock_inspect):
+            self, mock_uploader, mock_validate):
 
         resource = factories.Resource(
                 url='__upload', url_type='upload', format='csv')
@@ -263,8 +266,9 @@ class TestValidationJob(object):
 
         assert validation.report['tables'][0]['source'].startswith('http')
 
-    @mock.patch.object(Inspector, 'inspect', return_value=mock_report_valid)
-    def test_job_run_valid_stores_status_in_resource(self, mock_inspect):
+    @mock.patch('ckanext.validation.jobs.validate',
+                return_value=mock_report_valid)
+    def test_job_run_valid_stores_status_in_resource(self, mock_validate):
 
         resource = factories.Resource(
             url='http://example.com/file.csv', format='csv')
@@ -309,3 +313,79 @@ class TestValidationJob(object):
         warning = validation.report['warnings'][0]
         assert_equals(
             warning, 'Table inspection has reached 1000 row(s) limit')
+
+    @mock_uploads
+    def test_job_pass_validation_options(self, mock_open):
+
+        invalid_csv = '''
+
+a;b;c
+#comment
+1;2;3
+'''
+
+        validation_options = {
+            'headers': 3,
+            'delimiter': ';',
+            'skip_rows': ['#']
+        }
+
+        invalid_file = StringIO.StringIO()
+
+        invalid_file.write(invalid_csv)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        resource = factories.Resource(
+            format='csv',
+            upload=mock_upload,
+            validation_options=validation_options)
+
+        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv))
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            run_validation_job(resource)
+
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).one()
+
+        assert_equals(validation.report['valid'], True)
+
+    @mock_uploads
+    def test_job_pass_validation_options_string(self, mock_open):
+
+        invalid_csv = '''
+
+a;b;c
+#comment
+1;2;3
+'''
+
+        validation_options = '''{
+            "headers": 3,
+            "delimiter": ";",
+            "skip_rows": ["#"]
+        }'''
+
+        invalid_file = StringIO.StringIO()
+
+        invalid_file.write(invalid_csv)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        resource = factories.Resource(
+            format='csv',
+            upload=mock_upload,
+            validation_options=validation_options)
+
+        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv))
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            run_validation_job(resource)
+
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).one()
+
+        assert_equals(validation.report['valid'], True)

@@ -614,3 +614,52 @@ class TestSchemaFields(FunctionalTestBase):
 
         assert 'schema_upload' not in resource
         assert 'schema_url' not in resource
+
+
+class TestValidationOptionsField(FunctionalTestBase):
+
+    def setup(self):
+
+        super(TestValidationOptionsField, self).setup()
+
+        if not tables_exist():
+            create_tables()
+
+    def test_validation_options_field(self):
+
+        dataset = factories.Dataset()
+
+        validation_options = {
+            'delimiter': ';',
+            'headers': 2,
+            'skip_rows': ['#'],
+        }
+
+        resource = call_action(
+            'resource_create',
+            package_id=dataset['id'],
+            url='http://example.com/file.csv',
+            validation_options=validation_options,
+        )
+
+        assert_equals(resource['validation_options'], validation_options)
+
+    def test_validation_options_field_string(self):
+
+        dataset = factories.Dataset()
+
+        validation_options = '''{
+            "delimiter": ";",
+            "headers": 2,
+            "skip_rows": ["#"]
+        }'''
+
+        resource = call_action(
+            'resource_create',
+            package_id=dataset['id'],
+            url='http://example.com/file.csv',
+            validation_options=validation_options,
+        )
+        import json
+        assert_equals(resource['validation_options'], json.loads(validation_options))
+

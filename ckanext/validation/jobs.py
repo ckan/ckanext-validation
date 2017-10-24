@@ -5,7 +5,7 @@ import datetime
 import json
 import re
 
-from goodtables import Inspector
+from goodtables import validate
 
 from ckan.model import Session
 import ckan.lib.uploader as uploader
@@ -44,9 +44,15 @@ def run_validation_job(resource):
     if schema and isinstance(schema, basestring):
         schema = json.loads(schema)
 
+    options = resource.get(u'validation_options')
+    if options and isinstance(options, basestring):
+        options = json.loads(options)
+    if not isinstance(options, dict):
+        options = {}
+
     _format = resource[u'format'].lower()
 
-    report = _validate_table(source, _format=_format, schema=schema)
+    report = _validate_table(source, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
     for table in report.get('tables', []):
@@ -76,12 +82,10 @@ def run_validation_job(resource):
          'validation_timestamp': validation.finished.isoformat()})
 
 
-def _validate_table(source, _format=u'csv', schema=None):
+def _validate_table(source, _format=u'csv', schema=None, **options):
 
-    inspector = Inspector()
+    report = validate(source, format=_format, schema=schema, **options)
 
-    report = inspector.inspect(source, format=_format, schema=schema)
-
-    log.debug(u'Source: %s' % source)
+    log.debug(u'Validating source: {}'.format(source))
 
     return report

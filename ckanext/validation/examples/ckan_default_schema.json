@@ -108,6 +108,11 @@
       "field_name": "schema",
       "label": "Schema",
       "preset": "resource_schema"
+    },
+    {
+      "field_name": "validation_options",
+      "label": "Validation options",
+      "preset": "json_object"
     }
   ]
 }
