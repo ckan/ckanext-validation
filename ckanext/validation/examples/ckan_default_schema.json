@@ -112,7 +112,7 @@
     {
       "field_name": "validation_options",
       "label": "Validation options",
-      "preset": "json_object"
+      "preset": "validation_options"
     }
   ]
 }

@@ -4,10 +4,14 @@ from nose.tools import assert_raises, assert_equals
 
 from ckantoolkit import Invalid
 
-from ckanext.validation.validators import resource_schema_validator
+from ckan.tests.helpers import change_config
+
+from ckanext.validation.validators import (
+    resource_schema_validator, validation_options_validator
+)
 
 
-class TestValidators(object):
+class TestResourceSchemaValidator(object):
 
     def test_resource_schema_none(self):
 
@@ -79,3 +83,39 @@ class TestValidators(object):
         schema = '/some/wrong/url/schema.json'
 
         assert_raises(Invalid, resource_schema_validator, schema, {})
+
+
+class TestValidationOptionsValidator(object):
+    '''
+    Note: At the point this validator is run the value should already
+        be a valid JSON string (ie `scheming_valid_json_object` has been
+        run)
+    '''
+
+    def test_no_default_validation_options(self):
+
+        value = '{"headers":3}'
+
+        assert_equals(validation_options_validator(value, {}), value)
+
+    @change_config('ckanext.validation.default_validation_options',
+                   '{"delimiter":";"}')
+    def test_default_validation_options(self):
+
+        value = '{"headers": 3}'
+
+        assert_equals(
+            validation_options_validator(value, {}),
+            '{"delimiter": ";", "headers": 3}'
+        )
+
+    @change_config('ckanext.validation.default_validation_options',
+                   '{"delimiter":";", "headers":2}')
+    def test_default_validation_optionsi_does_not_override(self):
+
+        value = '{"headers": 3}'
+
+        assert_equals(
+            validation_options_validator(value, {}),
+            '{"delimiter": ";", "headers": 3}'
+        )

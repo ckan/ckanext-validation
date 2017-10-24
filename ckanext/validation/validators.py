@@ -3,7 +3,7 @@ import json
 
 import tableschema
 
-from ckantoolkit import Invalid
+from ckantoolkit import Invalid, config
 
 
 # Input validators
@@ -44,3 +44,25 @@ def resource_schema_validator(value, context):
         raise Invalid(msg)
 
     return json.dumps(descriptor)
+
+
+def validation_options_validator(value, context):
+    '''Add default validation options if not already present
+
+    At this point the value should already be a valid JSON string (ie
+    `scheming_valid_json_object` has been run).
+    '''
+
+    default_options = config.get(
+        'ckanext.validation.default_validation_options')
+
+    if default_options:
+        default_options = json.loads(default_options)
+
+        provided_options = json.loads(value)
+
+        default_options.update(provided_options)
+
+        value = json.dumps(default_options, indent=None, sort_keys=True)
+
+    return value

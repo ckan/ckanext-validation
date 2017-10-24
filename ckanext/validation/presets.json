@@ -11,6 +11,16 @@
         "form_snippet": "resource_schema.html",
         "display_snippet": "json.html"
       }
+    },
+    {
+      "preset_name": "validation_options",
+      "values": {
+        "validators": "ignore_missing scheming_valid_json_object validation_options_validator",
+        "output_validators": "scheming_load_json",
+        "form_snippet": "json.html",
+        "display_snippet": "json.html"
+      }
     }
+
   ]
 }

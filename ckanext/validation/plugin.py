@@ -23,6 +23,7 @@ from ckanext.validation.helpers import (
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
+    validation_options_validator,
 )
 from ckanext.validation.utils import (
     get_create_mode_from_config,
@@ -207,9 +208,11 @@ to create the database tables:
             _run_async_validation(resource_id)
 
     # IValidators
+
     def get_validators(self):
         return {
             'resource_schema_validator': resource_schema_validator,
+            'validation_options_validator': validation_options_validator,
         }
 
 
