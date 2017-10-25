@@ -3,6 +3,8 @@
 import datetime
 import logging
 
+from sqlalchemy.orm.exc import NoResultFound
+
 import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
 
@@ -90,8 +92,11 @@ def resource_validation_run(context, data_dict):
 
     Session = context['model'].Session
 
-    validation = Session.query(Validation).filter(
-        Validation.resource_id == data_dict['resource_id']).one_or_none()
+    try:
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == data_dict['resource_id']).one()
+    except NoResultFound:
+        validation = None
 
     if validation:
         # Reset values
@@ -141,8 +146,11 @@ def resource_validation_show(context, data_dict):
 
     Session = context['model'].Session
 
-    validation = Session.query(Validation).filter(
-        Validation.resource_id == data_dict['resource_id']).one_or_none()
+    try:
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == data_dict['resource_id']).one()
+    except NoResultFound:
+        validation = None
 
     if not validation:
         raise t.ObjectNotFound(
@@ -170,8 +178,11 @@ def resource_validation_delete(context, data_dict):
 
     Session = context['model'].Session
 
-    validation = Session.query(Validation).filter(
-        Validation.resource_id == data_dict['resource_id']).one_or_none()
+    try:
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == data_dict['resource_id']).one()
+    except NoResultFound:
+        validation = None
 
     if not validation:
         raise t.ObjectNotFound(
