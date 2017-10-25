@@ -1,9 +1,11 @@
 import datetime
 import StringIO
 import io
+import json
 
 from nose.tools import assert_raises, assert_equals
 import mock
+import requests_mock
 
 from ckan import model
 from ckan.tests.helpers import (
@@ -15,7 +17,7 @@ import ckantoolkit as t
 
 from ckanext.validation.model import create_tables, tables_exist, Validation
 from ckanext.validation.tests.helpers import (
-        VALID_CSV, INVALID_CSV,
+        VALID_CSV, INVALID_CSV, VALID_REPORT,
         mock_uploads, MockFieldStorage
 )
 
@@ -522,6 +524,24 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
         assert_equals(resource['validation_status'], 'success')
         assert 'validation_timestamp' in resource
 
+    @mock.patch('ckanext.validation.jobs.validate',
+                return_value=VALID_REPORT)
+    def test_validation_passes_with_url(self, mock_validate):
+
+        url = 'https://example.com/valid.csv'
+
+        dataset = factories.Dataset()
+
+        resource = call_action(
+            'resource_create',
+            package_id=dataset['id'],
+            format='CSV',
+            url=url,
+        )
+
+        assert_equals(resource['validation_status'], 'success')
+        assert 'validation_timestamp' in resource
+
 
 class TestSchemaFields(FunctionalTestBase):
 
@@ -660,6 +680,6 @@ class TestValidationOptionsField(FunctionalTestBase):
             url='http://example.com/file.csv',
             validation_options=validation_options,
         )
-        import json
+
         assert_equals(resource['validation_options'], json.loads(validation_options))
 

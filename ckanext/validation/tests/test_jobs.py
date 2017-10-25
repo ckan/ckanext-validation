@@ -15,6 +15,7 @@ from ckanext.validation.model import create_tables, tables_exist, Validation
 from ckanext.validation.jobs import (
     run_validation_job, uploader, Session)
 from ckanext.validation.tests.helpers import (
+        VALID_REPORT, INVALID_REPORT, ERROR_REPORT, VALID_REPORT_LOCAL_FILE,
         mock_uploads, MockFieldStorage
 )
 
@@ -27,103 +28,6 @@ class MockUploader(ResourceUpload):
 
 def mock_get_resource_uploader(data_dict):
     return MockUploader(data_dict)
-
-
-mock_report_valid = {
-    'error-count': 0,
-    'table-count': 1,
-    'tables': [
-        {
-            'error-count': 0,
-            'errors': [],
-            'headers': [
-                'name',
-                'ward',
-                'party',
-                'other'
-            ],
-            'row-count': 79,
-            'source': 'http://example.com/valid.csv',
-            'time': 0.007,
-            'valid': True
-        }
-    ],
-    'time': 0.009,
-    'valid': True,
-    'warnings': []
-}
-
-
-mock_report_invalid = {
-    'error-count': 2,
-    'table-count': 1,
-    'tables': [
-        {
-            'error-count': 2,
-            'errors': [
-                {
-                    'code': 'blank-header',
-                    'column-number': 3,
-                    'message': 'Header in column 3 is blank',
-                    'row': None,
-                    'row-number': None
-                },
-                {
-                    'code': 'duplicate-header',
-                    'column-number': 4,
-                    'message': 'Header in column 4 is duplicated to ...',
-                    'row': None,
-                    'row-number': None
-                },
-            ],
-            'headers': [
-                'name',
-                'ward',
-                'party',
-                'other'
-            ],
-            'row-count': 79,
-            'source': 'http://example.com/valid.csv',
-            'time': 0.007,
-            'valid': False
-        }
-    ],
-    'time': 0.009,
-    'valid': False,
-    'warnings': []
-}
-
-
-mock_report_error = {
-    'error-count': 0,
-    'table-count': 0,
-    'warnings': ['Some warning'],
-}
-
-
-mock_report_valid_local_file = {
-    'error-count': 0,
-    'table-count': 1,
-    'tables': [
-        {
-            'error-count': 0,
-            'errors': [],
-            'headers': [
-                'name',
-                'ward',
-                'party',
-                'other'
-            ],
-            'row-count': 79,
-            'source': '/data/resources/31f/d4c/1e-9c82-424b-b78b-48cd08db6e64',
-            'time': 0.007,
-            'valid': True
-        }
-    ],
-    'time': 0.009,
-    'valid': True,
-    'warnings': []
-}
 
 
 class TestValidationJob(object):
@@ -201,7 +105,7 @@ class TestValidationJob(object):
             schema=None)
 
     @mock.patch('ckanext.validation.jobs.validate',
-                return_value=mock_report_valid)
+                return_value=VALID_REPORT)
     def test_job_run_valid_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(
@@ -213,11 +117,11 @@ class TestValidationJob(object):
             Validation.resource_id == resource['id']).one()
 
         assert_equals(validation.status, 'success')
-        assert_equals(validation.report, mock_report_valid)
+        assert_equals(validation.report, VALID_REPORT)
         assert validation.finished
 
     @mock.patch('ckanext.validation.jobs.validate',
-                return_value=mock_report_invalid)
+                return_value=INVALID_REPORT)
     def test_job_run_invalid_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(
@@ -229,11 +133,11 @@ class TestValidationJob(object):
             Validation.resource_id == resource['id']).one()
 
         assert_equals(validation.status, 'failure')
-        assert_equals(validation.report, mock_report_invalid)
+        assert_equals(validation.report, INVALID_REPORT)
         assert validation.finished
 
     @mock.patch('ckanext.validation.jobs.validate',
-                return_value=mock_report_error)
+                return_value=ERROR_REPORT)
     def test_job_run_error_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(
@@ -250,7 +154,7 @@ class TestValidationJob(object):
         assert validation.finished
 
     @mock.patch('ckanext.validation.jobs.validate',
-                return_value=mock_report_valid_local_file)
+                return_value=VALID_REPORT_LOCAL_FILE)
     @mock.patch.object(uploader, 'get_resource_uploader',
                        return_value=mock_get_resource_uploader({}))
     def test_job_run_uploaded_file_replaces_paths(
@@ -267,7 +171,7 @@ class TestValidationJob(object):
         assert validation.report['tables'][0]['source'].startswith('http')
 
     @mock.patch('ckanext.validation.jobs.validate',
-                return_value=mock_report_valid)
+                return_value=VALID_REPORT)
     def test_job_run_valid_stores_status_in_resource(self, mock_validate):
 
         resource = factories.Resource(
