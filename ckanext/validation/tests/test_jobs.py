@@ -319,14 +319,13 @@ class TestValidationJob(object):
 
         invalid_csv = '''
 
-a;b;c
+a,b,c
 #comment
-1;2;3
+1,2,3
 '''
 
         validation_options = {
             'headers': 3,
-            'delimiter': ';',
             'skip_rows': ['#']
         }
 
@@ -364,7 +363,6 @@ a;b;c
 
         validation_options = '''{
             "headers": 3,
-            "delimiter": ";",
             "skip_rows": ["#"]
         }'''
 
