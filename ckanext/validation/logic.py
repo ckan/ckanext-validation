@@ -9,6 +9,10 @@ import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
 
 import ckantoolkit as t
+try:
+    enqueue_job = t.enqueue_job
+except AttributeError:
+    from ckanext.rq.jobs import enqueue as enqueue_job
 
 from ckanext.validation.model import Validation
 from ckanext.validation.jobs import run_validation_job
@@ -22,8 +26,8 @@ from ckanext.validation.utils import (
 
 log = logging.getLogger(__name__)
 
-# Auth
 
+# Auth
 
 def auth_resource_validation_run(context, data_dict):
     if t.check_access(
@@ -112,7 +116,7 @@ def resource_validation_run(context, data_dict):
     Session.commit()
 
     if async_job:
-        t.enqueue_job(run_validation_job, [resource])
+        enqueue_job(run_validation_job, [resource])
     else:
         run_validation_job(resource)
 
