@@ -5,7 +5,6 @@ import json
 
 from nose.tools import assert_raises, assert_equals
 import mock
-import requests_mock
 
 from ckan import model
 from ckan.tests.helpers import (
@@ -530,13 +529,139 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
 
         url = 'https://example.com/valid.csv'
 
-        dataset = factories.Dataset()
+        dataset = factories.dataset()
 
         resource = call_action(
             'resource_create',
             package_id=dataset['id'],
-            format='CSV',
+            format='csv',
             url=url,
+        )
+
+        assert_equals(resource['validation_status'], 'success')
+        assert 'validation_timestamp' in resource
+
+
+class TestResourceValidationOnUpdate(FunctionalTestBase):
+
+    @classmethod
+    def _apply_config_changes(cls, cfg):
+        cfg['ckanext.validation.run_on_update_sync'] = True
+
+    def setup(self):
+
+        super(TestResourceValidationOnUpdate, self).setup()
+
+        if not tables_exist():
+            create_tables()
+
+    @mock_uploads
+    def test_validation_fails_on_upload(self, mock_open):
+
+        dataset = factories.Dataset(resources=[
+            {
+                'url': 'https://example.com/data.csv'
+            }
+        ])
+
+        invalid_file = StringIO.StringIO()
+        invalid_file.write(INVALID_CSV)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            with assert_raises(t.ValidationError) as e:
+
+                call_action(
+                    'resource_update',
+                    id=dataset['resources'][0]['id'],
+                    format='CSV',
+                    upload=mock_upload
+                )
+
+        assert 'validation' in e.exception.error_dict
+        assert 'missing-value' in str(e.exception)
+        assert 'Row 2 has a missing value in column 4' in str(e.exception)
+
+    @mock_uploads
+    def test_validation_fails_no_validation_object_stored(self, mock_open):
+
+        dataset = factories.Dataset(resources=[
+            {
+                'url': 'https://example.com/data.csv'
+            }
+        ])
+
+        invalid_file = StringIO.StringIO()
+        invalid_file.write(INVALID_CSV)
+
+        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+
+        validation_count_before = model.Session.query(Validation).count()
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            with assert_raises(t.ValidationError):
+
+                call_action(
+                    'resource_update',
+                    id=dataset['resources'][0]['id'],
+                    format='CSV',
+                    upload=mock_upload
+                )
+
+        validation_count_after = model.Session.query(Validation).count()
+
+        assert_equals(validation_count_after, validation_count_before)
+
+    @mock_uploads
+    def test_validation_passes_on_upload(self, mock_open):
+
+        dataset = factories.Dataset(resources=[
+            {
+                'url': 'https://example.com/data.csv'
+            }
+        ])
+
+        valid_file = StringIO.StringIO()
+        valid_file.write(INVALID_CSV)
+
+        mock_upload = MockFieldStorage(valid_file, 'valid.csv')
+
+        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
+
+        with mock.patch('io.open', return_value=valid_stream):
+
+            resource = call_action(
+                'resource_update',
+                id=dataset['resources'][0]['id'],
+                format='CSV',
+                upload=mock_upload
+            )
+
+        assert_equals(resource['validation_status'], 'success')
+        assert 'validation_timestamp' in resource
+
+    @mock.patch('ckanext.validation.jobs.validate',
+                return_value=VALID_REPORT)
+    def test_validation_passes_with_url(self, mock_validate):
+
+        dataset = factories.Dataset(resources=[
+            {
+                'url': 'https://example.com/data.csv'
+            }
+        ])
+
+        resource = call_action(
+            'resource_update',
+            id=dataset['resources'][0]['id'],
+            format='CSV',
+            url='https://example.com/some.other.csv',
         )
 
         assert_equals(resource['validation_status'], 'success')
@@ -681,5 +806,5 @@ class TestValidationOptionsField(FunctionalTestBase):
             validation_options=validation_options,
         )
 
-        assert_equals(resource['validation_options'], json.loads(validation_options))
-
+        assert_equals(resource['validation_options'],
+                      json.loads(validation_options))

@@ -438,3 +438,69 @@ class TestResourceValidationOnCreateForm(FunctionalTestBase):
         assert_in('validation', response.body)
         assert_in('missing-value', response.body)
         assert_in('Row 2 has a missing value in column 4', response.body)
+
+
+class TestResourceValidationOnUpdateForm(FunctionalTestBase):
+
+    @classmethod
+    def _apply_config_changes(cls, cfg):
+        cfg['ckanext.validation.run_on_update_sync'] = True
+
+    def setup(self):
+        reset_db()
+        if not tables_exist():
+            create_tables()
+
+    @mock_uploads
+    def test_resource_form_update_valid(self, mock_open):
+
+        dataset = Dataset(resources=[
+            {
+                'url': 'https://example.com/data.csv'
+            }
+        ])
+
+        app = self._get_test_app()
+        env, response = _get_resource_update_page_as_sysadmin(
+            app, dataset['id'], dataset['resources'][0]['id'])
+        form = response.forms['resource-edit']
+
+        upload = ('upload', 'valid.csv', VALID_CSV)
+
+        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
+
+        with mock.patch('io.open', return_value=valid_stream):
+
+            submit_and_follow(app, form, env, 'save', upload_files=[upload])
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['validation_status'], 'success')
+        assert 'validation_timestamp' in dataset['resources'][0]
+
+    @mock_uploads
+    def test_resource_form_update_invalid(self, mock_open):
+
+        dataset = Dataset(resources=[
+            {
+                'url': 'https://example.com/data.csv'
+            }
+        ])
+
+        app = self._get_test_app()
+        env, response = _get_resource_update_page_as_sysadmin(
+            app, dataset['id'], dataset['resources'][0]['id'])
+        form = response.forms['resource-edit']
+
+        upload = ('upload', 'invalid.csv', INVALID_CSV)
+
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+
+        with mock.patch('io.open', return_value=invalid_stream):
+
+            response = webtest_submit(
+                form, 'save', upload_files=[upload], extra_environ=env)
+
+        assert_in('validation', response.body)
+        assert_in('missing-value', response.body)
+        assert_in('Row 2 has a missing value in column 4', response.body)

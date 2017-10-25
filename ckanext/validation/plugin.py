@@ -14,7 +14,7 @@ from ckanext.validation.logic import (
     auth_resource_validation_run, auth_resource_validation_show,
     auth_resource_validation_delete,
     resource_create as custom_resource_create,
-    # resource_update as custom_resource_update,
+    resource_update as custom_resource_update,
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
@@ -83,8 +83,8 @@ to create the database tables:
 
         if get_create_mode_from_config() == u'sync':
             new_actions[u'resource_create'] = custom_resource_create
-        # if get_update_mode_from_config() == u'async':
-        #    new_actions[u'resource_update'] = custom_resource_update
+        if get_update_mode_from_config() == u'sync':
+            new_actions[u'resource_update'] = custom_resource_update
 
         return new_actions
 
