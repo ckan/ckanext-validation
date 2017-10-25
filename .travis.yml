@@ -5,6 +5,10 @@ python:
     - "2.7"
 env:
     - CKAN_VERSION=master
+    - CKAN_VERSION=dev-v2.7
+    - CKAN_VERSION=dev-v2.6
+    - CKAN_VERSION=release-v2.5-latest
+    - CKAN_VERSION=release-v2.4-latest
 services:
     - postgresql
     - redis-server
