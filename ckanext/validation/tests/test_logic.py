@@ -529,7 +529,7 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
 
         url = 'https://example.com/valid.csv'
 
-        dataset = factories.dataset()
+        dataset = factories.Dataset()
 
         resource = call_action(
             'resource_create',
