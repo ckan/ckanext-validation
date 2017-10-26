@@ -50,6 +50,8 @@ then
 	pip install -r dev-requirements.txt
 	python setup.py develop
 	cd -
+	# Enable the rq plugin
+	sed -i -e 's/ckan.plugins = /ckan.plugins = rq /' test.ini
 fi
 
 echo "Installing ckanext-validation and its requirements..."
