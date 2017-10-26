@@ -42,6 +42,15 @@ cd ckanext-scheming
 pip install -r requirements.txt
 python setup.py develop
 cd -
+if [ $CKAN_VERSION == 'dev-v2.6' ] || [ $CKAN_VERSION == 'release-v2.5-latest' ] || [ $CKAN_VERSION == 'release-v2.4-latest' ]
+then
+	git clone https://github.com/davidread/ckanext-rq
+	cd ckanext-rq
+	pip install -r requirements.txt
+	pip install -r dev-requirements.txt
+	python setup.py develop
+	cd -
+fi
 
 echo "Installing ckanext-validation and its requirements..."
 python setup.py develop
