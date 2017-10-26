@@ -18,8 +18,8 @@ then
     git checkout $CKAN_VERSION
 fi
 python setup.py develop
-pip install -r requirements.txt --allow-all-external
-pip install -r dev-requirements.txt --allow-all-external
+pip install -r requirements.txt
+pip install -r dev-requirements.txt
 cd -
 
 echo "Creating the PostgreSQL user and database..."
@@ -55,6 +55,7 @@ fi
 echo "Installing ckanext-validation and its requirements..."
 python setup.py develop
 pip install -r requirements.txt
+pip install -r dev-requirements.txt
 paster --plugin=ckanext-validation validation init-db -c ckan/test-core.ini
 
 echo "Moving test.ini into a subdir..."
