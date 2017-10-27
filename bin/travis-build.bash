@@ -44,7 +44,7 @@ python setup.py develop
 cd -
 if [ $CKAN_VERSION == 'dev-v2.6' ] || [ $CKAN_VERSION == 'release-v2.5-latest' ] || [ $CKAN_VERSION == 'release-v2.4-latest' ]
 then
-	git clone https://github.com/davidread/ckanext-rq
+	git clone https://github.com/ckan/ckanext-rq
 	cd ckanext-rq
 	pip install -r requirements.txt
 	pip install -r dev-requirements.txt
