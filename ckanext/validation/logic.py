@@ -9,10 +9,6 @@ import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
 
 import ckantoolkit as t
-try:
-    enqueue_job = t.enqueue_job
-except AttributeError:
-    from ckanext.rq.jobs import enqueue as enqueue_job
 
 from ckanext.validation.model import Validation
 from ckanext.validation.jobs import run_validation_job
@@ -25,6 +21,14 @@ from ckanext.validation.utils import (
 
 
 log = logging.getLogger(__name__)
+
+
+def enqueue_job(*args, **kwargs):
+    try:
+        return t.enqueue_job(*args, **kwargs)
+    except AttributeError:
+        from ckanext.rq.jobs import enqueue as enqueue_job_legacy
+        return enqueue_job_legacy(*args, **kwargs)
 
 
 # Auth
