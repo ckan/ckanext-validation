@@ -2,28 +2,12 @@
 
 import sys
 
-import click
-
-from ckan.lib.cli import (
-    load_config,
-    paster_click_group,
-    click_config_option,
-)
+from ckantoolkit import CkanCommand
 
 from ckanext.validation.model import create_tables, tables_exist
 
 
-validation_group = paster_click_group(
-    summary=u'Validate data yo')
-
-
-@validation_group.command(
-    u'init-db',
-    help=u'Initialize database tables')
-@click.help_option(u'-h', u'--help')
-@click_config_option
-def init_db(config):
-    load_config(config)
+def init_db():
 
     if tables_exist():
         print(u'Validation tables already exist')
@@ -32,3 +16,32 @@ def init_db(config):
     create_tables()
 
     print(u'Validation tables created')
+
+
+class Validation(CkanCommand):
+    u'''Utilities for the CKAN data validation extension
+
+    Usage:
+        paster validation init-db
+            Initialize database tables
+
+    '''
+    summary = __doc__.split('\n')[0]
+    usage = __doc__
+    max_args = 9
+    min_args = 0
+
+    def __init__(self, name):
+
+        super(Validation, self).__init__(name)
+
+    def command(self):
+        self._load_config()
+
+        if len(self.args) != 1:
+            self.parser.print_usage()
+            sys.exit(1)
+
+        cmd = self.args[0]
+        if cmd == 'init-db':
+            init_db()

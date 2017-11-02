@@ -3,6 +3,8 @@
 import datetime
 import logging
 
+from sqlalchemy.orm.exc import NoResultFound
+
 import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
 
@@ -20,8 +22,16 @@ from ckanext.validation.utils import (
 
 log = logging.getLogger(__name__)
 
-# Auth
 
+def enqueue_job(*args, **kwargs):
+    try:
+        return t.enqueue_job(*args, **kwargs)
+    except AttributeError:
+        from ckanext.rq.jobs import enqueue as enqueue_job_legacy
+        return enqueue_job_legacy(*args, **kwargs)
+
+
+# Auth
 
 def auth_resource_validation_run(context, data_dict):
     if t.check_access(
@@ -90,8 +100,11 @@ def resource_validation_run(context, data_dict):
 
     Session = context['model'].Session
 
-    validation = Session.query(Validation).filter(
-        Validation.resource_id == data_dict['resource_id']).one_or_none()
+    try:
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == data_dict['resource_id']).one()
+    except NoResultFound:
+        validation = None
 
     if validation:
         # Reset values
@@ -107,7 +120,7 @@ def resource_validation_run(context, data_dict):
     Session.commit()
 
     if async_job:
-        t.enqueue_job(run_validation_job, [resource])
+        enqueue_job(run_validation_job, [resource])
     else:
         run_validation_job(resource)
 
@@ -141,8 +154,11 @@ def resource_validation_show(context, data_dict):
 
     Session = context['model'].Session
 
-    validation = Session.query(Validation).filter(
-        Validation.resource_id == data_dict['resource_id']).one_or_none()
+    try:
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == data_dict['resource_id']).one()
+    except NoResultFound:
+        validation = None
 
     if not validation:
         raise t.ObjectNotFound(
@@ -170,8 +186,11 @@ def resource_validation_delete(context, data_dict):
 
     Session = context['model'].Session
 
-    validation = Session.query(Validation).filter(
-        Validation.resource_id == data_dict['resource_id']).one_or_none()
+    try:
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == data_dict['resource_id']).one()
+    except NoResultFound:
+        validation = None
 
     if not validation:
         raise t.ObjectNotFound(

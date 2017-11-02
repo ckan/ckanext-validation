@@ -77,7 +77,7 @@ setup(
             'validation=ckanext.validation.plugin:ValidationPlugin'
         ],
         'paste.paster_command': [
-            'validation = ckanext.validation.commands:validation_group'
+            'validation = ckanext.validation.commands:Validation'
         ],
         'babel.extractors': [
             'ckan = ckan.lib.extract:extract_ckan'

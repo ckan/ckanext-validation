@@ -18,8 +18,8 @@ then
     git checkout $CKAN_VERSION
 fi
 python setup.py develop
-pip install -r requirements.txt --allow-all-external
-pip install -r dev-requirements.txt --allow-all-external
+pip install -r requirements.txt
+pip install -r dev-requirements.txt
 cd -
 
 echo "Creating the PostgreSQL user and database..."
@@ -42,10 +42,22 @@ cd ckanext-scheming
 pip install -r requirements.txt
 python setup.py develop
 cd -
+if [ $CKAN_VERSION == 'dev-v2.6' ] || [ $CKAN_VERSION == 'release-v2.5-latest' ] || [ $CKAN_VERSION == 'release-v2.4-latest' ]
+then
+	git clone https://github.com/ckan/ckanext-rq
+	cd ckanext-rq
+	pip install -r requirements.txt
+	pip install -r dev-requirements.txt
+	python setup.py develop
+	cd -
+	# Enable the rq plugin
+	sed -i -e 's/ckan.plugins = /ckan.plugins = rq /' test.ini
+fi
 
 echo "Installing ckanext-validation and its requirements..."
 python setup.py develop
 pip install -r requirements.txt
+pip install -r dev-requirements.txt
 paster --plugin=ckanext-validation validation init-db -c ckan/test-core.ini
 
 echo "Moving test.ini into a subdir..."

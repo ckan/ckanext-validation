@@ -5,6 +5,7 @@ import datetime
 import json
 import re
 
+from sqlalchemy.orm.exc import NoResultFound
 from goodtables import validate
 
 from ckan.model import Session
@@ -22,8 +23,11 @@ def run_validation_job(resource):
 
     log.debug(u'Validating resource {}'.format(resource['id']))
 
-    validation = Session.query(Validation).filter(
-        Validation.resource_id == resource['id']).one_or_none()
+    try:
+        validation = Session.query(Validation).filter(
+            Validation.resource_id == resource['id']).one()
+    except NoResultFound:
+        validation = None
 
     if not validation:
         validation = Validation(resource_id=resource['id'])
