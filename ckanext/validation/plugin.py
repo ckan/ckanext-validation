@@ -2,6 +2,7 @@
 
 import logging
 import cgi
+import json
 
 import ckan.plugins as p
 import ckantoolkit as t
@@ -40,6 +41,7 @@ class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IRoutes, inherit=True)
     p.implements(p.IAuthFunctions)
     p.implements(p.IResourceController, inherit=True)
+    p.implements(p.IPackageController, inherit=True)
     p.implements(p.ITemplateHelpers)
     p.implements(p.IValidators)
 
@@ -206,6 +208,21 @@ to create the database tables:
             del self.resources_to_validate[resource_id]
 
             _run_async_validation(resource_id)
+
+    # IPackageController
+
+    def before_index(self, index_dict):
+
+        res_status = []
+        dataset_dict = json.loads(index_dict['validated_data_dict'])
+        for resource in dataset_dict.get('resources', []):
+            if resource.get('validation_status'):
+                res_status.append(resource['validation_status'])
+
+        if res_status:
+            index_dict['res_extras_validation_status'] = res_status
+
+        return index_dict
 
     # IValidators
 
