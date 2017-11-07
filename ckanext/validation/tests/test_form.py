@@ -1,7 +1,7 @@
 import json
 import io
 import mock
-import StringIO
+import datetime
 
 from nose.tools import assert_in, assert_equals
 
@@ -13,7 +13,7 @@ from ckantoolkit.tests.helpers import (
 
 from ckanext.validation.model import create_tables, tables_exist
 from ckanext.validation.tests.helpers import (
-    VALID_CSV, INVALID_CSV, mock_uploads, MockFieldStorage
+    VALID_CSV, INVALID_CSV, mock_uploads
 )
 
 
@@ -504,3 +504,41 @@ class TestResourceValidationOnUpdateForm(FunctionalTestBase):
         assert_in('validation', response.body)
         assert_in('missing-value', response.body)
         assert_in('Row 2 has a missing value in column 4', response.body)
+
+
+class TestResourceValidationFieldsPersisted(FunctionalTestBase):
+
+    @classmethod
+    def _apply_config_changes(cls, cfg):
+        cfg['ckanext.validation.run_on_update_sync'] = False
+        cfg['ckanext.validation.run_on_update_sync'] = False
+
+    def setup(self):
+        reset_db()
+        if not tables_exist():
+            create_tables()
+
+    def test_resource_form_fields_are_persisted(self):
+
+        dataset = Dataset(resources=[
+            {
+                'url': 'https://example.com/data.csv',
+                'validation_status': 'success',
+                'validation_timestamp': datetime.datetime.now().isoformat()
+            }
+        ])
+
+        app = self._get_test_app()
+        env, response = _get_resource_update_page_as_sysadmin(
+            app, dataset['id'], dataset['resources'][0]['id'])
+        form = response.forms['resource-edit']
+
+        form['description'] = 'test desc'
+
+        submit_and_follow(app, form, env, 'save')
+
+        dataset = call_action('package_show', id=dataset['id'])
+
+        assert_equals(dataset['resources'][0]['validation_status'], 'success')
+        assert 'validation_timestamp' in dataset['resources'][0]
+        assert_equals(dataset['resources'][0]['description'], 'test desc')

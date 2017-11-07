@@ -20,7 +20,13 @@
         "form_snippet": "json.html",
         "display_snippet": "json.html"
       }
+    },
+    {
+      "preset_name": "hidden",
+      "values": {
+        "form_snippet": "hidden.html",
+        "display_snippet": null
+      }
     }
-
   ]
 }

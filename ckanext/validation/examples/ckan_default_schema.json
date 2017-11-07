@@ -113,6 +113,16 @@
       "field_name": "validation_options",
       "label": "Validation options",
       "preset": "validation_options"
+    },
+    {
+      "field_name": "validation_status",
+      "preset": "hidden"
+    },
+    {
+      "field_name": "validation_timestamp",
+      "preset": "hidden"
     }
+
+
   ]
 }
