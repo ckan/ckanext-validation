@@ -24,6 +24,7 @@ Data description and validation for CKAN with [Frictionless Data](https://fricti
 	* [resource_validation_run](#resource_validation_run)
 	* [resource_validation_show](#resource_validation_show)
 	* [resource_validation_delete](#resource_validation_delete)
+  * [Command Line Interface](#command-line-interface)
   * [Running the Tests](#running-the-tests)
   * [Copying and License](#copying-and-license)
 
@@ -369,6 +370,65 @@ def resource_validation_delete(context, data_dict):
     '''
 
 ```
+
+## Command Line Interface
+
+You can start (asynchronous) validation jobs from the command line using the `paster validation run` command. If no parameters are provided it will start a validation job for all resources in the site of suitable format (ie `ckanext.validation.formats`):
+
+    paster validation run -c /path/to/ckan/ini
+
+You can limit the resources by specifying a dataset id or name:
+
+    paster validation run -c /path/to/ckan/ini -d statistical-data-2018
+
+Or providing arbitrary search parameters:
+
+    paster validation run -c ../ckan/development.ini -s '{"fq":"res_format:XLSX"}'
+
+
+Check the command help for more details:
+
+	paster validation run -c ../ckan/development.ini --help
+	Usage: paster validation [options] Utilities for the CKAN data validation extension
+
+		Usage:
+			paster validation init-db
+				Initialize database tables
+
+			paster validation run [options]
+
+				Start asynchronous data validation on the site resources. If no
+				options are provided it will run validation on all resources of
+				the supported formats (`ckanext.validation.formats`). You can
+				specify particular datasets to run the validation on their
+				resources. You can also pass arbitrary search parameters to filter
+				the selected datasets.
+		
+	Utilities for the CKAN data validation extension
+
+	Options:
+	  -h, --help            show this help message and exit
+	  -v, --verbose         
+	  -c CONFIG, --config=CONFIG
+							Config file to use.
+	  -f FILE_PATH, --file=FILE_PATH
+							File to dump results to (if needed)
+	  -y, --yes             Automatic yes to prompts. Assume "yes" as answer to
+							all prompts and run non-interactively
+	  -d DATASET_ID, --dataset=DATASET_ID
+							 Run data validation on all resources for a particular
+							dataset (if the format is suitable). You can use the
+							dataset id or name, and it can be defined multiple
+							times. Not to be used with -d or -s
+	  -s SEARCH_PARAMS, --search=SEARCH_PARAMS
+							Extra search parameters that will be used for getting
+							the datasets to run validation on. It must be a JSON
+							object like the one used by the `package_search` API
+							call. Supported fields are `q`, `fq` and `fq_list`.
+							Check the documentation for examples. Note that when
+							using this you will have to specify the resource
+							formats to target yourself. Not to be used with -r or
+							-d.
 
 
 ## Running the Tests
