@@ -282,10 +282,18 @@ The extension requires changes in the default CKAN resource schema to add some f
       "label": "Validation options",
       "preset": "validation_options"
     },
+    {
+      "field_name": "validation_status",
+      "label": "Validation status",
+      "preset": "hidden_in_form"
+    },
+    {
+      "field_name": "validation_timestamp",
+      "label": "Validation timestamp",
+      "preset": "hidden_in_form"
+    }
 
 ```
-
-TODO: add `validation_status` and `validation_timestamp` if ckan/ckanext-scheming#168 goes forward.
 
 There is an [example schema](https://github.com/frictionlessdata/ckanext-validation/blob/master/ckanext/validation/examples/ckan_default_schema.json) implementing all CKAN default fields plus the ones required by ckanext-validation included with the application, that you can adapt for your own needs.
 

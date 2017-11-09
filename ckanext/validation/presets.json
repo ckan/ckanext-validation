@@ -22,10 +22,9 @@
       }
     },
     {
-      "preset_name": "hidden",
+      "preset_name": "hidden_in_form",
       "values": {
-        "form_snippet": "hidden.html",
-        "display_snippet": null
+        "form_snippet": "hidden.html"
       }
     }
   ]

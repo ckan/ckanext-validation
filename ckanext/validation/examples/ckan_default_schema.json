@@ -116,13 +116,13 @@
     },
     {
       "field_name": "validation_status",
-      "preset": "hidden"
+      "label": "Validation status",
+      "preset": "hidden_in_form"
     },
     {
       "field_name": "validation_timestamp",
-      "preset": "hidden"
+      "label": "Validation timestamp",
+      "preset": "hidden_in_form"
     }
-
-
   ]
 }
