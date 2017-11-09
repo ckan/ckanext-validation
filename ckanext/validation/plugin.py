@@ -220,7 +220,7 @@ to create the database tables:
                 res_status.append(resource['validation_status'])
 
         if res_status:
-            index_dict['res_extras_validation_status'] = res_status
+            index_dict['vocab_validation_status'] = res_status
 
         return index_dict
 
