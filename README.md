@@ -50,14 +50,14 @@ This extension has been tested with CKAN 2.4 to 2.7.
 
 It is strongly recommended to use it alongside [ckanext-scheming](https://github.com/ckan/ckanext-scheming) to define the necessary extra fields in the default CKAN schema.
 
-If you want to use [asynchronous validation](#asynchronous validation) with background jobs and are using CKAN 2.6 or lower, [ckanext-rq](https://github.com/ckan/ckanext-rq) is also needed. Please refer to both READMEs for installation instructions.
+If you want to use [asynchronous validation](#asynchronous-validation) with background jobs and are using CKAN 2.6 or lower, [ckanext-rq](https://github.com/ckan/ckanext-rq) is also needed. Please refer to both READMEs for installation instructions.
 
 
 ## Installation
 
 To install ckanext-validation, activate your CKAN virtualenv and run:
 
-    git clone https://github.com//ckanext-validation.git
+    git clone https://github.com/frictionlessdata/ckanext-validation.git
     cd ckanext-validation
     pip install -r requirements.txt
     python setup.py develop
@@ -73,7 +73,7 @@ Once installed, add the `validation` plugin to the `ckan.plugins` configuration 
 
     ckan.plugins = ... validation
 
-*Note:* if using CKAN 2.6 or lower and the [asynchronous validation](#asynchronous validation) also add the `rq` plugin ([see Versions supported and requirements](#versions-supported-and-requirements)) to `ckan.plugins`.
+*Note:* if using CKAN 2.6 or lower and the [asynchronous validation](#asynchronous-validation) also add the `rq` plugin ([see Versions supported and requirements](#versions-supported-and-requirements)) to `ckan.plugins`.
 
 
 The extension requires changes in the [CKAN schema](#changes-in-the-schema). The easisest way to add those is by using ckanext-scheming. Use these two configuration options to link to the dataset schema (replace with your own if you need to customize it) and the required presets:
@@ -111,11 +111,11 @@ CKAN users will be familiar with the validation performed against the metadata f
 
 Data validation follows the same principle but against the actual data published in CKAN, that is the contents of tabular files (Excel, CSV, etc) hosted in CKAN itself or elsewhere. Whenever a resource of the appropiate format is created or updated, the extension will validate the data against a collection of checks. This validation is powered by [goodtables](https://github.com/frictionlessdata/goodtables-py), a very powerful data validation library developed by [Open Knowledge International](https://okfn.org) as part of the [Frictionless Data](https://frictionlessdata.io) project. Goodtables provides an extensive suite of [checks](https://github.com/frictionlessdata/goodtables-py#checks) that cover common issues with tabular data files.
 
-These checks include structural problems like missing headers or values, blank rows, etc but also can validate the data contents themselves (see [Data Schemas](#data-schemas)) or even against [custom checks](https://github.com/frictionlessdata/goodtables-py#custom-constraint).
+These checks include structural problems like missing headers or values, blank rows, etc., but also can validate the data contents themselves (see [Data Schemas](#data-schemas)) or even run [custom checks](https://github.com/frictionlessdata/goodtables-py#custom-constraint).
 
-The result of this validation is a JSON report. This report contains all the issues found (if any) with their relevant context (row number, columns involved etc). The reports are stored in the database and linked to the CKAN resource, and can be retrieved [via the API](#resource-validation-show).
+The result of this validation is a JSON report. This report contains all the issues found (if any) with their relevant context (row number, columns involved, etc). The reports are stored in the database and linked to the CKAN resource, and can be retrieved [via the API](#resource-validation-show).
 
-If there is are report available for a particular resource, a status badge will be displayed in the resource listing and on the resource page, showing whether validation passed or failed for the resource.
+If there is a report available for a particular resource, a status badge will be displayed in the resource listing and on the resource page, showing whether validation passed or failed for the resource.
 
 ![Status badge](https://i.imgur.com/9LIHMF8.png)
 
@@ -199,9 +199,9 @@ With the extension enabled and configured, schemas can be attached to the `schem
 
 ### Validation Options
 
-As we saw before the validation process involves many different checks and it's very likely that what "valid" data actually means will vary across CKAN instances or datasets. The validation process can be tweaked by passing any of the [supported options](https://github.com/frictionlessdata/goodtables-py#validatesource-options) on goodtables. These can be used to add or remove specific checks, control limits, etc.
+As we saw before, the validation process involves many different checks and it's very likely that what "valid" data actually means will vary across CKAN instances or datasets. The validation process can be tweaked by passing any of the [supported options](https://github.com/frictionlessdata/goodtables-py#validatesource-options) on goodtables. These can be used to add or remove specific checks, control limits, etc.
 
-For instance the following file would fail validation using the default options, but it may be valid in a given context, or the issues may be known to the publishers:
+For instance, the following file would fail validation using the default options, but it may be valid in a given context, or the issues may be known to the publishers:
 
 ```
 <blank line>
@@ -228,7 +228,7 @@ The following validation options would make validation pass:
 
 ```
 
-Validation options can be defined (as a JSON object like the above) on each resource (via the UI form or the API on the `validation_options` field) or can be set globally by administrators on the CKAN INI file (see [Configuration](#configuration).
+Validation options can be defined (as a JSON object like the above) on each resource (via the UI form or the API on the `validation_options` field) or can be set globally by administrators on the CKAN INI file (see [Configuration](#configuration)).
 
 
 ### Operation modes
@@ -252,7 +252,7 @@ Use `ckanext.validation.run_on_create_async` and `ckanext.validation.run_on_upda
 
 Synchronous validation is performed at the same time a resource of the supported formats is being created or updated. Currently, if data validation errors are found, a `ValidationError` will be raised and you won't be able to create or update the resource.
 
-Validation at creation or update time can be useful to ensure that data quality is maintained or that published data comforms to a particular schema.
+Validation at creation or update time can be useful to ensure that data quality is maintained or that published data conforms to a particular schema.
 
 When using the UI form, validation errors will be displayed as normal CKAN validation errors:
 
@@ -269,9 +269,7 @@ Use `ckanext.validation.run_on_create_sync` and `ckanext.validation.run_on_updat
 
 The extension requires changes in the default CKAN resource schema to add some fields it requires. It is strongly recommended to use [ckanext-scheming](https://github.com/ckan/ckanext-scheming) to define your CKAN schema. This extension provides all the necessary presets and validators to get up and running just by adding the following fields to the `resource_fields` section of a ckanext-scheming schema:
 
-
 ```json
-
     {
       "field_name": "schema",
       "label": "Schema",
@@ -295,16 +293,15 @@ The extension requires changes in the default CKAN resource schema to add some f
 
 ```
 
-There is an [example schema](https://github.com/frictionlessdata/ckanext-validation/blob/master/ckanext/validation/examples/ckan_default_schema.json) implementing all CKAN default fields plus the ones required by ckanext-validation included with the application, that you can adapt for your own needs.
 
 Here's more detail on the fields added:
 
-* `schema`: This can be a [Table Schema](http://frictionlessdata.io/specs/table-schema/) JSON object or an URL pointing to one. In the UI form you can upload a JSON file, link to one providing a URL or enter it diretly. If uploaded, the file contents will be read and stored in the `schema` field. In all three cases the contents will be validated agaisnt the Table Schema specification.
+* `schema`: This can be a [Table Schema](http://frictionlessdata.io/specs/table-schema/) JSON object or an URL pointing to one. In the UI form you can upload a JSON file, link to one providing a URL or enter it directly. If uploaded, the file contents will be read and stored in the `schema` field. In all three cases the contents will be validated against the Table Schema specification.
 * `validation_options`: A JSON object with validation options that will be passed to [goodtables](https://github.com/frictionlessdata/goodtables-py#validatesource-options).
 
 ![Form fields](https://i.imgur.com/ixKOCij.png)
 
-Additionally this two read-only fields are added to resources:
+Additionally, two read-only fields are added to resources:
 
 * `validation_status`: Stores the last validation result for the resource. Can be one of `success`, `failure` or `error`.
 * `validation_timestamp`: Date and time of the last validation run.
