@@ -381,6 +381,8 @@ def resource_validation_delete(context, data_dict):
 
 ## Command Line Interface
 
+### Starting the validation process manually
+
 You can start (asynchronous) validation jobs from the command line using the `paster validation run` command. If no parameters are provided it will start a validation job for all resources in the site of suitable format (ie `ckanext.validation.formats`):
 
     paster validation run -c /path/to/ckan/ini
@@ -394,40 +396,105 @@ Or providing arbitrary search parameters:
     paster validation run -c ../ckan/development.ini -s '{"fq":"res_format:XLSX"}'
 
 
+### Data validation reports
+
+The extension provides two small utilities to generate a global report with all the current data validation reports:
+
+	paster validation report -c /path/to/ckan/ini
+
+	paster validation report-full -c /path/to/ckan/ini
+
+
+Both commands will print an overview of the total number of datasets and tabular resources, and a breakdown of how many have a validation status of success,
+failure or error. Additionally they will create a CSV report. `paster validation report` will create a report with all failing resources, including the following fields:
+
+* Dataset name
+* Resource id
+* Resource URL
+* Status
+* Validation report URL
+
+`paster validation report-full` will add a row on the output CSV for each error found on the validation report (limited to ten occurrences of the same error type per file). So the fields in the generated CSV report will be:
+
+* Dataset name
+* Resource id
+* Resource URL
+* Status
+* Error code
+* Error message
+
+In both cases you can define the location of the output CSV passing the `-o` or `--output` option:
+
+
+	paster validation report-full -c /path/to/ckan/ini -o /tmp/reports/validation_full.csv
+
+
 Check the command help for more details:
 
-	paster validation run -c ../ckan/development.ini --help
+	paster validation --help
+
 	Usage: paster validation [options] Utilities for the CKAN data validation extension
 
-		Usage:
-			paster validation init-db
-				Initialize database tables
+    Usage:
+        paster validation init-db
+            Initialize database tables
 
-			paster validation run [options]
+        paster validation run [options]
 
-				Start asynchronous data validation on the site resources. If no
-				options are provided it will run validation on all resources of
-				the supported formats (`ckanext.validation.formats`). You can
-				specify particular datasets to run the validation on their
-				resources. You can also pass arbitrary search parameters to filter
-				the selected datasets.
-		
-	Utilities for the CKAN data validation extension
+            Start asynchronous data validation on the site resources. If no
+            options are provided it will run validation on all resources of
+            the supported formats (`ckanext.validation.formats`). You can
+            specify particular datasets to run the validation on their
+            resources. You can also pass arbitrary search parameters to filter
+            the selected datasets.
+
+         paster validation report [options]
+
+            Generate a report with all current data validation reports. This
+            will print an overview of the total number of tabular resources
+            and a breakdown of how many have a validation status of success,
+            failure or error. Additionally it will create a CSV report with all
+            failing resources, including the following fields:
+                * Dataset name
+                * Resource id
+                * Resource URL
+                * Status
+                * Validation report URL
+
+          paster validation report-full [options]
+
+            Generate a detailed report. This is similar to the previous command
+            but on the CSV report it will add a row for each error found on the
+            validation report (limited to ten occurrences of the same error
+            type per file). So the fields in the generated CSV report will be:
+
+                * Dataset name
+                * Resource id
+                * Resource URL
+                * Status
+                * Error code
+                * Error message
+
+
 
 	Options:
 	  -h, --help            show this help message and exit
-	  -v, --verbose         
+	  -v, --verbose
 	  -c CONFIG, --config=CONFIG
 							Config file to use.
 	  -f FILE_PATH, --file=FILE_PATH
 							File to dump results to (if needed)
 	  -y, --yes             Automatic yes to prompts. Assume "yes" as answer to
 							all prompts and run non-interactively
+	  -r RESOURCE_ID, --resource=RESOURCE_ID
+							 Run data validation on a particular resource (if the
+							format is suitable). It can be defined multiple times.
+							Not to be used with -d or -s
 	  -d DATASET_ID, --dataset=DATASET_ID
 							 Run data validation on all resources for a particular
 							dataset (if the format is suitable). You can use the
 							dataset id or name, and it can be defined multiple
-							times. Not to be used with -d or -s
+							times. Not to be used with -r or -s
 	  -s SEARCH_PARAMS, --search=SEARCH_PARAMS
 							Extra search parameters that will be used for getting
 							the datasets to run validation on. It must be a JSON
@@ -437,6 +504,9 @@ Check the command help for more details:
 							using this you will have to specify the resource
 							formats to target yourself. Not to be used with -r or
 							-d.
+	  -o OUTPUT_FILE, --output=OUTPUT_FILE
+							Location of the CSV validation report file on the
+							relevant commands.
 
 
 ## Running the Tests
