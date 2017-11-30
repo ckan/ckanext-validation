@@ -39,6 +39,12 @@ this.ckan.module('resource-schema', function($) {
       this.field_upload = $(field_upload, this.el).parents('.form-group');
       this.field_url = $(field_url, this.el).parents('.form-group');
       this.field_json = $(field_json, this.el).parents('.form-group');
+      if (!this.field_upload.length) {
+        this.field_upload = $(field_upload, this.el).parents('.control-group');
+        this.field_url = $(field_url, this.el).parents('.control-group');
+        this.field_json = $(field_json, this.el).parents('.control-group');
+
+      }
       this.field_upload_input = $('input', this.field_upload);
       this.field_url_input = $('input', this.field_url);
       this.field_json_input = $('textarea', this.field_json);

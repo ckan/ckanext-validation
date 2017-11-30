@@ -5,6 +5,7 @@
   {% set is_json = not is_url and value %}
 
   <div class="image-upload"
+       style="margin-bottom:20px"
        data-module="resource-schema"
        data-module-is_url="{{ 'true' if is_url else 'false' }}"
        data-module-is_json="{{ 'true' if is_json else 'false' }}"
@@ -12,7 +13,7 @@
        data-module-field_json="schema_json"
        >
     <div id="resource-schema-buttons">
-      <label>{{ _('Data Schema') }}</label>
+      <label class="control-label">{{ _('Data Schema') }}</label>
       <div class="form-group controls">
 
       </div>
