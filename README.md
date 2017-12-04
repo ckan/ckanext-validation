@@ -25,6 +25,8 @@ Data description and validation for CKAN with [Frictionless Data](https://fricti
 	* [resource_validation_show](#resource_validation_show)
 	* [resource_validation_delete](#resource_validation_delete)
   * [Command Line Interface](#command-line-interface)
+    * [Starting the validation process manually](#starting-the-validation-process-manually)
+    * [Data validation reports](#data-validation-reports)
   * [Running the Tests](#running-the-tests)
   * [Copying and License](#copying-and-license)
 
@@ -407,6 +409,7 @@ failure or error. Additionally they will create a CSV report. `paster validation
 
 * Dataset name
 * Resource id
+* Resource format
 * Resource URL
 * Status
 * Validation report URL
@@ -415,6 +418,7 @@ failure or error. Additionally they will create a CSV report. `paster validation
 
 * Dataset name
 * Resource id
+* Resource format
 * Resource URL
 * Status
 * Error code

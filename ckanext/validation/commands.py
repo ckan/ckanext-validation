@@ -323,7 +323,8 @@ report file on the relevant commands.''')
         writer.writerow({
             'dataset': dataset['name'],
             'resource_id': resource['id'],
-            'resource_url': resource_url,
+            'format': resource['format'],
+            'url': resource_url,
             'status': resource['validation_status'],
             'validation_report_url': validation_url
         })
@@ -362,7 +363,8 @@ report file on the relevant commands.''')
             writer.writerow({
                 'dataset': dataset['name'],
                 'resource_id': resource['id'],
-                'resource_url': resource_url,
+                'format': resource['format'],
+                'url': resource_url,
                 'status': resource['validation_status'],
                 'error_code': error['code'],
                 'error_message': error['message']
@@ -383,18 +385,20 @@ report file on the relevant commands.''')
             'resources_failure': 0,
             'resources_error': 0,
             'resources_success': 0,
-            'datasets': 0
+            'datasets': 0,
+            'formats_success': {},
+            'formats_failure': {}
         }
         error_counts = {}
 
         with open(output_csv, 'w') as fw:
             if full:
                 fieldnames = [
-                    'dataset', 'resource_id', 'resource_url',
+                    'dataset', 'resource_id', 'format', 'url',
                     'status', 'error_code', 'error_message']
             else:
                 fieldnames = [
-                    'dataset', 'resource_id', 'resource_url',
+                    'dataset', 'resource_id', 'format', 'url',
                     'status', 'validation_report_url']
 
             writer = csv.DictWriter(fw, fieldnames=fieldnames)
@@ -438,6 +442,17 @@ report file on the relevant commands.''')
                                 else:
                                     self._process_row(dataset, resource, writer)
 
+                                if resource['format'] in outputs['formats_failure']:
+                                    outputs['formats_failure'][resource['format']] += 1
+                                else:
+                                    outputs['formats_failure'][resource['format']] = 1
+                            else:
+                                if resource['format'] in outputs['formats_success']:
+                                    outputs['formats_success'][resource['format']] += 1
+                                else:
+                                    outputs['formats_success'][resource['format']] = 1
+
+
                     if len(query['results']) < self._page_size:
                         break
 
@@ -448,11 +463,27 @@ report file on the relevant commands.''')
         outputs['datasets'] = query['count']
         outputs['output_csv'] = output_csv
 
+        outputs['formats_success_output'] = ''
+        for count, code in sorted([(v, k) for k, v in outputs['formats_success'].iteritems()], reverse=True):
+            outputs['formats_success_output'] += '* {}: {}\n'.format(code, count)
+
+        outputs['formats_failure_output'] = ''
+        for count, code in sorted([(v, k) for k, v in outputs['formats_failure'].iteritems()], reverse=True):
+            outputs['formats_failure_output'] += '* {}: {}\n'.format(code, count)
+
         error_counts_output = ''
-        for count, code in sorted([(v, k) for k, v in error_counts.iteritems()], reverse=True):
-            error_counts_output += '* {}: {}\n'.format(code, count)
+        if full:
+            for count, code in sorted([(v, k) for k, v in error_counts.iteritems()], reverse=True):
+                error_counts_output += '* {}: {}\n'.format(code, count)
 
         outputs['error_counts_output'] = error_counts_output
+
+        msg_errors = '''
+Errors breakdown:
+{}
+'''.format(outputs['error_counts_output'])
+
+        outputs['msg_errors'] = msg_errors if full else ''
 
         msg = '''
 Done.
@@ -462,10 +493,13 @@ Done.
 {resources_failure} resources - validation failure
 {resources_error} resources - validation error
 
-Errors breakdown:
-{error_counts_output}
-
+Formats breakdown (validation passed):
+{formats_success_output}
+Formats breakdown (validation failed or errored):
+{formats_failure_output}
+{msg_errors}
 CSV Report stored in {output_csv}
 '''.format(**outputs)
+
 
         log.info(msg)
