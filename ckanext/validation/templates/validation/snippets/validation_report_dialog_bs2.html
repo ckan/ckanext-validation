@@ -1,0 +1,12 @@
+<div id="validation-report-dialog" class="modal hide fade bs2">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h3>{{ _('Data Validation Report') }}</h3>
+      </div>
+      <div class="modal-body">
+        <div id="report" data-module="validation-report" data-module-report="{{ h.dump_json_value(validation_report) }}"></div>
+      </div>
+</div>
+
+{% resource 'ckanext-validation/report-form' %}
+

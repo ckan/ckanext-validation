@@ -1,3 +1,9 @@
 .goodtables-ui-report .table {
   table-layout: auto;
 }
+
+/* Bootstrap 2 (CKAN <= 2.7) */
+/* TODO: this breaks the y scrolling */
+.bs2 .goodtables-ui-report .table-container {
+  overflow-y: inherit;
+}

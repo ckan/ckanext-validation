@@ -80,3 +80,10 @@ def dump_json_value(value, indent=None):
         return json.dumps(value, indent=indent, sort_keys=True)
     except (TypeError, ValueError):
         return value
+
+
+def bootstrap_version():
+    if config.get('ckan.base_public_folder') == 'public':
+        return '3'
+    else:
+        return '2'
