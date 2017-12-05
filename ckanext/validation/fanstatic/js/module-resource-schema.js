@@ -55,30 +55,12 @@ this.ckan.module('resource-schema', function($) {
       this.label = $('label', this.buttons_div);
 
       this.label_url = $('label', this.field_url);
-      // determines if the resource is a data resource
-      this.is_data_resource = (this.options.field_url === 'url') && (this.options.field_upload === 'upload');
-
 
       this.field_upload_input.on('change', this._onInputChange);
       this.field_url_input.focus()
         .on('blur', this._onURLBlur);
       this.field_json_input.focus()
         .on('blur', this._onJSONBlur);
-
-
-      // Is there a clear checkbox on the form already?
-      /*
-      var checkbox = $(field_clear, this.el);
-      if (checkbox.length > 0) {
-        checkbox.parents('.form-group').remove();
-      }
-      */
-
-      // Adds the hidden clear input to the form
-      /*
-      this.field_clear = $('<input type="hidden" name="' + options.field_clear +'">')
-        .appendTo(this.el);
-      */
 
       // Button to set upload a schema file
       this.button_upload = $('<a href="javascript:;" class="btn btn-default">' +
@@ -104,15 +86,7 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onFromJSON);
       $('.controls', this.buttons_div).append(this.button_json);
 
-      /*
-      // Button to attach local file to the form
-      this.button_upload = $('<a href="javascript:;" class="btn btn-default">' +
-                             '<i class="fa fa-cloud-upload"></i>' +
-                             this._('Upload') + '</a>')
-        .insertAfter(this.input);
-      */
-
-      var removeText = this._('Remove');
+      var removeText = this._('Clear');
 
       // Button for resetting the form when there is a URL set
       $('<a href="javascript:;" class="btn btn-danger btn-remove-url">'
@@ -127,16 +101,6 @@ this.ckan.module('resource-schema', function($) {
         .prop('title', removeText)
         .on('click', this._onRemoveJSON)
         .insertBefore(this.field_json_input);
-
-      // Setup the file input
-      /*
-      this.input
-        .on('mouseover', this._onInputMouseOver)
-        .on('mouseout', this._onInputMouseOut)
-        .on('change', this._onInputChange)
-        .prop('title', this._('Upload a file on your computer'))
-        .css('width', this.button_url.outerWidth());
-      */
 
       // Fields storage. Used in this.changeState
       this.fields = $('<i />')
