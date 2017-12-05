@@ -5,6 +5,7 @@ import datetime
 import json
 import re
 
+import requests
 from sqlalchemy.orm.exc import NoResultFound
 from goodtables import validate
 
@@ -46,7 +47,11 @@ def run_validation_job(resource):
 
     schema = resource.get(u'schema')
     if schema and isinstance(schema, basestring):
-        schema = json.loads(schema)
+        if schema.startswith('http'):
+            r = requests.get(schema)
+            schema = r.json()
+        else:
+            schema = json.loads(schema)
 
     options = resource.get(u'validation_options')
     if options and isinstance(options, basestring):
