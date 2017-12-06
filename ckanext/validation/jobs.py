@@ -96,7 +96,7 @@ def run_validation_job(resource):
 
 def _validate_table(source, _format=u'csv', schema=None, **options):
 
-    report = validate(source, format=_format, schema=schema, skip_checks=['duplicate-rows'] **options)
+    report = validate(source, format=_format, schema=schema, skip_checks=['duplicate-rows'], **options)
 
     log.debug(u'Validating source: {}'.format(source))
    
