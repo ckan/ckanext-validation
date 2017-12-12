@@ -17,7 +17,7 @@
       "values": {
         "validators": "ignore_missing scheming_valid_json_object validation_options_validator",
         "output_validators": "scheming_load_json",
-        "form_snippet": "json.html",
+        "form_snippet": "validation_options.html",
         "display_snippet": "json.html"
       }
     },

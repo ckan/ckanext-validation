@@ -89,17 +89,17 @@ this.ckan.module('resource-schema', function($) {
       var removeText = this._('Clear');
 
       // Change the clear file upload button too
-       $('.btn.btn-danger.btn-remove-url').text(removeText).removeClass('btn-danger');
+       $('.btn.btn-danger.btn-remove-url').text(removeText).removeClass('btn-danger').addClass('btn-default');
 
       // Button for resetting the form when there is a URL set
-      $('<a href="javascript:;" class="btn btn-remove-url">'
+      $('<a href="javascript:;" class="btn btn-default btn-remove-url">'
         + removeText + '</a>')
         .prop('title', removeText)
         .on('click', this._onRemoveURL)
         .insertBefore(this.field_url_input);
 
       // Button for resetting the form when there is a JSON text set
-      $('<a href="javascript:;" class="btn btn-remove-url">'
+      $('<a href="javascript:;" class="btn btn-default btn-remove-url">'
         + removeText + '</a>')
         .prop('title', removeText)
         .on('click', this._onRemoveJSON)
