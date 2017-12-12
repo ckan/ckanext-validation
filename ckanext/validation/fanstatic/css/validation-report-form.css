@@ -12,27 +12,14 @@
 
 @media only screen and (min-width : 992px) {
   #validation-report-dialog .modal-dialog {
-	width: 90%;
+	width: 95%;
+	margin: 2.5%;
   }
 
   /* Bootstrap 2 (CKAN <= 2.7) */
   .bs2 {
 	width: 90%;
-    margin-left: -45%
-  }
-
-
-}
-
-@media only screen and (min-width : 1200px) {
-  #validation-report-dialog .modal-dialog {
-	width: 70%;
-  }
-
-  /* Bootstrap 2 (CKAN <= 2.7) */
-  .bs2 {
-	width: 70%;
-    margin-left: -35%
+	margin-left: -45%;
   }
 
 }
