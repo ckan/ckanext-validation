@@ -437,5 +437,11 @@ def _run_sync_validation(resource_id, upload=False):
         if upload:
             delete_local_uploaded_file(resource_id)
 
+        # Delete resource
+        t.get_action(u'resource_delete')(
+            {u'ignore_auth': True},
+            {u'id': resource_id}
+        )
+
         raise t.ValidationError({
             u'validation': [report]})
