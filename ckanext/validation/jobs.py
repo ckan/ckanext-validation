@@ -116,14 +116,19 @@ def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
     # }
     site_url = config.get('ckan.site_url')
     storage_path=config.get('ckan.storage_path')
+    api_key=config.get('ckan.api_key')
     
     # TODO: get api key in a robust way
-    api_key ='4a8425f0-08da-44e8-9907-a1aa45d1f8a1'
+    #api_key ='4a8425f0-08da-44e8-9907-a1aa45d1f8a1'
     
     # TODO: get dataset name alias in a more robust way
-    result = requests.get(site_url+'/api/3/action/package_show?id=%s' % _dataset_id, headers={'Content-Type': 'application/json',
+    try:
+        result = requests.get(site_url+'/api/3/action/package_show?id=%s' % _dataset_id, headers={'Content-Type': 'application/json',
                                'Authorization': api_key})
-    package_name = result.json()['result'].get('name')
+        package_name = result.json()['result'].get('name')
+        log.debug(result)
+    except e:
+        print e
 
     # Create the directory if it didn't exist
     # Start by getting ckan storage path /var/lib/ckan
