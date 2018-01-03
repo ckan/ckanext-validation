@@ -106,27 +106,20 @@ def _validate_table(source, _format=u'csv', schema=None, **options):
     log.debug(u'Validating source: {}'.format(source))
    
     return report
+
 def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
-    # Define path to correct folder
-    # Write the file to the destination
-    # Log status
-    # directories = {
-    #     'vaccine':'/etc/ckan/default/storage/vaccinedata',
-    #     'redo':'/etc/ckan/default/storage/redodata'
-    # }
     site_url = config.get('ckan.site_url')
     storage_path=config.get('ckan.storage_path')
     api_key=config.get('ckan.api_key')
     
     # TODO: get api key in a robust way
-    #api_key ='4a8425f0-08da-44e8-9907-a1aa45d1f8a1'
     
     # TODO: get dataset name alias in a more robust way
     try:
         result = requests.get(site_url+'/api/3/action/package_show?id=%s' % _dataset_id, headers={'Content-Type': 'application/json',
                                'Authorization': api_key})
-        package_name = result.json()['result'].get('name')
         log.debug(result)
+        package_name = result.json()['result'].get('name')
     except ValueError as e:
         print e
 
