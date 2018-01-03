@@ -127,7 +127,7 @@ def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
                                'Authorization': api_key})
         package_name = result.json()['result'].get('name')
         log.debug(result)
-    except e:
+    except ValueError as e:
         print e
 
     # Create the directory if it didn't exist
