@@ -118,6 +118,7 @@ def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
     try:
         result = requests.get(site_url+'/api/3/action/package_show?id=%s' % _dataset_id, headers={'Content-Type': 'application/json',
                                'Authorization': api_key})
+        raise_for_status()
         log.debug(result)
         package_name = result.json()['result'].get('name')
     except ValueError as e:
