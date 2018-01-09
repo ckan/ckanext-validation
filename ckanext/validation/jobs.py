@@ -116,6 +116,7 @@ def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
     
     # TODO: get dataset name alias in a more robust way
     try:
+        log.debug(api_key)
         result = requests.get(site_url+'/api/3/action/package_show?id=%s' % _dataset_id, headers={'Content-Type': 'application/json',
                                'Authorization': api_key})
         result.raise_for_status()
