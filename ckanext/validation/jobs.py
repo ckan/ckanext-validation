@@ -19,6 +19,7 @@ from ckanext.validation.model import Validation
 import requests
 import os
 import errno
+from ckan.common import c
 
 
 log = logging.getLogger(__name__)
@@ -110,11 +111,7 @@ def _validate_table(source, _format=u'csv', schema=None, **options):
 def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
     site_url = config.get('ckan.site_url')
     storage_path=config.get('ckan.storage_path')
-    api_key=config.get('ckan.api_key')
-    
-    # TODO: get api key in a robust way
-    
-    # TODO: get dataset name alias in a more robust way
+    api_key=c.userobj.apikey
     try:
         log.debug(api_key)
         result = requests.get(site_url+'/api/3/action/package_show?id=%s' % _dataset_id, headers={'Content-Type': 'application/json',
