@@ -89,7 +89,7 @@ Use the following configuration options to choose the [operation modes](#operati
 	ckanext.validation.run_on_create_async = True|False (Defaults to True)	
 	ckanext.validation.run_on_update_async = True|False (Defaults to True)	
 
-	ckanext.validation.run_on_update_sync = True|False (Defaults to False)	
+	ckanext.validation.run_on_create_sync = True|False (Defaults to False)	
 	ckanext.validation.run_on_update_sync = True|False (Defaults to False)	
 
 By default validation will be run agaisnt the following formats: `CSV`, `XLSX` and `XLS`. You can modify these formats using the following option:
