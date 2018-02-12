@@ -125,7 +125,7 @@ class TestExtractReportFromErrors(object):
         assert_equals(extracted_report, report)
         assert_equals(errors['some_field'], ['Some error'])
         assert str(errors['validation'][0]).strip().startswith(
-            'Data validation errors found')
+            'There are validation issues with this file')
 
         assert_in('data-module="modal-dialog"', str(errors['validation'][0]))
 

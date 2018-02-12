@@ -280,7 +280,7 @@ def resource_create(context, data_dict):
     if get_create_mode_from_config() == u'sync':
         is_upload = (hasattr(upload, 'filename') and
                      upload.filename is not None)
-        _run_sync_validation(resource_id, upload=is_upload)
+        _run_sync_validation(resource_id, upload=is_upload, new_resource=True)
 
     # Custom code ends
 
@@ -385,7 +385,7 @@ def resource_update(context, data_dict):
     if get_update_mode_from_config() == u'sync':
         is_upload = (hasattr(upload, 'filename') and
                      upload.filename is not None)
-        _run_sync_validation(id, upload=is_upload)
+        _run_sync_validation(id, upload=is_upload, new_resource=False)
 
     # Custom code ends
 
@@ -406,7 +406,7 @@ def resource_update(context, data_dict):
     return resource
 
 
-def _run_sync_validation(resource_id, upload=False):
+def _run_sync_validation(resource_id, upload=False, new_resource=True):
 
     try:
         t.get_action(u'resource_validation_run')(
@@ -437,11 +437,12 @@ def _run_sync_validation(resource_id, upload=False):
         if upload:
             delete_local_uploaded_file(resource_id)
 
-        # Delete resource
-        t.get_action(u'resource_delete')(
-            {u'ignore_auth': True},
-            {u'id': resource_id}
-        )
+        if new_resource:
+            # Delete resource
+            t.get_action(u'resource_delete')(
+                {u'ignore_auth': True, 'user': None},
+                {u'id': resource_id}
+            )
 
         raise t.ValidationError({
             u'validation': [report]})
