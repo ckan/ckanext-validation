@@ -86,7 +86,8 @@ def run_validation_job(resource):
     Session.commit()
     # Push to Logstash folder
     if report[u'valid']:
-        resource_name = resource.get('name')
+        url = resource.get('url')
+        resource_name = filename_extractor(url)
         package_id = resource.get('package_id')
         log.debug('Saving file for data pipeline....')
         _push_file_to_logstash_folder(source, resource_name, package_id)
@@ -133,3 +134,12 @@ def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
     w.close()
     f.close()
     log.debug('File saved to %s' % full_path)
+
+"""
+filename_extractor - extracts the file extension from the resource url.
+This becomes necessary because the name of the resource could be anything.
+"""
+def filename_extractor(path):
+    path_arr = path.split('/')
+    path_length = len(path_arr)
+    return path_arr[path_length - 1]
