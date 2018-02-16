@@ -16,10 +16,8 @@ import ckantoolkit as t
 from ckantoolkit import config
 
 from ckanext.validation.model import Validation
-import requests
 import os
 import errno
-from ckan.common import c
 
 
 log = logging.getLogger(__name__)
@@ -90,6 +88,7 @@ def run_validation_job(resource):
     if report[u'valid']:
         resource_name = resource.get('name')
         package_id = resource.get('package_id')
+        log.debug('Saving file for data pipeline....')
         _push_file_to_logstash_folder(source, resource_name, package_id)
     # Store result status in resource
     t.get_action('resource_patch')(
@@ -109,25 +108,16 @@ def _validate_table(source, _format=u'csv', schema=None, **options):
     return report
 
 def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
-    site_url = config.get('ckan.site_url')
     storage_path=config.get('ckan.storage_path')
-    api_key=c.userobj.apikey
     try:
-        log.debug(api_key)
-        result = requests.get(site_url+'/api/3/action/package_show?id=%s' % _dataset_id, headers={'Content-Type': 'application/json',
-                               'Authorization': api_key})
-        result.raise_for_status()
-        log.debug(result)
-        package_name = result.json()['result'].get('name')
+        result = res = t.get_action('package_show')({'ignore_auth': True,
+            'user': t.get_action('get_site_user')({'ignore_auth': True})['name']},{'id':_dataset_id})
+        package_name = result.get('name')
     except ValueError as e:
-        print e
+        log.debug(e)
 
     # Create the directory if it didn't exist
-    # Start by getting ckan storage path /var/lib/ckan
     extra_path = os.path.join(storage_path, 'storage', package_name)
-    # extra_path= '%s/%s/%s' % (storage_path, 'storage',package_name)
-
-    # folder_path = directories[package_name]
     full_path = os.path.join(extra_path,_file_name)
     if not os.path.exists(extra_path):
         try:
@@ -142,6 +132,4 @@ def _push_file_to_logstash_folder(_file, _file_name, _dataset_id):
         w.write(lines)
     w.close()
     f.close()
-
-
     log.debug('File saved to %s' % full_path)
