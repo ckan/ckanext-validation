@@ -54,7 +54,24 @@
         )
     }}
 
-
+    {# Schema Editor #}
+    <div id="field-schema-editor"></div>
+    {# TODO: put into fanstatic/vendor? #}
+    <script src="//unpkg.com/tableschema-ui/dist/tableschema-ui.min.js"></script>
+    {# TODO: put into fanstatic/js/module-resource-schema? #}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        $('#field-schema-url, #field-schema-json').on('change', function(ev) {
+          console.log(ev)
+          var props = {
+            descriptor: ev.target.files ? ev.target.files[0] : ev.target.value,
+            onSave: (descriptor) => $('#field-schema').val(descriptor),
+          }
+          var element = document.getElementById('field-schema-editor')
+          tableschemaUI.render(tableschemaUI.EditorSchema, props, element)
+        })
+      }, false);
+    </script>
 
     {# Actual field containing the value #}
     {% set existing_value = h.scheming_display_json_value(value, indent=None) if is_json else value %}
