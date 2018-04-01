@@ -280,7 +280,6 @@ this.ckan.module('resource-schema', function($) {
       var source = this.source_file || this.field_source_input.val()
       var schema = this.schema_file || this.field_schema_input.val()
       var onSave = function (schema, error) {
-        console.log(schema)
         if (!error) this.field_schema_input.val(JSON.stringify(schema, null, 2))
         this.div_modal.modal('hide')
         this.schema_editor.dispose()
