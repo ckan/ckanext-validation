@@ -86,6 +86,23 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onFromJSON);
       $('.controls', this.buttons_div).append(this.button_json);
 
+      // Button to start schema editing
+      this.schema_editor = null
+      this.source = null
+      this.source_file = null
+      this.schema_file = null
+      this.div_modal = $('#field-schema-modal')
+      this.div_editor = $('#field-schema-editor')
+      this.button_edit = $('<a href="javascript:;" class="btn btn-default">' +
+                          '<i class="fa fa-edit"></i>' +
+                          this._('Edit') + '</a>')
+        .prop('title', this._('Edit the schema in the visual editor'))
+        .on('click', this._onEditSchemaClick);
+      $('.controls', this.buttons_div).append(this.button_edit);
+      var onFieldImageUploadChange = function(ev) {this.source_file = ev.target.files[0]}
+      $('#field-image-upload').change(onFieldImageUploadChange.bind(this))
+      this.field_source_input = $('#field-image-url')
+
       var removeText = this._('Clear');
 
       // Change the clear file upload button too
@@ -121,6 +138,7 @@ this.ckan.module('resource-schema', function($) {
       } else {
         this._showOnlyButtons();
       }
+
     },
 
     /* Update the `this.label` text
@@ -173,6 +191,7 @@ this.ckan.module('resource-schema', function($) {
       this.field_url_input.val('');
       this.field_url_input.prop('readonly', false);
 
+      this.schema_file = null
       this.field_schema_input.val('');
 
       this._updateUrlLabel(this._('Data Schema'));
@@ -227,8 +246,10 @@ this.ckan.module('resource-schema', function($) {
       }
     },
 
-    _onInputChange: function() {
+    _onInputChange: function(ev) {
       var file_name = this.field_upload_input.val().split(/^C:\\fakepath\\/).pop();
+
+      this.schema_file = ev.target.files[0]
 
       this.field_url_input.val(file_name);
       this.field_url_input.prop('readonly', true);
@@ -253,6 +274,26 @@ this.ckan.module('resource-schema', function($) {
       return url; // filename
     },
 
+    _onEditSchemaClick: function() {
+      var component = tableschemaUI.EditorSchema
+      var element = this.div_editor[0]
+      var source = this.source_file || this.field_source_input.val()
+      var schema = this.schema_file || this.field_schema_input.val()
+      var onSave = function (schema, error) {
+        console.log(schema)
+        if (!error) this.field_schema_input.val(JSON.stringify(schema, null, 2))
+        this.div_modal.modal('hide')
+        this.schema_editor.dispose()
+        this.schema_editor = null
+      }
+      var props = {
+        source: source,
+        schema: schema,
+        onSave: onSave.bind(this),
+      }
+      this.schema_editor = tableschemaUI.render(component, props, element)
+      this.div_modal.modal('show')
+    }
 
   };
 });
