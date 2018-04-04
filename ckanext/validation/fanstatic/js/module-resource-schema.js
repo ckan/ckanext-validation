@@ -99,9 +99,18 @@ this.ckan.module('resource-schema', function($) {
         .prop('title', this._('Edit the schema in the visual editor'))
         .on('click', this._onEditSchemaClick);
       $('.controls', this.buttons_div).append(this.button_edit);
-      var onFieldImageUploadChange = function(ev) {this.source_file = ev.target.files[0]}
-      $('#field-image-upload').change(onFieldImageUploadChange.bind(this))
-      this.field_source_input = $('#field-image-url')
+      $('#field-image-url').change((function(ev) {
+        this.source_file = ev.target.value
+        this.schema_file = null
+        this.field_schema_input.val('');
+        if (this.schema_editor) this.schema_editor.dispose()
+      }).bind(this))
+      $('#field-image-upload').change((function(ev) {
+        this.source_file = ev.target.files[0]
+        this.schema_file = null
+        this.field_schema_input.val('');
+        if (this.schema_editor) this.schema_editor.dispose()
+      }).bind(this))
 
       var removeText = this._('Clear');
 
@@ -193,6 +202,7 @@ this.ckan.module('resource-schema', function($) {
 
       this.schema_file = null
       this.field_schema_input.val('');
+      if (this.schema_editor) this.schema_editor.dispose()
 
       this._updateUrlLabel(this._('Data Schema'));
 
@@ -208,6 +218,7 @@ this.ckan.module('resource-schema', function($) {
 
       this.field_json_input.val('');
       this.field_json_input.prop('readonly', false);
+      if (this.schema_editor) this.schema_editor.dispose()
 
       this.field_schema_input.val('');
     },
@@ -236,6 +247,7 @@ this.ckan.module('resource-schema', function($) {
       var url = this.field_url_input.val();
       if (url) {
         this.field_schema_input.val(url);
+        if (this.schema_editor) this.schema_editor.dispose()
       }
     },
 
@@ -243,6 +255,7 @@ this.ckan.module('resource-schema', function($) {
       var json = this.field_json_input.val();
       if (json) {
         this.field_schema_input.val(json);
+        if (this.schema_editor) this.schema_editor.dispose()
       }
     },
 
@@ -250,6 +263,7 @@ this.ckan.module('resource-schema', function($) {
       var file_name = this.field_upload_input.val().split(/^C:\\fakepath\\/).pop();
 
       this.schema_file = ev.target.files[0]
+      if (this.schema_editor) this.schema_editor.dispose()
 
       this.field_url_input.val(file_name);
       this.field_url_input.prop('readonly', true);
@@ -277,7 +291,7 @@ this.ckan.module('resource-schema', function($) {
     _onEditSchemaClick: function() {
       var component = tableschemaUI.EditorSchema
       var element = this.div_editor[0]
-      var source = this.source_file || this.field_source_input.val()
+      var source = this.source_file
       var schema = this.schema_file || this.field_schema_input.val()
       var onSave = function (schema, error) {
         if (!error) this.field_schema_input.val(JSON.stringify(schema, null, 2))
