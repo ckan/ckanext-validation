@@ -303,6 +303,7 @@ this.ckan.module('resource-schema', function($) {
         source: source,
         schema: schema,
         onSave: onSave.bind(this),
+        disablePreview: true,
       }
       this.schema_editor = tableschemaUI.render(component, props, element)
       this.div_modal.modal('show')
