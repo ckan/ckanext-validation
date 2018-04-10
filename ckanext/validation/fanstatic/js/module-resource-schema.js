@@ -86,32 +86,30 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onFromJSON);
       $('.controls', this.buttons_div).append(this.button_json);
 
-      // Button to start schema editing
-      this.schema_editor = null
-      this.source = null
+      // Button to infer schema
       this.source_file = null
-      this.schema_file = null
-      this.div_modal = $('#field-schema-modal')
-      this.div_editor = $('#field-schema-editor')
-      this.button_edit = $('<a href="javascript:;" class="btn btn-default">' +
+      this.schema_editor = null
+      this.button_infer = $('<a href="javascript:;" class="btn btn-default">' +
                           '<i class="fa fa-edit"></i>' +
-                          this._('Edit') + '</a>')
-        .prop('title', this._('Edit the schema in the visual editor'))
-        .on('click', this._onEditSchemaClick);
-      $('.controls', this.buttons_div).append(this.button_edit);
+                          this._('Infer') + '</a>')
+        .prop('title', this._('Infer a schema based on the data file'))
+        .on('click', this._onInferSchemaClick)
+        .hide();
+      $('.controls', this.buttons_div).append(this.button_infer);
       $('#field-image-url').change((function(ev) {
         this.source_file = ev.target.value
-        this.schema_file = null
-        this.field_schema_input.val('');
-        if (this.schema_editor) this.schema_editor.dispose()
+        this.button_infer.show()
       }).bind(this))
       $('#field-image-upload').change((function(ev) {
         this.source_file = ev.target.files[0]
-        this.schema_file = null
-        this.field_schema_input.val('');
-        if (this.schema_editor) this.schema_editor.dispose()
+        this.button_infer.show()
+      }).bind(this))
+      $('.btn-remove-url').click((function(ev) {
+        this.source_file = null
+        this.button_infer.hide()
       }).bind(this))
 
+      // Remove text
       var removeText = this._('Clear');
 
       // Change the clear file upload button too
@@ -136,6 +134,7 @@ this.ckan.module('resource-schema', function($) {
         .add(this.button_upload)
         .add(this.button_url)
         .add(this.button_json)
+        .add(this.button_infer)
         .add(this.field_upload)
         .add(this.field_url)
         .add(this.field_json);
@@ -200,9 +199,7 @@ this.ckan.module('resource-schema', function($) {
       this.field_url_input.val('');
       this.field_url_input.prop('readonly', false);
 
-      this.schema_file = null
       this.field_schema_input.val('');
-      if (this.schema_editor) this.schema_editor.dispose()
 
       this._updateUrlLabel(this._('Data Schema'));
 
@@ -218,7 +215,9 @@ this.ckan.module('resource-schema', function($) {
 
       this.field_json_input.val('');
       this.field_json_input.prop('readonly', false);
-      if (this.schema_editor) this.schema_editor.dispose()
+
+      // Show infer button if source file is provided
+      if (this.source_file) this.button_infer.show()
 
       this.field_schema_input.val('');
     },
@@ -247,7 +246,6 @@ this.ckan.module('resource-schema', function($) {
       var url = this.field_url_input.val();
       if (url) {
         this.field_schema_input.val(url);
-        if (this.schema_editor) this.schema_editor.dispose()
       }
     },
 
@@ -255,15 +253,11 @@ this.ckan.module('resource-schema', function($) {
       var json = this.field_json_input.val();
       if (json) {
         this.field_schema_input.val(json);
-        if (this.schema_editor) this.schema_editor.dispose()
       }
     },
 
     _onInputChange: function(ev) {
       var file_name = this.field_upload_input.val().split(/^C:\\fakepath\\/).pop();
-
-      this.schema_file = ev.target.files[0]
-      if (this.schema_editor) this.schema_editor.dispose()
 
       this.field_url_input.val(file_name);
       this.field_url_input.prop('readonly', true);
@@ -288,25 +282,37 @@ this.ckan.module('resource-schema', function($) {
       return url; // filename
     },
 
-    _onEditSchemaClick: function() {
-      var component = tableschemaUI.EditorSchema
-      var element = this.div_editor[0]
+    _onInferSchemaClick: function() {
+
+      // Elements
+      var div_modal = $('#field-schema-modal')
+      var div_editor = $('#field-schema-editor')
+
+      // Props
       var source = this.source_file
-      var schema = this.schema_file || this.field_schema_input.val()
       var onSave = function (schema, error) {
-        if (!error) this.field_schema_input.val(JSON.stringify(schema, null, 2))
-        this.div_modal.modal('hide')
+        if (!error) {
+          var schemaText = JSON.stringify(schema, null, 2)
+          this.field_json_input.val(schemaText)
+          this._onJSONBlur()
+          this._showOnlyFieldJSON()
+        }
+        div_modal.modal('hide')
         this.schema_editor.dispose()
         this.schema_editor = null
       }
       var props = {
         source: source,
-        schema: schema,
         onSave: onSave.bind(this),
         disablePreview: true,
       }
-      this.schema_editor = tableschemaUI.render(component, props, element)
-      this.div_modal.modal('show')
+
+      // Render/show
+      if (this.schema_editor) this.schema_editor.dispose()
+      this.schema_editor = tableschemaUI.render(
+        tableschemaUI.EditorSchema, props, div_editor[0])
+      div_modal.modal('show')
+
     }
 
   };
