@@ -256,7 +256,7 @@ this.ckan.module('resource-schema', function($) {
       }
     },
 
-    _onInputChange: function(ev) {
+    _onInputChange: function() {
       var file_name = this.field_upload_input.val().split(/^C:\\fakepath\\/).pop();
 
       this.field_url_input.val(file_name);
