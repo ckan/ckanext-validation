@@ -127,6 +127,7 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onRemoveURL)
         .insertBefore(this.field_url_input);
 
+      // TODO: disable?
       // Button to open the schema editor when there is a URL set
       $('<a href="javascript:;" class="btn btn-default btn-remove-url" style="right: 75px;">'
         + 'Editor' + '</a>')
