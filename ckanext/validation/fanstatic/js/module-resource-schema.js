@@ -88,12 +88,17 @@ this.ckan.module('resource-schema', function($) {
 
       // Button to infer schema
       this.source_file = null
+      this.schema_file = null
       this.schema_editor = null
+      this.div_modal = $('#field-schema-modal')
+      this.div_editor = $('#field-schema-editor')
       this.button_infer = $('<a href="javascript:;" class="btn btn-default">' +
                           '<i class="fa fa-edit"></i>' +
                           this._('Infer') + '</a>')
         .prop('title', this._('Infer a schema based on the data file'))
-        .on('click', this._onInferSchemaClick)
+        .on('click', (function(ev) {
+          this._onEditSchema(this.source_file, null)
+        }).bind(this))
         .hide();
       $('.controls', this.buttons_div).append(this.button_infer);
       $('#field-image-url').change((function(ev) {
@@ -122,11 +127,32 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onRemoveURL)
         .insertBefore(this.field_url_input);
 
+      // Button to open the schema editor when there is a URL set
+      $('<a href="javascript:;" class="btn btn-default btn-remove-url" style="right: 75px;">'
+        + 'Editor' + '</a>')
+        .prop('title', 'Open the schema editor')
+        .on('click', (function(ev) {
+          var schema = this.field_url_input.prop('readonly')
+            ? this.schema_file
+            : this.field_url_input.val()
+          this._onEditSchema(null, schema)
+        }).bind(this))
+        .insertBefore(this.field_url_input);
+
       // Button for resetting the form when there is a JSON text set
       $('<a href="javascript:;" class="btn btn-default btn-remove-url">'
         + removeText + '</a>')
         .prop('title', removeText)
         .on('click', this._onRemoveJSON)
+        .insertBefore(this.field_json_input);
+
+      // Button to open the schema editor when there is a JSON text set
+      $('<a href="javascript:;" class="btn btn-default btn-remove-url" style="right: 75px;">'
+        + 'Editor' + '</a>')
+        .prop('title', 'Open the schema editor')
+        .on('click', (function(ev) {
+          this._onEditSchema(null, this.field_json_input.val())
+        }).bind(this))
         .insertBefore(this.field_json_input);
 
       // Fields storage. Used in this.changeState
@@ -256,8 +282,11 @@ this.ckan.module('resource-schema', function($) {
       }
     },
 
-    _onInputChange: function() {
+    _onInputChange: function(ev) {
       var file_name = this.field_upload_input.val().split(/^C:\\fakepath\\/).pop();
+
+      // Save schema file
+      this.schema_file = ev.target.files[0]
 
       this.field_url_input.val(file_name);
       this.field_url_input.prop('readonly', true);
@@ -282,36 +311,41 @@ this.ckan.module('resource-schema', function($) {
       return url; // filename
     },
 
-    _onInferSchemaClick: function() {
-
-      // Elements
-      var div_modal = $('#field-schema-modal')
-      var div_editor = $('#field-schema-editor')
+    _onEditSchema: function(source, schema) {
 
       // Props
-      var source = this.source_file
-      var onSave = function (schema, error) {
-        if (!error) {
-          var schemaText = JSON.stringify(schema, null, 2)
-          this.field_json_input.val(schemaText)
-          this._onJSONBlur()
-          this._showOnlyFieldJSON()
-        }
-        div_modal.modal('hide')
-        this.schema_editor.dispose()
-        this.schema_editor = null
-      }
       var props = {
         source: source,
-        onSave: onSave.bind(this),
+        schema: schema,
+        onSave: this._onSaveSchema,
         disablePreview: true,
       }
 
       // Render/show
+      var element = this.div_editor[0]
+      var component = tableschemaUI.EditorSchema
       if (this.schema_editor) this.schema_editor.dispose()
-      this.schema_editor = tableschemaUI.render(
-        tableschemaUI.EditorSchema, props, div_editor[0])
-      div_modal.modal('show')
+      this.schema_editor = tableschemaUI.render(component, props, element)
+      this.div_modal.modal('show')
+
+    },
+
+    _onSaveSchema: function(schema, error) {
+
+      // Success
+      if (!error) {
+        var schemaText = JSON.stringify(schema, null, 2)
+        this.field_url_input.prop('readonly', false)
+        this.field_url_input.val('')
+        this.field_json_input.val(schemaText)
+        this.field_schema_input.val(schemaText)
+        this._showOnlyFieldJSON()
+      }
+
+      // Dispose
+      this.div_modal.modal('hide')
+      this.schema_editor.dispose()
+      this.schema_editor = null
 
     }
 
