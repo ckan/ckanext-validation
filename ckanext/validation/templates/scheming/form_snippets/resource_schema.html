@@ -73,6 +73,8 @@
     {# Bootstrap backport styles #}
     {% if h.bootstrap_version() == '2' %}
       {% resource 'ckanext-validation/resource-schema-form-bs2' %}
+    {% else %}
+      {% resource 'ckanext-validation/resource-schema-form-bs3' %}
     {% endif %}
 
     {# Actual field containing the value #}
