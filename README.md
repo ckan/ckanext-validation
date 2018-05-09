@@ -104,6 +104,8 @@ You can also provide [validation options](#validation-options) that will be used
 
 Make sure to use indentation if the value spans multiple lines otherwise it won't be parsed.
 
+If you are using a cloud-based storage backend for uploads check [Private datasets](#private-datasets) for other configuration settings that might be relevant.
+
 
 ## How it works
 
@@ -231,6 +233,18 @@ The following validation options would make validation pass:
 ```
 
 Validation options can be defined (as a JSON object like the above) on each resource (via the UI form or the API on the `validation_options` field) or can be set globally by administrators on the CKAN INI file (see [Configuration](#configuration)).
+
+
+### Private datasets
+
+Validation can be performed on private datasets. When validating a locally uploaded resource, the extension uses the actual physical path to read the file, so internally there is no need for authorization. But when the upload is on a cloud-based backend (like the ones provided by [ckanext-cloudstorage](https://github.com/TkTech/ckanext-cloudstorage) or [ckanext-s3filestore](https://github.com/okfn/ckanext-s3filestore)) we need to request the file via an HTTP request to CKAN. If the resource is private this will require an `Authorization` header in order to avoid a `Not Authorized` error.
+
+In these cases, the API key for the site user will be passed as part of the request (or alternatively `ckanext.validation.pass_auth_header_value` if set in the configuration).
+
+As this involves sending API keys to other extensions this behaviour can be turned off by setting `ckanext.validation.pass_auth_header` to `False`.
+
+Again, these settings only affect private resources when using a cloud-based backend.
+
 
 
 ### Operation modes

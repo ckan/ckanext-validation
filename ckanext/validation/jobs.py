@@ -37,11 +37,35 @@ def run_validation_job(resource):
     Session.add(validation)
     Session.commit()
 
+    options = resource.get(u'validation_options')
+    if options and isinstance(options, basestring):
+        options = json.loads(options)
+    if not isinstance(options, dict):
+        options = {}
+
+    dataset = t.get_action('package_show')(
+        {'ignore_auth': True}, {'id': resource['package_id']})
+
     source = None
     if resource.get(u'url_type') == u'upload':
         upload = uploader.get_resource_uploader(resource)
         if isinstance(upload, uploader.ResourceUpload):
             source = upload.get_path(resource[u'id'])
+        else:
+            # Upload is not the default implementation (ie it's a cloud storage
+            # implementation)
+            pass_auth_header = t.asbool(
+                t.config.get(u'ckanext.validation.pass_auth_header', True))
+            if dataset[u'private'] and pass_auth_header:
+                s = requests.Session()
+                s.headers.update({
+                    u'Authorization': t.config.get(
+                        u'ckanext.validation.pass_auth_header_value',
+                        _get_site_user_api_key())
+                })
+
+                options[u'http_session'] = s
+
     if not source:
         source = resource[u'url']
 
@@ -52,12 +76,6 @@ def run_validation_job(resource):
             schema = r.json()
         else:
             schema = json.loads(schema)
-
-    options = resource.get(u'validation_options')
-    if options and isinstance(options, basestring):
-        options = json.loads(options)
-    if not isinstance(options, dict):
-        options = {}
 
     _format = resource[u'format'].lower()
 
@@ -98,3 +116,11 @@ def _validate_table(source, _format=u'csv', schema=None, **options):
     log.debug(u'Validating source: {}'.format(source))
 
     return report
+
+
+def _get_site_user_api_key():
+
+    site_user_name = t.get_action('get_site_user')({'ignore_auth': True}, {})
+    site_user = t.get_action('get_site_user')(
+        {'ignore_auth': True}, {'id': site_user_name})
+    return site_user['apikey']
