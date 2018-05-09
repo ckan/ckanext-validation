@@ -44,10 +44,14 @@ class TestValidationJob(object):
     def test_job_run_no_schema(
          self, mock_get_action, mock_commit, mock_validate):
 
+        org = factories.Organization()
+        dataset = factories.Dataset(private=True, owner_org=org['id'])
+
         resource = {
             'id': 'test',
             'url': 'http://example.com/file.csv',
             'format': 'csv',
+            'package_id': dataset['id'],
         }
 
         run_validation_job(resource)
@@ -62,6 +66,10 @@ class TestValidationJob(object):
     @mock.patch.object(ckantoolkit, 'get_action')
     def test_job_run_schema(
          self, mock_get_action, mock_commit, mock_validate):
+
+        org = factories.Organization()
+        dataset = factories.Dataset(private=True, owner_org=org['id'])
+
         schema = {
             'fields': [
                 {'name': 'id', 'type': 'integer'},
@@ -73,6 +81,7 @@ class TestValidationJob(object):
             'url': 'http://example.com/file.csv',
             'format': 'csv',
             'schema': json.dumps(schema),
+            'package_id': dataset['id'],
         }
 
         run_validation_job(resource)
@@ -90,11 +99,15 @@ class TestValidationJob(object):
     def test_job_run_uploaded_file(
             self, mock_get_action, mock_commit, mock_uploader, mock_validate):
 
+        org = factories.Organization()
+        dataset = factories.Dataset(private=True, owner_org=org['id'])
+
         resource = {
             'id': 'test',
             'url': '__upload',
             'url_type': 'upload',
             'format': 'csv',
+            'package_id': dataset['id'],
         }
 
         run_validation_job(resource)
