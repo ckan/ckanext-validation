@@ -147,11 +147,21 @@ to create the database tables:
 
     resources_to_validate = {}
 
-    def after_create(self, context, resource):
+    def after_create(self, context, data_dict):
 
         if not get_create_mode_from_config() == u'async':
             return
 
+        if self._data_dict_is_dataset(data_dict):
+            for resource in data_dict.get('resources', []):
+                self._handle_validation_for_resource(resource)
+        else:
+            self._handle_validation_for_resource(data_dict)
+
+    def _data_dict_is_dataset(self, data_dict):
+        return 'creator_user_id' in data_dict or 'owner_org' in data_dict
+
+    def _handle_validation_for_resource(self, resource):
         needs_validation = False
         if ((
             # File uploaded

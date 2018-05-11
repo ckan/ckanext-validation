@@ -162,3 +162,78 @@ class TestResourceControllerHooksCreate(object):
         factories.Resource(format='CSV', url='http://some.data')
 
         mock_enqueue.assert_not_called()
+
+
+class TestPackageControllerHooksCreate(object):
+
+    def setup(self):
+        reset_db()
+        if not tables_exist():
+            create_tables()
+
+    @mock.patch('ckanext.validation.logic.enqueue_job')
+    def test_validation_does_not_run_on_other_formats(self, mock_enqueue):
+
+        factories.Dataset(resources=[{'format': 'PDF'}])
+
+        mock_enqueue.assert_not_called()
+
+    @change_config('ckanext.validation.run_on_create_async', False)
+    @mock.patch('ckanext.validation.logic.enqueue_job')
+    def test_validation_does_not_run_when_config_false(self, mock_enqueue):
+
+        factories.Dataset(resources=[
+            {'format': 'CSV', 'url': 'http://some.data'}])
+
+        mock_enqueue.assert_not_called()
+
+    @mock.patch('ckanext.validation.logic.enqueue_job')
+    def test_validation_run_with_upload(self, mock_enqueue):
+
+        resource = {
+            'id': 'test-resource-id',
+            'format': 'CSV',
+            'url_type': 'upload'
+        }
+        factories.Dataset(resources=[resource])
+
+        assert_equals(mock_enqueue.call_count, 1)
+
+        assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
+        assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
+
+    @mock.patch('ckanext.validation.logic.enqueue_job')
+    def test_validation_run_with_url(self, mock_enqueue):
+
+        resource = {
+            'id': 'test-resource-id',
+            'format': 'CSV',
+            'url': 'http://some.data'
+        }
+        factories.Dataset(resources=[resource])
+
+        assert_equals(mock_enqueue.call_count, 1)
+
+        assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
+        assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource['id'])
+
+    @mock.patch('ckanext.validation.logic.enqueue_job')
+    def test_validation_run_only_supported_formats(self, mock_enqueue):
+
+        resource1 = {
+            'id': 'test-resource-id-1',
+            'format': 'CSV',
+            'url': 'http://some.data'
+        }
+        resource2 = {
+            'id': 'test-resource-id-2',
+            'format': 'PDF',
+            'url': 'http://some.doc'
+        }
+
+        factories.Dataset(resources=[resource1, resource2])
+
+        assert_equals(mock_enqueue.call_count, 1)
+
+        assert_equals(mock_enqueue.call_args[0][0], run_validation_job)
+        assert_equals(mock_enqueue.call_args[0][1][0]['id'], resource1['id'])
