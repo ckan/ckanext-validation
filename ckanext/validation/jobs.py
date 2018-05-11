@@ -103,7 +103,8 @@ def run_validation_job(resource):
     # Store result status in resource
     t.get_action('resource_patch')(
         {'ignore_auth': True,
-         'user': t.get_action('get_site_user')({'ignore_auth': True})['name']},
+         'user': t.get_action('get_site_user')({'ignore_auth': True})['name'],
+         '_validation_performed': True},
         {'id': resource['id'],
          'validation_status': validation.status,
          'validation_timestamp': validation.finished.isoformat()})

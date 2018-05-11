@@ -152,14 +152,16 @@ to create the database tables:
         if not get_create_mode_from_config() == u'async':
             return
 
-        if self._data_dict_is_dataset(data_dict):
-            for resource in data_dict.get('resources', []):
+        if data_dict.get(u'resources'):
+            # This is a dataset
+            for resource in data_dict[u'resources']:
                 self._handle_validation_for_resource(resource)
         else:
+            # This is a resource
             self._handle_validation_for_resource(data_dict)
 
     def _data_dict_is_dataset(self, data_dict):
-        return 'creator_user_id' in data_dict or 'owner_org' in data_dict
+        return u'creator_user_id' in data_dict or u'owner_org' in data_dict
 
     def _handle_validation_for_resource(self, resource):
         needs_validation = False
@@ -176,7 +178,7 @@ to create the database tables:
             needs_validation = True
 
         if needs_validation:
-            _run_async_validation(resource['id'])
+            _run_async_validation(resource[u'id'])
 
     def before_update(self, context, current_resource, updated_resource):
 
@@ -209,17 +211,38 @@ to create the database tables:
 
         return updated_resource
 
-    def after_update(self, context, updated_resource):
+    def after_update(self, context, data_dict):
 
         if not get_update_mode_from_config() == u'async':
             return
 
-        resource_id = updated_resource[u'id']
+        if context.get('_validation_performed'):
+            # Ugly, but needed to avoid circular loops caused by the
+            # validation job calling resource_patch (which calls
+            # package_update)
+            del context['_validation_performed']
+            return
 
-        if resource_id in self.resources_to_validate:
-            del self.resources_to_validate[resource_id]
+        if data_dict.get(u'resources'):
+            # This is a dataset
+            for resource in data_dict[u'resources']:
+                if resource[u'id'] in self.resources_to_validate:
+                    # This is part of a resource_update call, it will be
+                    # handled on the next `after_update` call
+                    continue
+                else:
+                    # This is an actual package_update call, validate the
+                    # resources if necessary
+                    self._handle_validation_for_resource(resource)
 
-            _run_async_validation(resource_id)
+        else:
+            # This is a resource
+            resource_id = data_dict[u'id']
+
+            if resource_id in self.resources_to_validate:
+                del self.resources_to_validate[resource_id]
+
+                _run_async_validation(resource_id)
 
     # IPackageController
 
