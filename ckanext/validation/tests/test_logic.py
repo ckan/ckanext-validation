@@ -117,11 +117,13 @@ class TestResourceValidationRun(object):
     def test_resource_validation_resets_existing_validation_object(
             self, mock_enqueue_job):
 
-        resource = factories.Resource(format='csv')
+        resource = {'format': 'CSV', 'url': 'https://some.url'}
+
+        dataset = factories.Dataset(resources=[resource])
 
         timestamp = datetime.datetime.utcnow()
         old_validation = Validation(
-            resource_id=resource['id'],
+            resource_id=dataset['resources'][0]['id'],
             created=timestamp,
             finished=timestamp,
             status='valid',
@@ -131,12 +133,15 @@ class TestResourceValidationRun(object):
         Session.add(old_validation)
         Session.commit()
 
-        call_action('resource_validation_run', resource_id=resource['id'])
+        call_action(
+            'resource_validation_run',
+            resource_id=dataset['resources'][0]['id']
+        )
 
         validation = Session.query(Validation).filter(
-            Validation.resource_id == resource['id']).one()
+            Validation.resource_id == dataset['resources'][0]['id']).one()
 
-        assert_equals(validation.resource_id, resource['id'])
+        assert_equals(validation.resource_id, dataset['resources'][0]['id'])
         assert_equals(validation.status, 'created')
         assert validation.created is not timestamp
         assert_equals(validation.finished, None)
@@ -168,20 +173,25 @@ class TestResourceValidationShow(FunctionalTestBase):
     @change_config('ckanext.validation.run_on_create_async', False)
     def test_resource_validation_show_validation_does_not_exists(self):
 
-        resource = factories.Resource(format='csv')
+        resource = {'format': 'CSV', 'url': 'https://some.url'}
+
+        dataset = factories.Dataset(resources=[resource])
 
         assert_raises(
             t.ObjectNotFound,
             call_action, 'resource_validation_show',
-            resource_id=resource['id'])
+            resource_id=dataset['resources'][0]['id'])
 
     @change_config('ckanext.validation.run_on_create_async', False)
     def test_resource_validation_show_returns_all_fields(self):
 
-        resource = factories.Resource(format='csv')
+        resource = {'format': 'CSV', 'url': 'https://some.url'}
+
+        dataset = factories.Dataset(resources=[resource])
+
         timestamp = datetime.datetime.utcnow()
         validation = Validation(
-            resource_id=resource['id'],
+            resource_id=dataset['resources'][0]['id'],
             created=timestamp,
             finished=timestamp,
             status='valid',
@@ -191,7 +201,8 @@ class TestResourceValidationShow(FunctionalTestBase):
         Session.commit()
 
         validation_show = call_action(
-            'resource_validation_show', resource_id=resource['id'])
+            'resource_validation_show',
+            resource_id=dataset['resources'][0]['id'])
 
         assert_equals(validation_show['id'], validation.id)
         assert_equals(validation_show['resource_id'], validation.resource_id)
@@ -227,6 +238,7 @@ class TestResourceValidationDelete(FunctionalTestBase):
             resource_id='not_exists')
 
     @change_config('ckanext.validation.run_on_create_async', False)
+    @change_config('ckanext.validation.run_on_update_async', False)
     def test_resource_validation_delete_removes_object(self):
 
         resource = factories.Resource(format='csv')
@@ -602,8 +614,6 @@ class TestResourceValidationOnUpdate(FunctionalTestBase):
 
         invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
 
-        validation_count_before = model.Session.query(Validation).count()
-
         with mock.patch('io.open', return_value=invalid_stream):
 
             with assert_raises(t.ValidationError):
@@ -617,7 +627,7 @@ class TestResourceValidationOnUpdate(FunctionalTestBase):
 
         validation_count_after = model.Session.query(Validation).count()
 
-        assert_equals(validation_count_after, validation_count_before)
+        assert_equals(validation_count_after, 0)
 
     @mock_uploads
     def test_validation_passes_on_upload(self, mock_open):
