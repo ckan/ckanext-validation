@@ -24,6 +24,7 @@ Data description and validation for CKAN with [Frictionless Data](https://fricti
 	* [resource_validation_run](#resource_validation_run)
 	* [resource_validation_show](#resource_validation_show)
 	* [resource_validation_delete](#resource_validation_delete)
+	* [resource_validation_run_batch](#resource_validation_run_batch)
   * [Command Line Interface](#command-line-interface)
     * [Starting the validation process manually](#starting-the-validation-process-manually)
     * [Data validation reports](#data-validation-reports)
@@ -329,6 +330,8 @@ The `validation` plugin adds new API actions to create and display validation re
 By default `resource_validation_run`, `resource_validation_delete` and `resource_validation_show` inherit whatever auth is in place
 for `resource_update` and `resource_show` respectively.
 
+There is an extra action which only sysadmins can access: `resource_validation_run_batch`.
+
 #### `resource_validation_run`
 
 ```python
@@ -391,6 +394,56 @@ def resource_validation_delete(context, data_dict):
     '''
 
 ```
+
+#### `resource_validation_run_batch`
+
+```python
+
+def resource_validation_run_batch(context, data_dict):
+    u'''
+    Start asynchronous data validation on the site resources. If no
+    options are provided it will run validation on all resources of
+    the supported formats (`ckanext.validation.formats`). You can
+    specify particular datasets to run the validation on their
+    resources. You can also pass arbitrary search parameters to filter
+    the selected datasets.
+
+    Only sysadmins are allowed to run this action.
+
+    Examples::
+
+       curl -X POST http://localhost:5001/api/action/resource_validation_run_batch \
+            -d '{"dataset_ids": "ec9bfd88-f90a-45ca-b024-adc8854b49bd"}' \
+            -H Content-type:application/json \
+            -H Authorization:API_KEY
+
+       curl -X POST http://localhost:5001/api/action/resource_validation_run_batch \
+            -d '{"dataset_ids": ["passenger-data-2018", "passenger-data-2017]}}' \
+            -H Content-type:application/json \
+            -H Authorization:API_KEY
+
+
+       curl -X POST http://localhost:5001/api/action/resource_validation_run_batch \
+            -d '{"query": {"fq": "res_format:XLSX"}}' \
+            -H Content-type:application/json \
+            -H Authorization:API_KEY
+
+    :param dataset_ids: Run data validation on all resources for a
+        particular dataset or datasets. Not to be used with ``query``.
+    :type dataset_ids: string or list
+    :param query: Extra search parameters that will be used for getting
+        the datasets to run validation on. It must be a JSON object like
+        the one used by the `package_search` API call. Supported fields
+        are ``q``, ``fq`` and ``fq_list``. Check the documentation for
+        examples. Note that when using this you will have to specify
+        the resource formats to target your Not to be used with
+        ``dataset_ids``.
+    :type query: dict
+
+    :rtype: string
+    '''
+```
+
 
 ## Command Line Interface
 
