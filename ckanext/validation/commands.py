@@ -2,14 +2,14 @@
 
 import sys
 import logging
-import json
 import csv
 
 from ckan.lib.cli import query_yes_no
-from ckantoolkit import CkanCommand, get_action, ValidationError, config
+from ckantoolkit import CkanCommand, get_action, config
 
 from ckanext.validation import settings
 from ckanext.validation.model import create_tables, tables_exist
+from ckanext.validation.logic import _search_datasets
 
 
 def error(msg):
@@ -154,23 +154,13 @@ report file on the relevant commands.''')
                 self._run_validation_on_resource(
                     resource['id'], resource['package_id'])
         else:
-            self._run_on_datasets()
 
-    def _run_on_datasets(self):
+            query = _search_datasets()
 
-        log = logging.getLogger(__name__)
-
-        page = 1
-        count_resources = 0
-
-        while True:
-
-            query = self._search_datasets(page)
-
-            if page == 1 and query['count'] == 0:
+            if query['count'] == 0:
                 error('No suitable datasets, exiting...')
 
-            elif page == 1 and not self.options.assume_yes:
+            elif not self.options.assume_yes:
 
                 msg = ('\nYou are about to start validation for {0} datasets' +
                        '.\n Do you want to continue?')
@@ -180,40 +170,12 @@ report file on the relevant commands.''')
                 if confirm == 'no':
                     error('Command aborted by user')
 
-            if query['results']:
-                for dataset in query['results']:
-
-                    if not dataset.get('resources'):
-                        continue
-
-                    for resource in dataset['resources']:
-
-                        if (not resource.get(u'format', u'').lower()
-                                in settings.SUPPORTED_FORMATS):
-                            continue
-
-                        try:
-                            self._run_validation_on_resource(
-                                resource['id'], dataset['name'])
-
-                            count_resources += 1
-
-                        except ValidationError as e:
-                            log.warning(
-                                u'Could not run validation for resource {} ' +
-                                u'from dataset {}: {}'.format(
-                                    resource['id'], dataset['name'], str(e)))
-
-                if len(query['results']) < self._page_size:
-                    break
-
-                page += 1
-            else:
-                break
-
-        log.info(
-            'Done. {} resources sent to the validation queue'.format(
-                count_resources))
+            result = get_action('resource_validation_run_batch')(
+                {'ignore_auth': True},
+                {'dataset_ids': self.options.dataset_id,
+                 'query': self.options.search_params}
+            )
+            print(result['output'])
 
     def _run_validation_on_resource(self, resource_id, dataset_id):
 
@@ -229,88 +191,6 @@ report file on the relevant commands.''')
 
         log.debug(
             msg.format(resource_id, dataset_id))
-
-    def _update_search_params(self, search_data_dict):
-        '''
-        Update the `package_search` data dict with the user provided parameters
-
-        Supported fields are `q`, `fq` and `fq_list`.
-
-        If the provided JSON object can not be parsed the process stops with
-        an error.
-
-        Returns the updated data dict
-        '''
-
-        if not self.options.search_params:
-            return search_data_dict
-
-        try:
-            user_search_params = json.loads(self.options.search_params)
-        except ValueError, e:
-            error('Unable to parse JSON search parameters: {0}'.format(e))
-
-        if user_search_params.get('q'):
-            search_data_dict['q'] = user_search_params['q']
-
-        if user_search_params.get('fq'):
-            if search_data_dict['fq']:
-                search_data_dict['fq'] += ' ' + user_search_params['fq']
-            else:
-                search_data_dict['fq'] = user_search_params['fq']
-
-        if (user_search_params.get('fq_list') and
-                isinstance(user_search_params['fq_list'], list)):
-            search_data_dict['fq_list'].extend(user_search_params['fq_list'])
-
-    def _add_default_formats(self, search_data_dict):
-
-        filter_formats = []
-
-        for _format in settings.DEFAULT_SUPPORTED_FORMATS:
-            filter_formats.extend([_format, _format.upper()])
-
-        filter_formats_query = ['+res_format:"{0}"'.format(_format)
-                                for _format in filter_formats]
-        search_data_dict['fq_list'].append(' OR '.join(filter_formats_query))
-
-    def _search_datasets(self, page=1):
-        '''
-        Perform a query with `package_search` and return the result
-
-        Results can be paginated using the `page` parameter
-        '''
-
-        n = self._page_size
-
-        search_data_dict = {
-            'q': '',
-            'fq': '',
-            'fq_list': [],
-            'include_private': True,
-            'rows': n,
-            'start': n * (page - 1),
-        }
-
-        if self.options.dataset_id:
-
-            search_data_dict['q'] = ' OR '.join(
-                ['id:{0} OR name:"{0}"'.format(dataset_id)
-                 for dataset_id in self.options.dataset_id]
-            )
-
-        elif self.options.search_params:
-
-            self._update_search_params(search_data_dict)
-        else:
-            self._add_default_formats(search_data_dict)
-
-        if not search_data_dict.get('q'):
-            search_data_dict['q'] = '*:*'
-
-        query = get_action('package_search')({}, search_data_dict)
-
-        return query
 
     def _process_row(self, dataset, resource, writer):
         resource_url = '{}/dataset/{}/resource/{}'.format(
@@ -406,7 +286,7 @@ report file on the relevant commands.''')
 
             page = 1
             while True:
-                query = self._search_datasets(page)
+                query = _search_datasets(page)
 
                 if page == 1 and query['count'] == 0:
                     error('No suitable datasets, exiting...')

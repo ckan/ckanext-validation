@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+import json
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -55,6 +56,11 @@ def auth_resource_validation_show(context, data_dict):
     return {u'success': False}
 
 
+def auth_resource_validation_run_batch(context, data_dict):
+    '''u Sysadmins only'''
+    return {u'success': False}
+
+
 # Actions
 
 
@@ -89,7 +95,7 @@ def resource_validation_run(context, data_dict):
         raise t.ValidationError(
             {u'format': u'Unsupported resource format.' +
              u'Must be one of {}'.format(
-                u','.join(settings.SUPPORTED_FORMATS))})
+                 u','.join(settings.SUPPORTED_FORMATS))})
 
     # Ensure there is a URL or file upload
     if not resource.get(u'url') and not resource.get(u'url_type') == u'upload':
@@ -198,6 +204,202 @@ def resource_validation_delete(context, data_dict):
 
     Session.delete(validation)
     Session.commit()
+
+
+def resource_validation_run_batch(context, data_dict):
+    u'''
+    Start asynchronous data validation on the site resources. If no
+    options are provided it will run validation on all resources of
+    the supported formats (`ckanext.validation.formats`). You can
+    specify particular datasets to run the validation on their
+    resources. You can also pass arbitrary search parameters to filter
+    the selected datasets.
+
+    Only sysadmins are allowed to run this action.
+
+    Examples::
+
+       curl -X POST http://localhost:5001/api/action/resource_validation_run_batch \
+            -d '{"dataset_ids": "ec9bfd88-f90a-45ca-b024-adc8854b49bd"}' \
+            -H Content-type:application/json \
+            -H Authorization:API_KEY
+
+       curl -X POST http://localhost:5001/api/action/resource_validation_run_batch \
+            -d '{"dataset_ids": ["passenger-data-2018", "passenger-data-2017]}}' \
+            -H Content-type:application/json \
+            -H Authorization:API_KEY
+
+
+       curl -X POST http://localhost:5001/api/action/resource_validation_run_batch \
+            -d '{"query": {"fq": "res_format:XLSX"}}' \
+            -H Content-type:application/json \
+            -H Authorization:API_KEY
+
+    :param dataset_ids: Run data validation on all resources for a
+        particular dataset or datasets. Not to be used with ``query``.
+    :type dataset_ids: string or list
+    :param query: Extra search parameters that will be used for getting
+        the datasets to run validation on. It must be a JSON object like
+        the one used by the `package_search` API call. Supported fields
+        are ``q``, ``fq`` and ``fq_list``. Check the documentation for
+        examples. Note that when using this you will have to specify
+        the resource formats to target your Not to be used with
+        ``dataset_ids``.
+    :type query: dict
+
+    :rtype: string
+
+
+
+    '''
+
+    t.check_access(u'resource_validation_run_batch', context, data_dict)
+
+    page = 1
+    page_size = 100
+    count_resources = 0
+
+    dataset_ids = data_dict.get('dataset_ids')
+    if isinstance(dataset_ids, basestring):
+        try:
+            dataset_ids = json.loads(dataset_ids)
+        except ValueError as e:
+            dataset_ids = [dataset_ids]
+
+    search_params = data_dict.get('query')
+    if isinstance(search_params, basestring):
+        try:
+            search_params = json.loads(search_params)
+        except ValueError as e:
+            msg = 'Error parsing search parameters'.format(search_params)
+            return {'output': msg}
+
+    while True:
+
+        query = _search_datasets(
+            page, page_size=page_size,
+            dataset_ids=dataset_ids,
+            search_params=search_params)
+
+        if page == 1 and query['count'] == 0:
+            msg = 'No suitable datasets for validation'
+            return {'output': msg}
+
+        if query['results']:
+            for dataset in query['results']:
+
+                if not dataset.get('resources'):
+                    continue
+
+                for resource in dataset['resources']:
+
+                    if (not resource.get(u'format', u'').lower()
+                            in settings.SUPPORTED_FORMATS):
+                        continue
+
+                    try:
+                        t.get_action(u'resource_validation_run')(
+                            {u'ignore_auth': True},
+                            {u'resource_id': resource['id'],
+                             u'async': True})
+
+                        count_resources += 1
+
+                    except t.ValidationError as e:
+                        log.warning(
+                            u'Could not run validation for resource {} ' +
+                            u'from dataset {}: {}'.format(
+                                resource['id'], dataset['name'], str(e)))
+
+            if len(query['results']) < page_size:
+                break
+
+            page += 1
+        else:
+            break
+
+    msg = 'Done. {} resources sent to the validation queue'.format(
+        count_resources)
+    log.info(msg)
+    return {'output': msg}
+
+
+def _search_datasets(
+        page=1, page_size=100, dataset_ids=None, search_params=None):
+    '''
+    Perform a query with `package_search` and return the result
+
+    Results can be paginated using the `page` parameter
+    '''
+
+    search_data_dict = {
+        'q': '',
+        'fq': '',
+        'fq_list': [],
+        'include_private': True,
+        'rows': page_size,
+        'start': page_size * (page - 1),
+    }
+
+    if dataset_ids:
+
+        search_data_dict['q'] = ' OR '.join(
+            ['id:{0} OR name:"{0}"'.format(dataset_id)
+             for dataset_id in dataset_ids]
+        )
+
+    elif search_params:
+        _update_search_params(search_data_dict, search_params)
+    else:
+        _add_default_formats(search_data_dict)
+
+    if not search_data_dict.get('q'):
+        search_data_dict['q'] = '*:*'
+
+    query = t.get_action('package_search')({}, search_data_dict)
+
+    return query
+
+
+def _update_search_params(search_data_dict, user_search_params=None):
+    '''
+    Update the `package_search` data dict with the user provided parameters
+
+    Supported fields are `q`, `fq` and `fq_list`.
+
+    If the provided JSON object can not be parsed the process stops with
+    an error.
+
+    Returns the updated data dict
+    '''
+
+    if not user_search_params:
+        return search_data_dict
+
+    if user_search_params.get('q'):
+        search_data_dict['q'] = user_search_params['q']
+
+    if user_search_params.get('fq'):
+        if search_data_dict['fq']:
+            search_data_dict['fq'] += ' ' + user_search_params['fq']
+        else:
+            search_data_dict['fq'] = user_search_params['fq']
+
+    if (user_search_params.get('fq_list') and
+            isinstance(user_search_params['fq_list'], list)):
+        search_data_dict['fq_list'].extend(user_search_params['fq_list'])
+
+
+def _add_default_formats(search_data_dict):
+
+    filter_formats = []
+
+    for _format in settings.DEFAULT_SUPPORTED_FORMATS:
+        filter_formats.extend([_format, _format.upper()])
+
+    filter_formats_query = ['+res_format:"{0}"'.format(_format)
+                            for _format in filter_formats]
+    search_data_dict['fq_list'].append(' OR '.join(filter_formats_query))
 
 
 def _validation_dictize(validation):
