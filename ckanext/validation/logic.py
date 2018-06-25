@@ -485,7 +485,7 @@ def resource_create(context, data_dict):
             upload.filename is not None and
             isinstance(upload, uploader.ResourceUpload))
         _run_sync_validation(
-            resource_id, local_upload=is_local_upload, new_resource=False)
+            resource_id, local_upload=is_local_upload, new_resource=True)
 
     # Custom code ends
 
