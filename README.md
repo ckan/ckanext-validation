@@ -87,11 +87,11 @@ The extension requires changes in the [CKAN schema](#changes-in-the-schema). The
 
 Use the following configuration options to choose the [operation modes](#operation-modes):
 
-	ckanext.validation.run_on_create_async = True|False (Defaults to True)	
-	ckanext.validation.run_on_update_async = True|False (Defaults to True)	
+	ckanext.validation.run_on_create_async = True|False (Defaults to True)
+	ckanext.validation.run_on_update_async = True|False (Defaults to True)
 
-	ckanext.validation.run_on_create_sync = True|False (Defaults to False)	
-	ckanext.validation.run_on_update_sync = True|False (Defaults to False)	
+	ckanext.validation.run_on_create_sync = True|False (Defaults to False)
+	ckanext.validation.run_on_update_sync = True|False (Defaults to False)
 
 By default validation will be run agaisnt the following formats: `CSV`, `XLSX` and `XLS`. You can modify these formats using the following option:
 
@@ -118,7 +118,7 @@ Data validation follows the same principle but against the actual data published
 
 These checks include structural problems like missing headers or values, blank rows, etc., but also can validate the data contents themselves (see [Data Schemas](#data-schemas)) or even run [custom checks](https://github.com/frictionlessdata/goodtables-py#custom-constraint).
 
-The result of this validation is a JSON report. This report contains all the issues found (if any) with their relevant context (row number, columns involved, etc). The reports are stored in the database and linked to the CKAN resource, and can be retrieved [via the API](#resource-validation-show).
+The result of this validation is a JSON report. This report contains all the issues found (if any) with their relevant context (row number, columns involved, etc). The reports are stored in the database and linked to the CKAN resource, and can be retrieved [via the API](#resource_validation_show).
 
 If there is a report available for a particular resource, a status badge will be displayed in the resource listing and on the resource page, showing whether validation passed or failed for the resource.
 
