@@ -17,29 +17,30 @@ def get_validation_badge(resource, in_listing=False):
     messages = {
         'success': _('Valid data'),
         'failure': _('Invalid data'),
+        'invalid': _('Invalid data'),
         'error': _('Error during validation'),
         'unknown': _('Data validation unknown'),
     }
 
-    if resource['validation_status'] in ['success', 'failure', 'error']:
+    if resource['validation_status'] in [_('success'), _('failure'), _('error')]:
         status = resource['validation_status']
+        if status == _('failure'):
+            status = _('invalid')
     else:
-        status = 'unknown'
+        status = _('unknown')
 
     validation_url = url_for(
         'validation_read',
         id=resource['package_id'],
         resource_id=resource['id'])
 
-    badge_url = url_for_static(
-        '/images/badges/data-{}-flat.svg'.format(status))
-
     return u'''
 <a href="{validation_url}" class="validation-badge">
-    <img src="{badge_url}" alt="{alt}" title="{title}"/>
+    <span class="prefix">{prefix}</span><span class="status {status}">{status}</span>
 </a>'''.format(
         validation_url=validation_url,
-        badge_url=badge_url,
+        prefix=_('data'),
+        status=status,
         alt=messages[status],
         title=resource.get('validation_timestamp', ''))
 
