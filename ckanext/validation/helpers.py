@@ -34,7 +34,7 @@ def get_validation_badge(resource, in_listing=False):
     badge_url = url_for_static(
         '/images/badges/data-{}-flat.svg'.format(status))
 
-    return '''
+    return u'''
 <a href="{validation_url}" class="validation-badge">
     <img src="{badge_url}" alt="{alt}" title="{title}"/>
 </a>'''.format(
