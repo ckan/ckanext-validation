@@ -45,7 +45,7 @@ msgstr "погрешни"
 
 #: ckanext/validation/helpers.py:22
 msgid "unknown"
-msgstr "непознато"
+msgstr "непознати"
 
 #: ckanext/validation/helpers.py:26
 msgid "Valid data"
