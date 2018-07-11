@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-validation 0.0.4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-07-10 09:47+0200\n"
+"POT-Creation-Date: 2018-07-11 10:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.3.4\n"
+"Generated-By: Babel 2.6.0\n"
 
 #: ckanext/validation/controller.py:36
 msgid "Unauthorized to read this validation report"
@@ -27,22 +27,46 @@ msgid "No validation report exists for this resource"
 msgstr ""
 
 #: ckanext/validation/helpers.py:18
-msgid "Valid data"
+msgid "success"
 msgstr ""
 
 #: ckanext/validation/helpers.py:19
-msgid "Invalid data"
+msgid "failure"
 msgstr ""
 
 #: ckanext/validation/helpers.py:20
-msgid "Error during validation"
+msgid "invalid"
 msgstr ""
 
 #: ckanext/validation/helpers.py:21
+msgid "error"
+msgstr ""
+
+#: ckanext/validation/helpers.py:22
+msgid "unknown"
+msgstr ""
+
+#: ckanext/validation/helpers.py:26
+msgid "Valid data"
+msgstr ""
+
+#: ckanext/validation/helpers.py:27 ckanext/validation/helpers.py:28
+msgid "Invalid data"
+msgstr ""
+
+#: ckanext/validation/helpers.py:29
+msgid "Error during validation"
+msgstr ""
+
+#: ckanext/validation/helpers.py:30
 msgid "Data validation unknown"
 msgstr ""
 
-#: ckanext/validation/helpers.py:56
+#: ckanext/validation/helpers.py:50
+msgid "data"
+msgstr ""
+
+#: ckanext/validation/helpers.py:66
 msgid ""
 "\n"
 "There are validation issues with this file, please see the\n"
@@ -102,15 +126,15 @@ msgid ""
 "options\">here</a> for more information."
 msgstr ""
 
-#: ckanext/validation/templates/validation/validation_read.html:4
+#: ckanext/validation/templates/validation/validation_read.html:5
 msgid "Validation Report"
 msgstr ""
 
-#: ckanext/validation/templates/validation/validation_read.html:27
+#: ckanext/validation/templates/validation/validation_read.html:28
 msgid "Validation timestamp"
 msgstr ""
 
-#: ckanext/validation/templates/validation/validation_read.html:29
+#: ckanext/validation/templates/validation/validation_read.html:30
 msgid "Duration"
 msgstr ""
 
