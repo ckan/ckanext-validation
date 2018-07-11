@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-validation 0.0.4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-07-09 16:23+0200\n"
+"POT-Creation-Date: 2018-07-11 10:15+0200\n"
 "PO-Revision-Date: 2018-07-09 16:23+0200\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: mk\n"
@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.3.4\n"
+"Generated-By: Babel 2.6.0\n"
 
 #: ckanext/validation/controller.py:36
 msgid "Unauthorized to read this validation report"
@@ -28,22 +28,46 @@ msgid "No validation report exists for this resource"
 msgstr "Не постои извештај од валидација за овој ресурс"
 
 #: ckanext/validation/helpers.py:18
+msgid "success"
+msgstr "валидни"
+
+#: ckanext/validation/helpers.py:19
+msgid "failure"
+msgstr "погрешни"
+
+#: ckanext/validation/helpers.py:20
+msgid "invalid"
+msgstr "невалидни"
+
+#: ckanext/validation/helpers.py:21
+msgid "error"
+msgstr "погрешни"
+
+#: ckanext/validation/helpers.py:22
+msgid "unknown"
+msgstr "непознато"
+
+#: ckanext/validation/helpers.py:26
 msgid "Valid data"
 msgstr "Валидни податоци"
 
-#: ckanext/validation/helpers.py:19
+#: ckanext/validation/helpers.py:27 ckanext/validation/helpers.py:28
 msgid "Invalid data"
 msgstr "Невалидни податоци"
 
-#: ckanext/validation/helpers.py:20
+#: ckanext/validation/helpers.py:29
 msgid "Error during validation"
 msgstr "Грешка при валидација"
 
-#: ckanext/validation/helpers.py:21
+#: ckanext/validation/helpers.py:30
 msgid "Data validation unknown"
 msgstr "Непозната валидација на податоци"
 
-#: ckanext/validation/helpers.py:56
+#: ckanext/validation/helpers.py:50
+msgid "data"
+msgstr "податоците се"
+
+#: ckanext/validation/helpers.py:66
 msgid ""
 "\n"
 "There are validation issues with this file, please see the\n"
@@ -106,19 +130,19 @@ msgid ""
 "href=\"https://github.com/frictionlessdata/ckanext-validation#validation-"
 "options\">here</a> for more information."
 msgstr ""
-" Можете да ставите JSON објект кој содржи опции за валидација. Погледнете <a "
-"href=\"https://github.com/frictionlessdata/ckanext-validation#validation-"
-"options\">тука</a> за повеќе информации."
+" Можете да ставите JSON објект кој содржи опции за валидација. Погледнете"
+" <a href=\"https://github.com/frictionlessdata/ckanext-validation"
+"#validation-options\">тука</a> за повеќе информации."
 
-#: ckanext/validation/templates/validation/validation_read.html:4
+#: ckanext/validation/templates/validation/validation_read.html:5
 msgid "Validation Report"
 msgstr "Извештај од валидација"
 
-#: ckanext/validation/templates/validation/validation_read.html:27
+#: ckanext/validation/templates/validation/validation_read.html:28
 msgid "Validation timestamp"
 msgstr "Временска ознака од валидација"
 
-#: ckanext/validation/templates/validation/validation_read.html:29
+#: ckanext/validation/templates/validation/validation_read.html:30
 msgid "Duration"
 msgstr "Времетраење"
 
@@ -127,6 +151,6 @@ msgstr "Времетраење"
 msgid "Data Validation Report"
 msgstr "Извештај од валидација на податоци"
 
-msgid "Validation options"
-msgstr "Опции за валидација"
+#~ msgid "Validation options"
+#~ msgstr "Опции за валидација"
 
