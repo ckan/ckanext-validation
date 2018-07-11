@@ -14,6 +14,14 @@ def get_validation_badge(resource, in_listing=False):
     if not resource.get('validation_status'):
         return ''
 
+    statuses = {
+        'success': _('success'),
+        'failure': _('failure'),
+        'invalid': _('invalid'),
+        'error': _('error'),
+        'unknown': _('unknown'),
+    }
+
     messages = {
         'success': _('Valid data'),
         'failure': _('Invalid data'),
@@ -22,12 +30,12 @@ def get_validation_badge(resource, in_listing=False):
         'unknown': _('Data validation unknown'),
     }
 
-    if resource['validation_status'] in [_('success'), _('failure'), _('error')]:
+    if resource['validation_status'] in ['success', 'failure', 'error']:
         status = resource['validation_status']
-        if status == _('failure'):
-            status = _('invalid')
+        if status == 'failure':
+            status = 'invalid'
     else:
-        status = _('unknown')
+        status = 'unknown'
 
     validation_url = url_for(
         'validation_read',
@@ -36,11 +44,12 @@ def get_validation_badge(resource, in_listing=False):
 
     return u'''
 <a href="{validation_url}" class="validation-badge">
-    <span class="prefix">{prefix}</span><span class="status {status}">{status}</span>
+    <span class="prefix">{prefix}</span><span class="status {status}">{status_title}</span>
 </a>'''.format(
         validation_url=validation_url,
         prefix=_('data'),
         status=status,
+        status_title=statuses[status],
         alt=messages[status],
         title=resource.get('validation_timestamp', ''))
 
