@@ -1,0 +1,157 @@
+# Albanian translations for ckanext-validation.
+# Copyright (C) 2018 ORGANIZATION
+# This file is distributed under the same license as the ckanext-validation
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ckanext-validation 0.0.4\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2018-07-11 10:15+0200\n"
+"PO-Revision-Date: 2018-07-20 12:08+0200\n"
+"Language: sq\n"
+"Language-Team: sq <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.3.4\n"
+"Last-Translator: \n"
+"X-Generator: Poedit 2.0.4\n"
+
+#: ckanext/validation/controller.py:36
+msgid "Unauthorized to read this validation report"
+msgstr "E paautorizuar për të lexuar këtë raport validimi"
+
+#: ckanext/validation/controller.py:39
+msgid "No validation report exists for this resource"
+msgstr "Nuk ekziston një raport validimi për këtë burim"
+
+#: ckanext/validation/helpers.py:18
+msgid "success"
+msgstr "sukses"
+
+#: ckanext/validation/helpers.py:19
+msgid "failure"
+msgstr "dështim"
+
+#: ckanext/validation/helpers.py:20
+msgid "invalid"
+msgstr "pavlefshme"
+
+#: ckanext/validation/helpers.py:21
+msgid "error"
+msgstr "gabim"
+
+#: ckanext/validation/helpers.py:22
+msgid "unknown"
+msgstr "i panjohur"
+
+#: ckanext/validation/helpers.py:26
+msgid "Valid data"
+msgstr "Të dhëna të vlefshme"
+
+#: ckanext/validation/helpers.py:27 ckanext/validation/helpers.py:28
+msgid "Invalid data"
+msgstr "Të dhëna të pavlefshme"
+
+#: ckanext/validation/helpers.py:29
+msgid "Error during validation"
+msgstr "Gabim gjatë validimit"
+
+#: ckanext/validation/helpers.py:30
+msgid "Data validation unknown"
+msgstr "Vlerësimi i të dhënave është i panjohur"
+
+#: ckanext/validation/helpers.py:50
+msgid "data"
+msgstr "të dhëna"
+
+#: ckanext/validation/helpers.py:66
+msgid ""
+"\n"
+"There are validation issues with this file, please see the\n"
+"<a {params}>report</a> for details. Once you have resolved the "
+"issues,\n"
+"click the button below to replace the file."
+msgstr ""
+"\n"
+"Ka probleme të validimit me këtë skedar, ju lutem shihni\n"
+"<a {params}>report</a> for details. Once you have resolved the "
+"issues,\n"
+"click the button below to replace the file."
+
+#: ckanext/validation/logic.py:539 ckanext/validation/logic.py:553
+msgid "Resource was not found."
+msgstr "Burimi nuk u gjet."
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:68
+msgid "Upload"
+msgstr "Ngarkoni"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:69
+msgid "Upload a Data Schema file from your computer"
+msgstr "Ngarko një skemë të skemës së të dhënave nga kompjuteri yt"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:76
+msgid "Link"
+msgstr "Lidhje"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:77
+msgid "URL for a Data Schema file available on the Internet"
+msgstr ""
+"URL për skedarin e skemës së të dhënave në dispozicion në internet"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:84
+msgid "JSON"
+msgstr "JSON"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:85
+msgid "Enter manually a Table Schema JSON object"
+msgstr "Enter manually a table schema JSON object"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:89
+msgid "Clear"
+msgstr "Qartë"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:178
+#: ckanext/validation/templates/scheming/form_snippets/resource_schema.html:16
+msgid "Data Schema"
+msgstr "Skema e të Dhënave"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:180
+msgid "Data Schema URL"
+msgstr "URL skema e të dhënave"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:236
+msgid "Uploaded Data Schema"
+msgstr "Skema e të dhënave të ngarkuara"
+
+#: ckanext/validation/templates/scheming/form_snippets/validation_options.html:16
+msgid ""
+" You can pass a JSON object of validation options. See <a href="
+"\"https://github.com/frictionlessdata/ckanext-"
+"validation#validation-options\">here</a> for more information."
+msgstr ""
+"Ju mund të kaloni një objekt JSON të opsioneve të validimit. "
+"Shikoni <a href=\"https://github.com/frictionlessdata/ckanext-"
+"validation#validation -options\"> këtu </a> për më shumë "
+"informacion."
+
+#: ckanext/validation/templates/validation/validation_read.html:5
+msgid "Validation Report"
+msgstr "Raporti i Validimit"
+
+#: ckanext/validation/templates/validation/validation_read.html:28
+msgid "Validation timestamp"
+msgstr "Vlefshmëria e validimit"
+
+#: ckanext/validation/templates/validation/validation_read.html:30
+msgid "Duration"
+msgstr "Kohëzgjatje"
+
+#: ckanext/validation/templates/validation/snippets/validation_report_dialog.html:6
+#: ckanext/validation/templates/validation/snippets/validation_report_dialog_bs2.html:4
+msgid "Data Validation Report"
+msgstr "Raporti i Validimit të të Dhënave"
