@@ -41,6 +41,8 @@ def run_validation_job(resource):
         u'ckanext.validation.default_validation_options')
     if options:
         options = json.loads(options)
+    else:
+        options = {}
 
     resource_options = resource.get(u'validation_options')
     if resource_options and isinstance(resource_options, basestring):
