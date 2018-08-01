@@ -37,11 +37,16 @@ def run_validation_job(resource):
     Session.add(validation)
     Session.commit()
 
-    options = resource.get(u'validation_options')
-    if options and isinstance(options, basestring):
+    options = t.config.get(
+        u'ckanext.validation.default_validation_options')
+    if options:
         options = json.loads(options)
-    if not isinstance(options, dict):
-        options = {}
+
+    resource_options = resource.get(u'validation_options')
+    if resource_options and isinstance(resource_options, basestring):
+        resource_options = json.loads(resource_options)
+    if resource_options:
+        options.update(resource_options)
 
     dataset = t.get_action('package_show')(
         {'ignore_auth': True}, {'id': resource['package_id']})
