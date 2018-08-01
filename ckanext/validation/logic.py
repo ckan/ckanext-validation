@@ -131,6 +131,7 @@ def resource_validation_run(context, data_dict):
         run_validation_job(resource)
 
 
+@t.side_effect_free
 def resource_validation_show(context, data_dict):
     u'''
     Display the validation job result for a particular resource.
