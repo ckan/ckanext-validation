@@ -6392,7 +6392,7 @@ module.exports = {
 			"type": _("structure"),
 			"context": "body",
 			"weight": 9,
-			"message": _("Row {row_number} has an extra value in column {column_number}"),
+			"message": "kurle",
 			"description": _("This row has more values compared to the header row (the first row in the data source). A key concept is that all the rows in tabular data must have the same number of columns.\n\n How it could be resolved:\n - Check data has an extra comma between the values in this row.\n - If this error should be ignored disable `extra-value` check in {validator}.")
 		},
 		"missing-value": {
