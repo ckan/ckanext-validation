@@ -8,17 +8,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-validation 0.0.4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-08-08 00:02+0200\n"
+"POT-Creation-Date: 2018-08-13 10:39+0200\n"
 "PO-Revision-Date: 2018-08-10 12:20+0200\n"
 "Last-Translator: \n"
 "Language: sq\n"
 "Language-Team: sq <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.3.4\n"
-"X-Generator: Poedit 2.0.4\n"
 
 #: ckanext/validation/controller.py:36
 msgid "Unauthorized to read this validation report"
@@ -125,45 +124,41 @@ msgstr "URL-ja e skemës së të dhënave"
 msgid "Uploaded Data Schema"
 msgstr "Skema e të dhënave të ngarkuara"
 
-#: ckanext/validation/public/goodtables-ui.js:3
-msgid "Table inspection has reached 1000 row(s) limit"
-msgstr "Inspektimi i tabelës ka arritur një kufi prej 1000 rreshtave"
-
-#: ckanext/validation/public/goodtables-ui.js:2691
-#: ckanext/validation/public/goodtables-ui.js:2697
+#: ckanext/validation/public/goodtables-ui.js:2689
+#: ckanext/validation/public/goodtables-ui.js:2695
 msgid "There are "
 msgstr "Ka"
 
-#: ckanext/validation/public/goodtables-ui.js:2691
+#: ckanext/validation/public/goodtables-ui.js:2689
 msgid " warning(s)"
 msgstr "paralajmërim"
 
-#: ckanext/validation/public/goodtables-ui.js:2692
+#: ckanext/validation/public/goodtables-ui.js:2690
 msgid "Warning details"
 msgstr "Detajet e paralajmërimit"
 
-#: ckanext/validation/public/goodtables-ui.js:2697
+#: ckanext/validation/public/goodtables-ui.js:2695
 msgid " valid table(s)"
 msgstr "Tabela e vlefshme"
 
-#: ckanext/validation/public/goodtables-ui.js:2698
+#: ckanext/validation/public/goodtables-ui.js:2696
 msgid "Success details"
 msgstr "Detajet e suksesit"
 
-#: ckanext/validation/public/goodtables-ui.js:3579
-#: ckanext/validation/public/goodtables-ui.js:3831
+#: ckanext/validation/public/goodtables-ui.js:3577
+#: ckanext/validation/public/goodtables-ui.js:3829
 msgid "Invalid"
 msgstr "I pavlefshëm"
 
-#: ckanext/validation/public/goodtables-ui.js:3607
+#: ckanext/validation/public/goodtables-ui.js:3605
 msgid "Error details"
 msgstr "Detajet e gabimit"
 
-#: ckanext/validation/public/goodtables-ui.js:3664
+#: ckanext/validation/public/goodtables-ui.js:3662
 msgid "Show next 10 rows"
 msgstr "Shfaq 10 rreshtat e ardhshëm"
 
-#: ckanext/validation/public/goodtables-ui.js:6231
+#: ckanext/validation/public/goodtables-ui.js:6229
 msgid ""
 "\n"
 "Please report this to https://github.com/chjj/marked."
@@ -171,15 +166,15 @@ msgstr ""
 "\n"
 "Ju lutemi raportoni këtë tek https://github.com/chjj/marked."
 
-#: ckanext/validation/public/goodtables-ui.js:6313
+#: ckanext/validation/public/goodtables-ui.js:6311
 msgid "IO Error"
 msgstr "IO Gabim"
 
-#: ckanext/validation/public/goodtables-ui.js:6317
+#: ckanext/validation/public/goodtables-ui.js:6315
 msgid "The data source returned an IO Error of type {error_type}"
 msgstr "Burimi i të dhënave ka rikthyer një Gabim IO të llojit {error_type}"
 
-#: ckanext/validation/public/goodtables-ui.js:6318
+#: ckanext/validation/public/goodtables-ui.js:6316
 msgid ""
 "Data reading error because of IO error.\n"
 "\n"
@@ -191,17 +186,17 @@ msgstr ""
 "  Si mund të zgjidhet:\n"
 "- Rregullo rrugën nëse nuk është e saktë."
 
-#: ckanext/validation/public/goodtables-ui.js:6321
+#: ckanext/validation/public/goodtables-ui.js:6319
 msgid "HTTP Error"
 msgstr "HTTP e gabuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6325
+#: ckanext/validation/public/goodtables-ui.js:6323
 msgid "The data source returned an HTTP error with a status code of {status_code}"
 msgstr ""
 "Burimi i të dhënave ka rikthyer një gabim HTTP me kodin e statusit të "
 "{status_code}"
 
-#: ckanext/validation/public/goodtables-ui.js:6326
+#: ckanext/validation/public/goodtables-ui.js:6324
 msgid ""
 "Data reading error because of HTTP error.\n"
 "\n"
@@ -212,19 +207,19 @@ msgstr ""
 "Si mund të zgjidhet:\n"
 "  - Rregullo url link-un nëse nuk është e saktë."
 
-#: ckanext/validation/public/goodtables-ui.js:6329
+#: ckanext/validation/public/goodtables-ui.js:6327
 msgid "Source Error"
 msgstr "Burim i gabuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6333
+#: ckanext/validation/public/goodtables-ui.js:6331
 msgid ""
-"The data source has not supported or has inconsistent contents; no tabular data "
-"can be extracted"
+"The data source has not supported or has inconsistent contents; no "
+"tabular data can be extracted"
 msgstr ""
-"Burimi i të dhënave nuk ka mbështetje ose ka përmbajtje të paqëndrueshme; nuk "
-"mund të nxirren të dhëna tabelare"
+"Burimi i të dhënave nuk ka mbështetje ose ka përmbajtje të paqëndrueshme;"
+" nuk mund të nxirren të dhëna tabelare"
 
-#: ckanext/validation/public/goodtables-ui.js:6334
+#: ckanext/validation/public/goodtables-ui.js:6332
 msgid ""
 "Data reading error because of not supported or inconsistent contents.\n"
 "\n"
@@ -232,25 +227,25 @@ msgid ""
 " - Fix data contents (e.g. change JSON data to array or arrays/objects).\n"
 " - Set correct source settings in {validator}."
 msgstr ""
-"Gabim gjatë leximit të të dhënave për shkak të mungesës së mbështetjes ose të "
-"përmbajtjes jokonsistente.\n"
+"Gabim gjatë leximit të të dhënave për shkak të mungesës së mbështetjes "
+"ose të përmbajtjes jokonsistente.\n"
 "\n"
 " Si mund të zgjidhet:\n"
-" - Përcaktoni përmbajtjen e të dhënave (p.sh. ndryshoni të dhënat e JSON-it tek "
-"grupi ose grupet / objektet).\n"
+" - Përcaktoni përmbajtjen e të dhënave (p.sh. ndryshoni të dhënat e JSON-"
+"it tek grupi ose grupet / objektet).\n"
 "- Vendosni cilësimet e sakta të burimit në {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6337
+#: ckanext/validation/public/goodtables-ui.js:6335
 msgid "Scheme Error"
 msgstr "Skemë e gabuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6341
+#: ckanext/validation/public/goodtables-ui.js:6339
 msgid "The data source is in an unknown scheme; no tabular data can be extracted"
 msgstr ""
-"Burimi i të dhënave është në një skemë të panjohur; nuk mund të nxirren të "
-"dhëna tabelare"
+"Burimi i të dhënave është në një skemë të panjohur; nuk mund të nxirren "
+"të dhëna tabelare"
 
-#: ckanext/validation/public/goodtables-ui.js:6342
+#: ckanext/validation/public/goodtables-ui.js:6340
 msgid ""
 "Data reading error because of incorrect scheme.\n"
 "\n"
@@ -260,21 +255,21 @@ msgid ""
 msgstr ""
 "Gabim gjatë leximit të të dhënave për shkak të skemës së gabuar.\n"
 " Si mund të zgjidhet:\n"
-"- Përcaktoni përmbajtjen e skemës (p.sh. skema e ndryshimit nga `ftp` në` "
-"http`).\n"
+"- Përcaktoni përmbajtjen e skemës (p.sh. skema e ndryshimit nga `ftp` në`"
+" http`).\n"
 "- Vendosni skemën e saktë në {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6345
+#: ckanext/validation/public/goodtables-ui.js:6343
 msgid "Format Error"
 msgstr "Format i gabuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6349
+#: ckanext/validation/public/goodtables-ui.js:6347
 msgid "The data source is in an unknown format; no tabular data can be extracted"
 msgstr ""
-"Burimi i të dhënave është në një format të panjohur; nuk mund të nxirren të "
-"dhëna tabelare"
+"Burimi i të dhënave është në një format të panjohur; nuk mund të nxirren "
+"të dhëna tabelare"
 
-#: ckanext/validation/public/goodtables-ui.js:6350
+#: ckanext/validation/public/goodtables-ui.js:6348
 msgid ""
 "Data reading error because of incorrect format.\n"
 "\n"
@@ -284,19 +279,19 @@ msgid ""
 msgstr ""
 "Gabim gjatë leximit të të dhënave për shkak të formatit të gabuar.\n"
 " Si mund të zgjidhet:\n"
-"- Përcaktoni përmbajtjen e skemës (p.sh. skema e ndryshimit nga `ftp` në` "
-"http`).\n"
+"- Përcaktoni përmbajtjen e skemës (p.sh. skema e ndryshimit nga `ftp` në`"
+" http`).\n"
 "- Vendosni formatin e saktë në {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6353
+#: ckanext/validation/public/goodtables-ui.js:6351
 msgid "Encoding Error"
 msgstr "Gabim gjatë kodimit"
 
-#: ckanext/validation/public/goodtables-ui.js:6357
+#: ckanext/validation/public/goodtables-ui.js:6355
 msgid "The data source could not be successfully decoded with {encoding} encoding"
 msgstr "Burimi i të dhënave nuk mund të dekodohej me sukses me {encoding} kodimin"
 
-#: ckanext/validation/public/goodtables-ui.js:6358
+#: ckanext/validation/public/goodtables-ui.js:6356
 msgid ""
 "Data reading error because of an encoding problem.\n"
 "\n"
@@ -310,24 +305,24 @@ msgstr ""
 "  - Përcaktoni burimin e të dhënave nëse është i prishur.\n"
 "  - Vendosja e kodimit të saktë në {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6361
+#: ckanext/validation/public/goodtables-ui.js:6359
 msgid "Blank Header"
 msgstr "Titulli i paplotësuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6362
-#: ckanext/validation/public/goodtables-ui.js:6370
-#: ckanext/validation/public/goodtables-ui.js:6378
-#: ckanext/validation/public/goodtables-ui.js:6386
-#: ckanext/validation/public/goodtables-ui.js:6394
-#: ckanext/validation/public/goodtables-ui.js:6402
+#: ckanext/validation/public/goodtables-ui.js:6360
+#: ckanext/validation/public/goodtables-ui.js:6368
+#: ckanext/validation/public/goodtables-ui.js:6376
+#: ckanext/validation/public/goodtables-ui.js:6384
+#: ckanext/validation/public/goodtables-ui.js:6392
+#: ckanext/validation/public/goodtables-ui.js:6400
 msgid "structure"
 msgstr "Strukturë"
 
-#: ckanext/validation/public/goodtables-ui.js:6365
+#: ckanext/validation/public/goodtables-ui.js:6363
 msgid "Header in column {column_number} is blank"
 msgstr "Titulli në kolonë {column_number} është i paplotësuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6366
+#: ckanext/validation/public/goodtables-ui.js:6364
 msgid ""
 "A column in the header row is missing a value. Column names should be "
 "provided.\n"
@@ -335,33 +330,34 @@ msgid ""
 " How it could be resolved:\n"
 " - Add the missing column name to the first row of the data source.\n"
 " - If the first row starts with, or ends with a comma, remove it.\n"
-" - If this error should be ignored disable `blank-header` check in {validator}."
+" - If this error should be ignored disable `blank-header` check in "
+"{validator}."
 msgstr ""
-"Në një kolonë në fillimin e rreshtit mungon vlera. Emri i kolonës duhet të "
-"sigurohet\n"
+"Në një kolonë në fillimin e rreshtit mungon vlera. Emri i kolonës duhet "
+"të sigurohet\n"
 "  Si mund të zgjidhet:\n"
 "  - Shto emrin e kolonës që mungon në rreshtin e parë të burimit të të "
 "dhënave.\n"
 "  - Nëse fillon rreshti i parë ose përfundon me presje, hiqeni atë.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni `blank-header` check in "
-"{validator}."
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni `blank-header` check in"
+" {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6369
+#: ckanext/validation/public/goodtables-ui.js:6367
 msgid "Duplicate Header"
 msgstr "Titulli i dubluar"
 
-#: ckanext/validation/public/goodtables-ui.js:6373
+#: ckanext/validation/public/goodtables-ui.js:6371
 msgid ""
 "Header in column {column_number} is duplicated to header in column(s) "
 "{column_numbers}"
 msgstr ""
-"Udhëheqësi në kolonën {column_number} është i dubluar në fillimin e kolonës "
-"{column_numbers}"
+"Udhëheqësi në kolonën {column_number} është i dubluar në fillimin e "
+"kolonës {column_numbers}"
 
-#: ckanext/validation/public/goodtables-ui.js:6374
+#: ckanext/validation/public/goodtables-ui.js:6372
 msgid ""
-"Two columns in the header row have the same value. Column names should be "
-"unique.\n"
+"Two columns in the header row have the same value. Column names should be"
+" unique.\n"
 "\n"
 " How it could be resolved:\n"
 " - Add the missing column name to the first row of the data.\n"
@@ -369,8 +365,8 @@ msgid ""
 " - If this error should be ignored disable `duplicate-header` check in "
 "{validator}."
 msgstr ""
-"Dy kolona në fillimin e rreshtit kanë të njëjtën vlerë. Emrat e kolonës duhet "
-"të jenë unike.\n"
+"Dy kolona në fillimin e rreshtit kanë të njëjtën vlerë. Emrat e kolonës "
+"duhet të jenë unike.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 " - Shto emrin e kolonës që mungon në rreshtin e parë të të dhënave.\n"
@@ -378,121 +374,122 @@ msgstr ""
 " - Nëse ky gabim duhet të injorohet, çaktivizo `blank-header` check in "
 "{validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6377
+#: ckanext/validation/public/goodtables-ui.js:6375
 msgid "Blank Row"
 msgstr "Rreshti i paplotësuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6381
+#: ckanext/validation/public/goodtables-ui.js:6379
 msgid "Row {row_number} is completely blank"
 msgstr "Rreshti {row_number} është tërësisht i paplotësuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6382
+#: ckanext/validation/public/goodtables-ui.js:6380
 msgid ""
 "This row is empty. A row should contain at least one value.\n"
 "\n"
 " How it could be resolved:\n"
 " - Delete the row.\n"
-" - If this error should be ignored disable `blank-row` check in {validator}."
+" - If this error should be ignored disable `blank-row` check in "
+"{validator}."
 msgstr ""
-"Ky rresht është i paplotësuar. Një rresht duhet të përmbajë të paktën një "
-"vlerë.\n"
+"Ky rresht është i paplotësuar. Një rresht duhet të përmbajë të paktën një"
+" vlerë.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Fshi rreshtin.\n"
 "  - Nëse ky gabim duhet të injorohet, çaktivizoni 'blank-row` check in "
 "{validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6385
+#: ckanext/validation/public/goodtables-ui.js:6383
 msgid "Duplicate Row"
 msgstr "Rresht i dubluar"
 
-#: ckanext/validation/public/goodtables-ui.js:6389
+#: ckanext/validation/public/goodtables-ui.js:6387
 msgid "Row {row_number} is duplicated to row(s) {row_numbers}"
 msgstr "Rreshti {row_number} është i dubluar në rreshtin {row_numbers}"
 
-#: ckanext/validation/public/goodtables-ui.js:6390
+#: ckanext/validation/public/goodtables-ui.js:6388
 msgid ""
 "The exact same data has been seen in another row.\n"
 "\n"
 " How it could be resolved:\n"
 " - If some of the data is incorrect, correct it.\n"
 " - If the whole row is an incorrect duplicate, remove it.\n"
-" - If this error should be ignored disable `duplicate-row` check in {validator}."
+" - If this error should be ignored disable `duplicate-row` check in "
+"{validator}."
 msgstr ""
 "Të dhënat e njëjta të sakta janë parë në një rresht tjetër.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse disa nga të dhënat janë të pasakta, korrigjoni ato.\n"
 "  - Nëse i tërë rreshti është një dublim i pasaktë, hiqeni atë.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni në 'double-row` check in "
-"{validator}."
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni në 'double-row` check "
+"in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6393
+#: ckanext/validation/public/goodtables-ui.js:6391
 msgid "Extra Value"
 msgstr "Vlera shtesë"
 
-#: ckanext/validation/public/goodtables-ui.js:6397
-msgid "Row {row_number} has an extra value in column {column_number}"
-msgstr "Rreshti {row_number} ka një vlerë shtesë në kolonën {column_number}"
-
-#: ckanext/validation/public/goodtables-ui.js:6398
+#: ckanext/validation/public/goodtables-ui.js:6396
 msgid ""
-"This row has more values compared to the header row (the first row in the data "
-"source). A key concept is that all the rows in tabular data must have the same "
-"number of columns.\n"
+"This row has more values compared to the header row (the first row in the"
+" data source). A key concept is that all the rows in tabular data must "
+"have the same number of columns.\n"
 "\n"
 " How it could be resolved:\n"
 " - Check data has an extra comma between the values in this row.\n"
-" - If this error should be ignored disable `extra-value` check in {validator}."
-msgstr ""
-"Ky rresht ka më shumë vlera krahasuar me fillimin e rreshtit (rreshti i parë në "
-"burimin e të dhënave). Një koncept kryesor është se të gjitha rreshtat në të "
-"dhënat tabelare duhet të kenë të njëjtin numër kolonash.\n"
-"Si mund të zgjidhet:\n"
-"  - Kontrollo të dhënat, ka një presje shtesë ndërmjet vlerave në këtë rresht.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni tek `extra-value` check in "
+" - If this error should be ignored disable `extra-value` check in "
 "{validator}."
+msgstr ""
+"Ky rresht ka më shumë vlera krahasuar me fillimin e rreshtit (rreshti i "
+"parë në burimin e të dhënave). Një koncept kryesor është se të gjitha "
+"rreshtat në të dhënat tabelare duhet të kenë të njëjtin numër kolonash.\n"
+"Si mund të zgjidhet:\n"
+"  - Kontrollo të dhënat, ka një presje shtesë ndërmjet vlerave në këtë "
+"rresht.\n"
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni tek `extra-value` check"
+" in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6401
+#: ckanext/validation/public/goodtables-ui.js:6399
 msgid "Missing Value"
 msgstr "Mungon vlera"
 
-#: ckanext/validation/public/goodtables-ui.js:6405
+#: ckanext/validation/public/goodtables-ui.js:6403
 msgid "Row {row_number} has a missing value in column {column_number}"
 msgstr "Rreshti {row_number} ka një vlerë që mungon në kolonën {column_number}"
 
-#: ckanext/validation/public/goodtables-ui.js:6406
+#: ckanext/validation/public/goodtables-ui.js:6404
 msgid ""
-"This row has less values compared to the header row (the first row in the data "
-"source). A key concept is that all the rows in tabular data must have the same "
-"number of columns.\n"
+"This row has less values compared to the header row (the first row in the"
+" data source). A key concept is that all the rows in tabular data must "
+"have the same number of columns.\n"
 "\n"
 " How it could be resolved:\n"
 " - Check data is not missing a comma between the values in this row.\n"
-" - If this error should be ignored disable `missing-value` check in {validator}."
+" - If this error should be ignored disable `missing-value` check in "
+"{validator}."
 msgstr ""
-"Ky rresht ka më pak vlera krahasuar me fillimin e rreshtit (rreshti i parë në "
-"burimin e të dhënave). Një koncept kryesor është se të gjitha rreshtat në të "
-"dhënat tabelare duhet të kenë të njëjtin numër kolonash.\n"
+"Ky rresht ka më pak vlera krahasuar me fillimin e rreshtit (rreshti i "
+"parë në burimin e të dhënave). Një koncept kryesor është se të gjitha "
+"rreshtat në të dhënat tabelare duhet të kenë të njëjtin numër kolonash.\n"
 "  Si mund të zgjidhet:\n"
 "  - Kontrollo të dhënat, nuk mungon një presje ndërmjet vlerave në këtë "
 "rresht.\n"
 "  - Nëse ky gabim duhet të injorohet,çaktivizoni missing-value` check in "
 "{validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6409
+#: ckanext/validation/public/goodtables-ui.js:6407
 msgid "Table Schema Error"
 msgstr "Gabim i skemës së tabelës"
 
-#: ckanext/validation/public/goodtables-ui.js:6410
+#: ckanext/validation/public/goodtables-ui.js:6408
 msgid "schema"
 msgstr "Skema"
 
-#: ckanext/validation/public/goodtables-ui.js:6413
+#: ckanext/validation/public/goodtables-ui.js:6411
 msgid "Table Schema error: {error_message}"
 msgstr "Gabim i skemës së tabelës: {error_message}"
 
-#: ckanext/validation/public/goodtables-ui.js:6414
+#: ckanext/validation/public/goodtables-ui.js:6412
 msgid ""
 "Provided schema is not valid.\n"
 "\n"
@@ -504,107 +501,108 @@ msgstr ""
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Përditëso përshkrimin e skemës të jetë një përshkrim i vlefshëm\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni kontrollimin e skemës në "
-"{validator}."
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni kontrollimin e skemës "
+"në {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6417
+#: ckanext/validation/public/goodtables-ui.js:6415
 msgid "Non-Matching Header"
 msgstr "Titulli nuk përputhet"
 
-#: ckanext/validation/public/goodtables-ui.js:6421
+#: ckanext/validation/public/goodtables-ui.js:6419
 msgid ""
-"Header in column {column_number} doesn't match field name {field_name} in the "
-"schema"
+"Header in column {column_number} doesn't match field name {field_name} in"
+" the schema"
 msgstr ""
-"Titulli në kolonën {column_number} nuk përputhet me emrin e fushës {field_name} "
-"në skemën"
+"Titulli në kolonën {column_number} nuk përputhet me emrin e fushës "
+"{field_name} në skemën"
 
-#: ckanext/validation/public/goodtables-ui.js:6422
+#: ckanext/validation/public/goodtables-ui.js:6420
 msgid ""
-"One of the data source headers doesn't match the field name defined in the "
-"schema.\n"
+"One of the data source headers doesn't match the field name defined in "
+"the schema.\n"
 "\n"
 " How it could be resolved:\n"
 " - Rename header in the data source or field in the schema\n"
-" - If this error should be ignored disable `non-matching-header` check in "
-"{validator}."
+" - If this error should be ignored disable `non-matching-header` check in"
+" {validator}."
 msgstr ""
-"Njëri nga titujt e burimit të të dhënave nuk përputhet me emrin e fushës së "
-"përcaktuar në skemë.\n"
+"Njëri nga titujt e burimit të të dhënave nuk përputhet me emrin e fushës "
+"së përcaktuar në skemë.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Riemërtoni titullin në burimin e të dhënave ose fushën e skemës\n"
-"  - Nëse ky gabim duhet të shpërfillet, çaktivizoni  `jo-matching-header`  "
-"check in  {validator}."
+"  - Nëse ky gabim duhet të shpërfillet, çaktivizoni  `jo-matching-header`"
+"  check in  {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6425
+#: ckanext/validation/public/goodtables-ui.js:6423
 msgid "Extra Header"
 msgstr "Titulli shtesë"
 
-#: ckanext/validation/public/goodtables-ui.js:6429
+#: ckanext/validation/public/goodtables-ui.js:6427
 msgid "There is an extra header in column {column_number}"
 msgstr "Ekziston një titull shtesë në kolonën {column_number}"
 
-#: ckanext/validation/public/goodtables-ui.js:6430
+#: ckanext/validation/public/goodtables-ui.js:6428
 msgid ""
-"The first row of the data source contains header that doesn't exist in the "
-"schema.\n"
+"The first row of the data source contains header that doesn't exist in "
+"the schema.\n"
 "\n"
 " How it could be resolved:\n"
-" - Remove the extra column from the data source or add the missing field to the "
-"schema\n"
-" - If this error should be ignored disable `extra-header` check in {validator}."
+" - Remove the extra column from the data source or add the missing field "
+"to the schema\n"
+" - If this error should be ignored disable `extra-header` check in "
+"{validator}."
 msgstr ""
-"Rreshti i parë i burimit të të dhënave përmban titull i cili nuk ekziston në "
-"skemë.\n"
+"Rreshti i parë i burimit të të dhënave përmban titull i cili nuk ekziston"
+" në skemë.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
-"  - Hiqni kolonën shtesë nga burimi i të dhënave ose shtoni fushën që mungon në "
-"skemën\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni `extra-header` kontrollo në "
-"{validator}."
+"  - Hiqni kolonën shtesë nga burimi i të dhënave ose shtoni fushën që "
+"mungon në skemën\n"
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni `extra-header` "
+"kontrollo në {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6433
+#: ckanext/validation/public/goodtables-ui.js:6431
 msgid "Missing Header"
 msgstr "Mungon titulli"
 
-#: ckanext/validation/public/goodtables-ui.js:6437
+#: ckanext/validation/public/goodtables-ui.js:6435
 msgid "There is a missing header in column {column_number}"
 msgstr "Ka një titull që mungon në kolonën {column_number}"
 
-#: ckanext/validation/public/goodtables-ui.js:6438
+#: ckanext/validation/public/goodtables-ui.js:6436
 msgid ""
-"Based on the schema there should be a header that is missing in the first row "
-"of the data source.\n"
+"Based on the schema there should be a header that is missing in the first"
+" row of the data source.\n"
 "\n"
 " How it could be resolved:\n"
-" - Add the missing column to the data source or remove the extra field from the "
-"schema\n"
+" - Add the missing column to the data source or remove the extra field "
+"from the schema\n"
 " - If this error should be ignored disable `missing-header` check in "
 "{validator}."
 msgstr ""
-"Bazuar në skemën duhet të ketë një titull i cili mungon në rreshtin e parë të "
-"burimit të të dhënave.\n"
+"Bazuar në skemën duhet të ketë një titull i cili mungon në rreshtin e "
+"parë të burimit të të dhënave.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
-"  - Shto kolonën e humbur në burimin e të dhënave ose hiqeni fushën shtesë nga "
-"skema\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'missing-header` check in "
-"{validator}."
+"  - Shto kolonën e humbur në burimin e të dhënave ose hiqeni fushën "
+"shtesë nga skema\n"
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'missing-header` check "
+"in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6441
+#: ckanext/validation/public/goodtables-ui.js:6439
 msgid "Type or Format Error"
 msgstr "Lloji ose Formati Gabim"
 
-#: ckanext/validation/public/goodtables-ui.js:6445
+#: ckanext/validation/public/goodtables-ui.js:6443
 msgid ""
-"The value {value} in row {row_number} and column {column_number} is not type "
-"{field_type} and format {field_format}"
+"The value {value} in row {row_number} and column {column_number} is not "
+"type {field_type} and format {field_format}"
 msgstr ""
-"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk është lloji "
-"{field_type} dhe formati {field_format}"
+"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk është"
+" lloji {field_type} dhe formati {field_format}"
 
-#: ckanext/validation/public/goodtables-ui.js:6446
+#: ckanext/validation/public/goodtables-ui.js:6444
 msgid ""
 "The value does not match the schema type and format for this field.\n"
 "\n"
@@ -612,7 +610,8 @@ msgid ""
 " - If this value is not correct, update the value.\n"
 " - If this value is correct, adjust the type and/or format.\n"
 " - To ignore the error, disable the `type-or-format-error` check in "
-"{validator}. In this case all schema checks for row values will be ignored."
+"{validator}. In this case all schema checks for row values will be "
+"ignored."
 msgstr ""
 "Vlera nuk përputhet me llojin dhe formatin e skemës për këtë fushë.\n"
 "\n"
@@ -620,58 +619,61 @@ msgstr ""
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
 "  - Nëse kjo vlerë është e saktë, rregulloni llojin dhe/ose formatin.\n"
 "  - Për ta injoruar gabimin, çaktivizoni `type-or-format-error` check-in "
-"{validator}. Në këtë rast të gjitha kontrollet e skemës për vlerat e rreshtit "
-"do të injorohen."
+"{validator}. Në këtë rast të gjitha kontrollet e skemës për vlerat e "
+"rreshtit do të injorohen."
 
-#: ckanext/validation/public/goodtables-ui.js:6449
+#: ckanext/validation/public/goodtables-ui.js:6447
 msgid "Required Constraint"
 msgstr "Kufizimi i kërkuar"
 
-#: ckanext/validation/public/goodtables-ui.js:6453
+#: ckanext/validation/public/goodtables-ui.js:6451
 msgid ""
-"Column {column_number} is a required field, but row {row_number} has no value"
+"Column {column_number} is a required field, but row {row_number} has no "
+"value"
 msgstr ""
-"Kolona {column_number} është një fushë e kërkuar, por rreshti {row_number} nuk "
-"ka vlerë"
+"Kolona {column_number} është një fushë e kërkuar, por rreshti "
+"{row_number} nuk ka vlerë"
 
-#: ckanext/validation/public/goodtables-ui.js:6454
+#: ckanext/validation/public/goodtables-ui.js:6452
 msgid ""
 "This field is a required field, but it contains no value.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then remove the `required` constraint from the schema.\n"
-" - If this error should be ignored disable `required-constraint` check in "
-"{validator}."
+" - If value is correct, then remove the `required` constraint from the "
+"schema.\n"
+" - If this error should be ignored disable `required-constraint` check in"
+" {validator}."
 msgstr ""
 "Kjo fushë është një fushë e kërkuar, por nuk përmban asnjë vlerë.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
-"  - Nëse vlera është e saktë, atëherë hiqni nga skema kufizimin 'required'.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'kufizimet e kërkuara' në "
-"{validator}."
+"  - Nëse vlera është e saktë, atëherë hiqni nga skema kufizimin "
+"'required'.\n"
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'kufizimet e kërkuara' "
+"në {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6457
+#: ckanext/validation/public/goodtables-ui.js:6455
 msgid "Pattern Constraint"
 msgstr "Kufizimi i modelit"
 
-#: ckanext/validation/public/goodtables-ui.js:6461
+#: ckanext/validation/public/goodtables-ui.js:6459
 msgid ""
-"The value {value} in row {row_number} and column {column_number} does not "
-"conform to the pattern constraint of {constraint}"
+"The value {value} in row {row_number} and column {column_number} does not"
+" conform to the pattern constraint of {constraint}"
 msgstr ""
-"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk përputhet "
-"me kufizimet e modelit të {constraint}"
+"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk "
+"përputhet me kufizimet e modelit të {constraint}"
 
-#: ckanext/validation/public/goodtables-ui.js:6462
+#: ckanext/validation/public/goodtables-ui.js:6460
 msgid ""
 "This field value should conform to constraint pattern.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then remove or refine the `pattern` constraint in the "
-"schema.\n"
+" - If value is correct, then remove or refine the `pattern` constraint in"
+" the schema.\n"
 " - If this error should be ignored disable `pattern-constraint` check in "
 "{validator}."
 msgstr ""
@@ -681,96 +683,97 @@ msgstr ""
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
 "  - Nëse vlera është e saktë, atëherë hiqni ose përmirësoni kufizimet  "
 "`pattern` në skemë.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni `constraint pattern` check in "
-"{validator}."
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni `constraint pattern` "
+"check in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6465
+#: ckanext/validation/public/goodtables-ui.js:6463
 msgid "Unique Constraint"
 msgstr "Kufizim unik"
 
-#: ckanext/validation/public/goodtables-ui.js:6469
+#: ckanext/validation/public/goodtables-ui.js:6467
 msgid ""
-"Rows {row_numbers} has unique constraint violation in column {column_number}"
+"Rows {row_numbers} has unique constraint violation in column "
+"{column_number}"
 msgstr ""
 "Rreshtat {row_numbers} kanë shkelje të kufizimeve unike në kolonën "
 "{column_number}"
 
-#: ckanext/validation/public/goodtables-ui.js:6470
+#: ckanext/validation/public/goodtables-ui.js:6468
 msgid ""
-"This field is a unique field but it contains a value that has been used in "
-"another row.\n"
+"This field is a unique field but it contains a value that has been used "
+"in another row.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then the values in this column are not unique. Remove "
-"the `unique` constraint from the schema.\n"
+" - If value is correct, then the values in this column are not unique. "
+"Remove the `unique` constraint from the schema.\n"
 " - If this error should be ignored disable `unique-constraint` check in "
 "{validator}."
 msgstr ""
-"Kjo fushë është një fushë unike por përmban një vlerë që është përdorur në një "
-"rresht tjetër.\n"
+"Kjo fushë është një fushë unike por përmban një vlerë që është përdorur "
+"në një rresht tjetër.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
-"  - Nëse vlera është e saktë, atëherë vlerat në këtë kolonë nuk janë unike. "
-"Hiqni detyrimin \"unique\" nga skema.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni `unique-constraint` check in "
-"{validator}."
+"  - Nëse vlera është e saktë, atëherë vlerat në këtë kolonë nuk janë "
+"unike. Hiqni detyrimin \"unique\" nga skema.\n"
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni `unique-constraint` "
+"check in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6473
+#: ckanext/validation/public/goodtables-ui.js:6471
 msgid "Enumerable Constraint"
 msgstr "Kufizim i shumëllojshëm"
 
-#: ckanext/validation/public/goodtables-ui.js:6477
+#: ckanext/validation/public/goodtables-ui.js:6475
 msgid ""
-"The value {value} in row {row_number} and column {column_number} does not "
-"conform to the given enumeration: {constraint}"
+"The value {value} in row {row_number} and column {column_number} does not"
+" conform to the given enumeration: {constraint}"
 msgstr ""
-"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk përputhet "
-"me numërimin e dhënë: {constraint}"
+"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk "
+"përputhet me numërimin e dhënë: {constraint}"
 
-#: ckanext/validation/public/goodtables-ui.js:6478
+#: ckanext/validation/public/goodtables-ui.js:6476
 msgid ""
 "This field value should be equal to one of the values in the enumeration "
 "constraint.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then remove or refine the `enum` constraint in the "
-"schema.\n"
-" - If this error should be ignored disable `enumerable-constraint` check in "
-"{validator}."
+" - If value is correct, then remove or refine the `enum` constraint in "
+"the schema.\n"
+" - If this error should be ignored disable `enumerable-constraint` check "
+"in {validator}."
 msgstr ""
-"Kjo vlerë në fushë duhet të jetë e barabartë me një nga vlerat në kufizimet e "
-"regjistrimit.\n"
+"Kjo vlerë në fushë duhet të jetë e barabartë me një nga vlerat në "
+"kufizimet e regjistrimit.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
-"  - Nëse vlera është e saktë, atëherë hiqni ose përmirësoni kufizimin `enum` në "
-"skemë.\n"
-"  - Nëse ky gabim duhet të shpërfillet, çaktivizoni `enumerable-constraint` "
-"check in {validator}."
+"  - Nëse vlera është e saktë, atëherë hiqni ose përmirësoni kufizimin "
+"`enum` në skemë.\n"
+"  - Nëse ky gabim duhet të shpërfillet, çaktivizoni `enumerable-"
+"constraint` check in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6481
+#: ckanext/validation/public/goodtables-ui.js:6479
 msgid "Minimum Constraint"
 msgstr "Kufizimi minimal"
 
-#: ckanext/validation/public/goodtables-ui.js:6485
+#: ckanext/validation/public/goodtables-ui.js:6483
 msgid ""
-"The value {value} in row {row_number} and column {column_number} does not "
-"conform to the minimum constraint of {constraint}"
+"The value {value} in row {row_number} and column {column_number} does not"
+" conform to the minimum constraint of {constraint}"
 msgstr ""
-"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk përputhet "
-"me kufizimet minimale të {constraint}"
+"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk "
+"përputhet me kufizimet minimale të {constraint}"
 
-#: ckanext/validation/public/goodtables-ui.js:6486
+#: ckanext/validation/public/goodtables-ui.js:6484
 msgid ""
 "This field value should be greater or equal than constraint value.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then remove or refine the `minimum` constraint in the "
-"schema.\n"
+" - If value is correct, then remove or refine the `minimum` constraint in"
+" the schema.\n"
 " - If this error should be ignored disable `minimum-constraint` check in "
 "{validator}."
 msgstr ""
@@ -779,120 +782,121 @@ msgstr ""
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
-"  - Nëse vlera është e saktë, atëherë hiqni ose përsosni kufizimet 'minimum' në "
-"skemë.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'minimum-constraint` check in "
-"{validator}."
+"  - Nëse vlera është e saktë, atëherë hiqni ose përsosni kufizimet "
+"'minimum' në skemë.\n"
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'minimum-constraint` "
+"check in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6489
+#: ckanext/validation/public/goodtables-ui.js:6487
 msgid "Maximum Constraint"
 msgstr "Kufizimi minimal"
 
-#: ckanext/validation/public/goodtables-ui.js:6493
+#: ckanext/validation/public/goodtables-ui.js:6491
 msgid ""
-"The value {value} in row {row_number} and column {column_number} does not "
-"conform to the maximum constraint of {constraint}"
+"The value {value} in row {row_number} and column {column_number} does not"
+" conform to the maximum constraint of {constraint}"
 msgstr ""
-"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk përputhet "
-"me kufizimet maksimale të {constraint}"
+"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk "
+"përputhet me kufizimet maksimale të {constraint}"
 
-#: ckanext/validation/public/goodtables-ui.js:6494
+#: ckanext/validation/public/goodtables-ui.js:6492
 msgid ""
 "This field value should be less or equal than constraint value.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then remove or refine the `maximum` constraint in the "
-"schema.\n"
+" - If value is correct, then remove or refine the `maximum` constraint in"
+" the schema.\n"
 " - If this error should be ignored disable `maximum-constraint` check in "
 "{validator}."
 msgstr ""
-"Kjo vlerë e fushës duhet të jetë më pak ose e barabartë sesa vlera kufizuese.\n"
+"Kjo vlerë e fushës duhet të jetë më pak ose e barabartë sesa vlera "
+"kufizuese.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
-"  - Nëse vlera është e saktë, atëherë hiqni ose përsosni kufizimet 'maximum' në "
-"skemë.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni `maximum-constraint` check in "
-"{validator}."
+"  - Nëse vlera është e saktë, atëherë hiqni ose përsosni kufizimet "
+"'maximum' në skemë.\n"
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni `maximum-constraint` "
+"check in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6497
+#: ckanext/validation/public/goodtables-ui.js:6495
 msgid "Minimum Length Constraint"
 msgstr "Kufizimi maksimal i kohëzgjatjes"
 
-#: ckanext/validation/public/goodtables-ui.js:6501
+#: ckanext/validation/public/goodtables-ui.js:6499
 msgid ""
-"The value {value} in row {row_number} and column {column_number} does not "
-"conform to the minimum length constraint of {constraint}"
+"The value {value} in row {row_number} and column {column_number} does not"
+" conform to the minimum length constraint of {constraint}"
 msgstr ""
-"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk përputhet "
-"me kufizimin minimal të gjatësisë së {constraint}"
+"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk "
+"përputhet me kufizimin minimal të gjatësisë së {constraint}"
 
-#: ckanext/validation/public/goodtables-ui.js:6502
+#: ckanext/validation/public/goodtables-ui.js:6500
 msgid ""
-"A lenght of this field value should be greater or equal than schema constraint "
-"value.\n"
+"A lenght of this field value should be greater or equal than schema "
+"constraint value.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then remove or refine the `minimumLength` constraint in "
-"the schema.\n"
-" - If this error should be ignored disable `minimum-length-constraint` check in "
-"{validator}."
+" - If value is correct, then remove or refine the `minimumLength` "
+"constraint in the schema.\n"
+" - If this error should be ignored disable `minimum-length-constraint` "
+"check in {validator}."
 msgstr ""
-"Gjatësia e kësaj vlere në terren duhet të jetë më e madhe ose e barabartë sesa "
-"vlera e kufizimit të skemës.\n"
+"Gjatësia e kësaj vlere në terren duhet të jetë më e madhe ose e barabartë"
+" sesa vlera e kufizimit të skemës.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
 "  - Nëse vlera është e saktë, atëherë hiqni ose përsosni kufizimin "
 "`minimumLength` në skemë.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'minimum-length-constraint` "
-"check in {validator}."
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni 'minimum-length-"
+"constraint` check in {validator}."
 
-#: ckanext/validation/public/goodtables-ui.js:6505
+#: ckanext/validation/public/goodtables-ui.js:6503
 msgid "Maximum Length Constraint"
 msgstr "Kufizimi maksimal i kohëzgjatjes"
 
-#: ckanext/validation/public/goodtables-ui.js:6509
+#: ckanext/validation/public/goodtables-ui.js:6507
 msgid ""
-"The value {value} in row {row_number} and column {column_number} does not "
-"conform to the maximum length constraint of {constraint}"
+"The value {value} in row {row_number} and column {column_number} does not"
+" conform to the maximum length constraint of {constraint}"
 msgstr ""
-"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk përputhet "
-"me kufizimin maksimal të gjatësisë së {constraint}"
+"Vlera {vlera} në rresht {row_number} dhe kolona {column_number} nuk "
+"përputhet me kufizimin maksimal të gjatësisë së {constraint}"
 
-#: ckanext/validation/public/goodtables-ui.js:6510
+#: ckanext/validation/public/goodtables-ui.js:6508
 msgid ""
-"A lenght of this field value should be less or equal than schema constraint "
-"value.\n"
+"A lenght of this field value should be less or equal than schema "
+"constraint value.\n"
 "\n"
 " How it could be resolved:\n"
 " - If this value is not correct, update the value.\n"
-" - If value is correct, then remove or refine the `maximumLength` constraint in "
-"the schema.\n"
-" - If this error should be ignored disable `maximum-length-constraint` check in "
-"{validator}."
+" - If value is correct, then remove or refine the `maximumLength` "
+"constraint in the schema.\n"
+" - If this error should be ignored disable `maximum-length-constraint` "
+"check in {validator}."
 msgstr ""
-"Një gjatësi e kësaj vlere në terren duhet të jetë më e ulët ose e barabartë "
-"sesa vlera e kufizimit të skemës.\n"
+"Një gjatësi e kësaj vlere në terren duhet të jetë më e ulët ose e "
+"barabartë sesa vlera e kufizimit të skemës.\n"
 "\n"
 "  Si mund të zgjidhet:\n"
 "  - Nëse kjo vlerë nuk është e saktë, përditësoni vlerën.\n"
 "  - Nëse vlera është e saktë, atëherë hiqni ose përsosni kufizimin "
 "`maximumLength` në skemë.\n"
-"  - Nëse ky gabim duhet të injorohet, çaktivizoni `maximum-length-constraint` "
-"check in {validator}."
+"  - Nëse ky gabim duhet të injorohet, çaktivizoni `maximum-length-"
+"constraint` check in {validator}."
 
 #: ckanext/validation/templates/scheming/form_snippets/validation_options.html:16
 msgid ""
-" You can pass a JSON object of validation options. See <a href=\"https://github."
-"com/frictionlessdata/ckanext-validation#validation-options\">here</a> for more "
-"information."
+" You can pass a JSON object of validation options. See <a "
+"href=\"https://github.com/frictionlessdata/ckanext-validation#validation-"
+"options\">here</a> for more information."
 msgstr ""
-"Ju mund të kaloni një objekt JSON të opsioneve të validimit. Shikoni <a href="
-"\"https://github.com/frictionlessdata/ckanext-validation#validation -options\"> "
-"këtu </a> për më shumë informacion."
+"Ju mund të kaloni një objekt JSON të opsioneve të validimit. Shikoni <a "
+"href=\"https://github.com/frictionlessdata/ckanext-validation#validation "
+"-options\"> këtu </a> për më shumë informacion."
 
 #: ckanext/validation/templates/validation/validation_read.html:5
 msgid "Validation Report"
@@ -910,3 +914,10 @@ msgstr "Kohëzgjatja"
 #: ckanext/validation/templates/validation/snippets/validation_report_dialog_bs2.html:4
 msgid "Data Validation Report"
 msgstr "Raporti i Validimit të të Dhënave"
+
+#~ msgid "Table inspection has reached 1000 row(s) limit"
+#~ msgstr "Inspektimi i tabelës ka arritur një kufi prej 1000 rreshtave"
+
+#~ msgid "Row {row_number} has an extra value in column {column_number}"
+#~ msgstr "Rreshti {row_number} ka një vlerë shtesë në kolonën {column_number}"
+
