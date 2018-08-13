@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-validation 0.0.4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-08-13 10:53+0200\n"
+"POT-Creation-Date: 2018-08-13 11:22+0200\n"
 "PO-Revision-Date: 2018-08-10 12:20+0200\n"
 "Last-Translator: \n"
 "Language: sq\n"
@@ -153,6 +153,10 @@ msgstr "I pavlefshëm"
 #: ckanext/validation/public/goodtables-ui.js:3605
 msgid "Error details"
 msgstr "Detajet e gabimit"
+
+#: ckanext/validation/public/goodtables-ui.js:3623
+msgid "The full list of error messages:"
+msgstr "Lista e plotë e mesazheve të gabimit:"
 
 #: ckanext/validation/public/goodtables-ui.js:3662
 msgid "Show next 10 rows"

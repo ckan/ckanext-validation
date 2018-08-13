@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-validation 0.0.4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-08-13 10:53+0200\n"
+"POT-Creation-Date: 2018-08-13 12:04+0200\n"
 "PO-Revision-Date: 2018-08-07 14:19+0200\n"
 "Last-Translator: \n"
 "Language: mk\n"
@@ -153,6 +153,10 @@ msgstr "Невалидни"
 #: ckanext/validation/public/goodtables-ui.js:3605
 msgid "Error details"
 msgstr "Детали за грешка"
+
+#: ckanext/validation/public/goodtables-ui.js:3623
+msgid "The full list of error messages:"
+msgstr "Целосна листа на пораки за грешка:"
 
 #: ckanext/validation/public/goodtables-ui.js:3662
 msgid "Show next 10 rows"
@@ -906,7 +910,6 @@ msgstr ""
 
 #: ckanext/validation/templates/validation/validation_read.html:5
 #: ckanext/validation/templates/validation/validation_read.html:12
-#| msgid "Data Validation Report"
 msgid "Validation Report"
 msgstr "Извештај од валидација на податоци"
 
@@ -922,19 +925,3 @@ msgstr "Времетраење"
 #: ckanext/validation/templates/validation/snippets/validation_report_dialog_bs2.html:4
 msgid "Data Validation Report"
 msgstr "Извештај од валидација на податоци"
-
-#~ msgid "Row "
-#~ msgstr "Редот "
-
-#~ msgid " has an extra value in column "
-#~ msgstr " содржи дополнителна вредност во колоната "
-
-#~ msgid "Validation Report"
-#~ msgstr "Извештај од валидација"
-
-#~ msgid "Validation timestamp"
-#~ msgstr "Временска ознака од валидација"
-
-#~ msgid "Duration"
-#~ msgstr "Времетраење"
-

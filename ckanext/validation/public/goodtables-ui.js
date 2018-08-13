@@ -3620,7 +3620,7 @@ var ErrorGroup = exports.ErrorGroup = function (_React$Component) {
           _react2.default.createElement(
             'p',
             null,
-            'The full list of error messages:'
+            _('The full list of error messages:')
           ),
           _react2.default.createElement(
             'ul',
