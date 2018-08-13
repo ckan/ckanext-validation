@@ -127,7 +127,7 @@ msgstr "Skema e të dhënave të ngarkuara"
 #: ckanext/validation/public/goodtables-ui.js:2689
 #: ckanext/validation/public/goodtables-ui.js:2695
 msgid "There are "
-msgstr "Ka"
+msgstr "Ka "
 
 #: ckanext/validation/public/goodtables-ui.js:2689
 msgid " warning(s)"
@@ -139,7 +139,7 @@ msgstr "Detajet e paralajmërimit"
 
 #: ckanext/validation/public/goodtables-ui.js:2695
 msgid " valid table(s)"
-msgstr "Tabela e vlefshme"
+msgstr " tabela e vlefshme"
 
 #: ckanext/validation/public/goodtables-ui.js:2696
 msgid "Success details"
