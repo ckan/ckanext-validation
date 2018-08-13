@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ckanext-validation 0.0.4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-08-13 10:39+0200\n"
+"POT-Creation-Date: 2018-08-13 10:53+0200\n"
 "PO-Revision-Date: 2018-08-10 12:20+0200\n"
 "Last-Translator: \n"
 "Language: sq\n"
@@ -899,6 +899,7 @@ msgstr ""
 "-options\"> këtu </a> për më shumë informacion."
 
 #: ckanext/validation/templates/validation/validation_read.html:5
+#: ckanext/validation/templates/validation/validation_read.html:12
 msgid "Validation Report"
 msgstr "Raporti i Validimit"
 
@@ -915,9 +916,9 @@ msgstr "Kohëzgjatja"
 msgid "Data Validation Report"
 msgstr "Raporti i Validimit të të Dhënave"
 
-#~ msgid "Table inspection has reached 1000 row(s) limit"
-#~ msgstr "Inspektimi i tabelës ka arritur një kufi prej 1000 rreshtave"
+msgid "Table inspection has reached 1000 row(s) limit"
+msgstr "Inspektimi i tabelës ka arritur një kufi prej 1000 rreshtave"
 
-#~ msgid "Row {row_number} has an extra value in column {column_number}"
-#~ msgstr "Rreshti {row_number} ka një vlerë shtesë në kolonën {column_number}"
+msgid "Row {row_number} has an extra value in column {column_number}"
+msgstr "Rreshti {row_number} ka një vlerë shtesë në kolonën {column_number}"
 
