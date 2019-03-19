@@ -40,6 +40,11 @@ def run_validation_job(resource):
     options = t.config.get(
         u'ckanext.validation.default_validation_options')
     if options:
+        # Somtimes json.loads(options) fails with No JSON object could be decoded
+        # When that is the case eval(options) returns string, otherwise dict
+        # see https://github.com/frictionlessdata/ckanext-validation/issues/42
+        if isinstance(eval(options), str):
+            options=eval(options)
         options = json.loads(options)
     else:
         options = {}
