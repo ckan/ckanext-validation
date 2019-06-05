@@ -140,7 +140,7 @@ report file on the relevant commands.''')
 
         if tables_exist():
             print(u'Validation tables already exist')
-            sys.exit(1)
+            sys.exit(0)
 
         create_tables()
 
