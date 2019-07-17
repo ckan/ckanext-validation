@@ -15,9 +15,9 @@ def get_validation_badge(resource, in_listing=False):
         return ''
 
     statuses = {
-        'success': _('success'),
+        'success': _('technically appropriate'),
         'failure': _('failure'),
-        'invalid': _('invalid'),
+        'invalid': _('not technically appropriate'),
         'error': _('error'),
         'unknown': _('unknown'),
     }
@@ -47,7 +47,7 @@ def get_validation_badge(resource, in_listing=False):
     <span class="prefix">{prefix}</span><span class="status {status}">{status_title}</span>
 </a>'''.format(
         validation_url=validation_url,
-        prefix=_('data'),
+        prefix=_('The data is'),
         status=status,
         status_title=statuses[status],
         alt=messages[status],

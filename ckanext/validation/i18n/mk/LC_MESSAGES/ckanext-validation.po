@@ -28,16 +28,16 @@ msgid "No validation report exists for this resource"
 msgstr "Не постои извештај од валидација за овој ресурс"
 
 #: ckanext/validation/helpers.py:18
-msgid "success"
-msgstr "валидни"
+msgid "technically appropriate"
+msgstr "се технички соодветни"
 
 #: ckanext/validation/helpers.py:19
 msgid "failure"
 msgstr "погрешни"
 
 #: ckanext/validation/helpers.py:20
-msgid "invalid"
-msgstr "невалидни"
+msgid "not technically appropriate"
+msgstr "не се технички соодветни"
 
 #: ckanext/validation/helpers.py:21
 msgid "error"
@@ -64,8 +64,8 @@ msgid "Data validation unknown"
 msgstr "Непозната валидација на податоци"
 
 #: ckanext/validation/helpers.py:50
-msgid "data"
-msgstr "податоците се"
+msgid "The data is"
+msgstr "Податоците"
 
 #: ckanext/validation/helpers.py:66
 msgid ""

@@ -28,16 +28,16 @@ msgid "No validation report exists for this resource"
 msgstr "Nuk ekziston një raport validimi për këtë burim"
 
 #: ckanext/validation/helpers.py:18
-msgid "success"
-msgstr "sukses"
+msgid "technically appropriate"
+msgstr "janë adekuate në mënyrë teknike"
 
 #: ckanext/validation/helpers.py:19
 msgid "failure"
 msgstr "dështim"
 
 #: ckanext/validation/helpers.py:20
-msgid "invalid"
-msgstr "I pavlefshëm"
+msgid "not technically appropriate"
+msgstr "nuk janë adekuate në mënyrë teknike"
 
 #: ckanext/validation/helpers.py:21
 msgid "error"
@@ -64,8 +64,8 @@ msgid "Data validation unknown"
 msgstr "Validimi i i të dhënave është i panjohur"
 
 #: ckanext/validation/helpers.py:50
-msgid "data"
-msgstr "të dhëna"
+msgid "The data is"
+msgstr "Të dhënat"
 
 #: ckanext/validation/helpers.py:66
 msgid ""
