@@ -114,6 +114,12 @@ Make sure to use indentation if the value spans multiple lines otherwise it won'
 
 If you are using a cloud-based storage backend for uploads check [Private datasets](#private-datasets) for other configuration settings that might be relevant.
 
+### Display badges
+
+To prevent the extension from adding the validation badges next to the resources use the following option:
+
+    ckanext.validation.show_badges_in_listings = False
+
 
 ## How it works
 
