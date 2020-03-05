@@ -10,4 +10,4 @@ Feature: Resource UI
 
         Examples:
         | name | url |
-        | link | http://www.qld.gov.au |
+        | link | http://example.com |
