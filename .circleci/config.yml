@@ -1,0 +1,40 @@
+version: 2
+aliases:
+
+  # Shared configuration applied to each job.
+  - &container_config
+    working_directory: /app
+    docker:
+      #; Using "runner" container where each job will be executed. This container
+      #; has all necessary tools to run dockerized environment.
+      #; @see https://github.com/integratedexperts/ci-builder
+      - image: integratedexperts/ci-builder
+
+  # Step to setup remote docker.
+  - &step_setup_remote_docker
+      setup_remote_docker
+
+jobs:
+  build:
+    <<: *container_config
+    parallelism: 1
+    steps:
+      - attach_workspace:
+          at: /workspace
+      - checkout
+      - *step_setup_remote_docker
+      - run: .circleci/build.sh
+      - run: .circleci/test.sh
+      - run:
+          name: Process artifacts
+          command: .circleci/process-artifacts.sh
+          when: always
+      - store_artifacts:
+          path: /tmp/artifacts
+          when: always
+
+workflows:
+  version: 2
+  main:
+    jobs:
+      - build

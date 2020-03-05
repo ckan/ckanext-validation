@@ -1,0 +1,42 @@
+FROM amazeeio/python:2.7-ckan-v0.23.1
+
+WORKDIR /app
+
+ARG SITE_URL
+ENV SITE_URL="${SITE_URL}"
+
+ENV DOCKERIZE_VERSION v0.6.1
+RUN apk add --no-cache curl g++ && curl -s -L -O http://github.com/jwilder/dockerize/releases/download/${DOCKERIZE_VERSION}/dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz \
+    && tar -C /usr/local/bin -xzvf dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz \
+    && rm dockerize-alpine-linux-amd64-${DOCKERIZE_VERSION}.tar.gz
+
+# Install CKAN.
+ENV CKAN_VERSION 2.8.3
+RUN . /app/ckan/default/bin/activate \
+    && cd /app/ckan/default \
+    && pip install setuptools==36.1 \
+    && pip install -e "git+https://github.com/ckan/ckan.git@ckan-${CKAN_VERSION}#egg=ckan" \
+    && sed -i "s/psycopg2==2.4.5/psycopg2==2.7.7/g" "/app/ckan/default/src/ckan/requirements.txt" \
+    && pip install -r "/app/ckan/default/src/ckan/requirements.txt" \
+    && ln -s "/app/ckan/default/src/ckan/who.ini" "/app/ckan/default/who.ini" \
+    && deactivate \
+    && ln -s /app/ckan /usr/lib/ckan
+
+COPY .docker/test.ini /app/ckan/default/production.ini
+
+COPY .docker/scripts /app/scripts
+
+RUN fix-permissions /app/ckan \
+    && chmod +x /app/scripts/init.sh \
+    && chmod +x /app/scripts/init-ext.sh \
+    && chmod +x /app/scripts/serve.sh
+
+# Add current extension and files.
+COPY ckanext /app/ckanext
+COPY requirements.txt dev-requirements.txt setup.py /app/
+
+# Init current extension.
+RUN /app/scripts/init-ext.sh
+
+ENTRYPOINT ["/sbin/tini", "--", "/lagoon/entrypoints.sh"]
+CMD ["/app/scripts/serve.sh"]
