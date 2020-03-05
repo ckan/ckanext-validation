@@ -1,0 +1,8 @@
+# Ignore files for distribution archives.
+/.ahoy.yml           export-ignore
+/.circleci           export-ignore
+/.docker             export-ignore
+/.env                export-ignore
+/.gitatributes       export-ignore
+/docker-compose.yml  export-ignore
+/test                export-ignore
