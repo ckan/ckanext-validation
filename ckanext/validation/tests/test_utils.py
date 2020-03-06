@@ -160,5 +160,4 @@ class TestFiles(object):
 
             delete_local_uploaded_file(resource_id)
 
-
         patcher.tearDown()
