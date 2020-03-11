@@ -117,7 +117,7 @@ commands:
     usage: Run unit tests.
     cmd: |
       ahoy cli "nosetests" || \
-      [ "${ALLOW_UNIT_FAIL:-0}" -eq 1 ]
+      [ "${ALLOW_UNIT_FAIL:-1}" -eq 1 ]
 
   test-bdd:
     usage: Run BDD tests.
