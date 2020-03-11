@@ -122,7 +122,7 @@ commands:
   test-bdd:
     usage: Run BDD tests.
     cmd: |
-      ahoy cli "behave ${*:-/app/test/features}" || \
+      ahoy cli "behave ${*:-/app/test/features} --tags=-format_autocomplete" || \
       [ "${ALLOW_BDD_FAIL:-0}" -eq 1 ]
 
   # Utilities.
