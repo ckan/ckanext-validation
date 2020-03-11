@@ -173,11 +173,11 @@ to create the database tables:
             resource.get(u'url_type') == u'upload' or
             # URL defined
             resource.get(u'url')
-            ) and (
+        ) and (
             # Make sure format is supported
             resource.get(u'format', u'').lower() in
                 settings.SUPPORTED_FORMATS
-                )):
+        )):
             needs_validation = True
 
         if needs_validation:
@@ -194,7 +194,7 @@ to create the database tables:
             return updated_resource
 
         needs_validation = False
-        if ((
+        if (
             # New file uploaded
             updated_resource.get(u'upload') or
             # External URL changed
@@ -205,11 +205,10 @@ to create the database tables:
             # Format changed
             (updated_resource.get(u'format', u'').lower() !=
              current_resource.get(u'format', u'').lower())
-            ) and (
+        ) and (
             # Make sure format is supported
             updated_resource.get(u'format', u'').lower() in
-                settings.SUPPORTED_FORMATS
-                )):
+                settings.SUPPORTED_FORMATS):
             needs_validation = True
 
         if needs_validation:

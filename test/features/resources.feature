@@ -1,6 +1,7 @@
 @resources
 Feature: Resource UI
 
+    @format_autocomplete
     Scenario Outline: Link resource should create a link to its URL
         Given "Admin" as the persona
         When I create a resource with name "<name>" and URL "<url>"
@@ -10,4 +11,4 @@ Feature: Resource UI
 
         Examples:
         | name | url |
-        | link | http://www.qld.gov.au |
+        | link | http://example.com |

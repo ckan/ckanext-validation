@@ -123,7 +123,7 @@ class TestResourceSchemaForm(FunctionalTestBase):
         form['url'] = 'https://example.com/data.csv'
 
         webtest_submit(
-                form, 'save', upload_files=[upload], extra_environ=env)
+            form, 'save', upload_files=[upload], extra_environ=env)
 
         dataset = call_action('package_show', id=dataset['id'])
 
@@ -298,7 +298,7 @@ class TestResourceSchemaForm(FunctionalTestBase):
         form['url'] = 'https://example.com/data.csv'
 
         webtest_submit(
-                form, 'save', upload_files=[upload], extra_environ=env)
+            form, 'save', upload_files=[upload], extra_environ=env)
 
         dataset = call_action('package_show', id=dataset['id'])
 

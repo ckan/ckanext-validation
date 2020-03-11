@@ -22,6 +22,7 @@ def log_in(context):
         Then I should see an element with xpath "//a[contains(string(), 'Log out')]"
     """)
 
+
 @step('I create a resource with name "{name}" and URL "{url}"')
 def add_resource(context, name, url):
     context.execute_steps(u"""
@@ -65,7 +66,7 @@ def go_to_user_profile(context, user_id):
 
 
 @step('I go to the dashboard')
-def go_to_user_profile(context):
+def go_to_dashboard(context):
     when_i_visit_url(context, '/dashboard')
 
 

@@ -117,12 +117,12 @@ commands:
     usage: Run unit tests.
     cmd: |
       ahoy cli "nosetests" || \
-      [ "${ALLOW_UNIT_FAIL:-0}" -eq 1 ]
+      [ "${ALLOW_UNIT_FAIL:-1}" -eq 1 ]
 
   test-bdd:
     usage: Run BDD tests.
     cmd: |
-      ahoy cli "behave ${*:-/app/test/features}" || \
+      ahoy cli "behave ${*:-/app/test/features} --tags=-format_autocomplete" || \
       [ "${ALLOW_BDD_FAIL:-0}" -eq 1 ]
 
   # Utilities.
