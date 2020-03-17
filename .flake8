@@ -17,3 +17,5 @@ max-complexity = 10
 ignore =
     E501
     C901
+    W503
+    W504
