@@ -65,7 +65,13 @@ To install ckanext-validation, activate your CKAN virtualenv and run:
     pip install -r requirements.txt
     python setup.py develop
 
-Create the database tables running:
+Or:
+
+    pip install -e 'git+https://github.com/frictionlessdata/ckanext-validation.git#egg=ckanext-validation'
+    cd ckanext-validation
+    pip install -r requirements.txt
+
+Create the database tables by running:
 
     paster validation init-db -c ../path/to/ini/file
 
