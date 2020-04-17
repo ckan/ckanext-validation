@@ -12,6 +12,7 @@ import ckan.lib.uploader as uploader
 import ckantoolkit as t
 
 from ckanext.validation.model import Validation
+from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings
 from ckanext.validation.utils import (
@@ -481,12 +482,21 @@ def resource_create(context, data_dict):
     # Custom code starts
 
     if get_create_mode_from_config() == u'sync':
-        is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
-        _run_sync_validation(
-            resource_id, local_upload=is_local_upload, new_resource=True)
+
+        run_validation = True
+
+        for plugin in plugins.PluginImplementations(IDataValidation):
+            if not plugin.can_validate(context, data_dict):
+                log.debug('Skipping validation for resource {}'.format(resource_id))
+                run_validation = False
+
+        if run_validation:
+            is_local_upload = (
+                hasattr(upload, 'filename') and
+                upload.filename is not None and
+                isinstance(upload, uploader.ResourceUpload))
+            _run_sync_validation(
+                resource_id, local_upload=is_local_upload, new_resource=True)
 
     # Custom code ends
 
@@ -589,12 +599,20 @@ def resource_update(context, data_dict):
     # Custom code starts
 
     if get_update_mode_from_config() == u'sync':
-        is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
-        _run_sync_validation(
-            id, local_upload=is_local_upload, new_resource=False)
+
+        run_validation = True
+        for plugin in plugins.PluginImplementations(IDataValidation):
+            if not plugin.can_validate(context, data_dict):
+                log.debug('Skipping validation for resource {}'.format(id))
+                run_validation = False
+
+        if run_validation:
+            is_local_upload = (
+                hasattr(upload, 'filename') and
+                upload.filename is not None and
+                isinstance(upload, uploader.ResourceUpload))
+            _run_sync_validation(
+                id, local_upload=is_local_upload, new_resource=True)
 
     # Custom code ends
 

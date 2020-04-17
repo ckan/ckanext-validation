@@ -76,6 +76,9 @@ setup(
         'ckan.plugins': [
             'validation=ckanext.validation.plugin:ValidationPlugin'
         ],
+        'ckan.test_plugins': [
+            'test_validation_plugin = ckanext.validation.tests.test_interfaces:TestPlugin',
+        ],
         'paste.paster_command': [
             'validation = ckanext.validation.commands:Validation'
         ],

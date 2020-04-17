@@ -31,6 +31,7 @@ from ckanext.validation.utils import (
     get_create_mode_from_config,
     get_update_mode_from_config,
 )
+from ckanext.validation.interfaces import IDataValidation
 
 
 log = logging.getLogger(__name__)
@@ -172,7 +173,7 @@ to create the database tables:
             or u'resources' in data_dict
             or data_dict.get(u'type') == u'dataset')
 
-    def _handle_validation_for_resource(self, resource):
+    def _handle_validation_for_resource(self, context, resource):
         needs_validation = False
         if ((
             # File uploaded
@@ -187,6 +188,12 @@ to create the database tables:
             needs_validation = True
 
         if needs_validation:
+
+            for plugin in p.PluginImplementations(IDataValidation):
+                if not plugin.can_validate(context, resource):
+                    log.debug('Skipping validation for resource {}'.format(resource['id']))
+                    return
+
             _run_async_validation(resource[u'id'])
 
     def before_update(self, context, current_resource, updated_resource):
@@ -246,13 +253,18 @@ to create the database tables:
                 else:
                     # This is an actual package_update call, validate the
                     # resources if necessary
-                    self._handle_validation_for_resource(resource)
+                    self._handle_validation_for_resource(context, resource)
 
         else:
             # This is a resource
             resource_id = data_dict[u'id']
 
             if resource_id in self.resources_to_validate:
+                for plugin in p.PluginImplementations(IDataValidation):
+                    if not plugin.can_validate(context, data_dict):
+                        log.debug('Skipping validation for resource {}'.format(data_dict['id']))
+                        return
+
                 del self.resources_to_validate[resource_id]
 
                 _run_async_validation(resource_id)
