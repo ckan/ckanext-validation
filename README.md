@@ -34,7 +34,7 @@ Data description and validation for CKAN with [Frictionless Data](https://fricti
 
 ## Overview
 
-This extension brings data validation powered by the [goodtables](https://github.com/frictionlessdata/goodtables-py) library to CKAN. It provides out of the box features to validate tabular data and integrate validation reports to the CKAN interface.
+This extension brings data validation powered by the [Goodtables](https://github.com/frictionlessdata/goodtables-py) library to CKAN. It provides out-of-the-box features to validate tabular data and integrate validation reports to the CKAN interface.
 
 Data validation can be performed automatically on the background or during dataset creation, and the results are stored against each resource.
 
@@ -78,7 +78,7 @@ Create the database tables by running:
 
 ## Configuration
 
-Once installed, add the `validation` plugin to the `ckan.plugins` configuration option on your INI file:
+Once installed, add the `validation` plugin to the `ckan.plugins` configuration option in your INI file:
 
     ckan.plugins = ... validation
 
