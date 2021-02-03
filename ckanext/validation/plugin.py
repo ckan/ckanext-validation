@@ -31,6 +31,7 @@ from ckanext.validation.utils import (
     get_create_mode_from_config,
     get_update_mode_from_config,
 )
+from ckanext.validation.interfaces import IDataValidation
 
 
 log = logging.getLogger(__name__)
@@ -152,21 +153,28 @@ to create the database tables:
 
     def after_create(self, context, data_dict):
 
+        is_dataset = self._data_dict_is_dataset(data_dict)
+
         if not get_create_mode_from_config() == u'async':
             return
 
-        if data_dict.get(u'resources'):
-            # This is a dataset
-            for resource in data_dict[u'resources']:
-                self._handle_validation_for_resource(resource)
+        if is_dataset:
+            for resource in data_dict.get(u'resources', []):
+                self._handle_validation_for_resource(context, resource)
         else:
-            # This is a resource
-            self._handle_validation_for_resource(data_dict)
+            # This is a resource. Resources don't need to be handled here
+            # as there is always a previous `package_update` call that will
+            # trigger the `before_update` and `after_update` hooks
+            pass
 
     def _data_dict_is_dataset(self, data_dict):
-        return u'creator_user_id' in data_dict or u'owner_org' in data_dict
+        return (
+            u'creator_user_id' in data_dict
+            or u'owner_org' in data_dict
+            or u'resources' in data_dict
+            or data_dict.get(u'type') == u'dataset')
 
-    def _handle_validation_for_resource(self, resource):
+    def _handle_validation_for_resource(self, context, resource):
         needs_validation = False
         if ((
             # File uploaded
@@ -181,6 +189,12 @@ to create the database tables:
             needs_validation = True
 
         if needs_validation:
+
+            for plugin in p.PluginImplementations(IDataValidation):
+                if not plugin.can_validate(context, resource):
+                    log.debug('Skipping validation for resource {}'.format(resource['id']))
+                    return
+
             _run_async_validation(resource[u'id'])
 
     def before_update(self, context, current_resource, updated_resource):
@@ -218,7 +232,12 @@ to create the database tables:
 
     def after_update(self, context, data_dict):
 
-        if not get_update_mode_from_config() == u'async':
+        is_dataset = self._data_dict_is_dataset(data_dict)
+
+        # Need to allow create as well because resource_create calls
+        # package_update
+        if (not get_update_mode_from_config() == u'async'
+                and not get_create_mode_from_config() == u'async'):
             return
 
         if context.get('_validation_performed'):
@@ -228,14 +247,13 @@ to create the database tables:
             del context['_validation_performed']
             return
 
-        if data_dict.get(u'resources'):
-            # This is a dataset
+        if is_dataset:
             package_id = data_dict.get('id')
             if package_id in self.packages_to_skip:
                 del self.packages_to_skip[package_id]
                 return
 
-            for resource in data_dict[u'resources']:
+            for resource in data_dict.get(u'resources', []):
                 if resource[u'id'] in self.resources_to_validate:
                     # This is part of a resource_update call, it will be
                     # handled on the next `after_update` call
@@ -243,13 +261,18 @@ to create the database tables:
                 else:
                     # This is an actual package_update call, validate the
                     # resources if necessary
-                    self._handle_validation_for_resource(resource)
+                    self._handle_validation_for_resource(context, resource)
 
         else:
             # This is a resource
             resource_id = data_dict[u'id']
 
             if resource_id in self.resources_to_validate:
+                for plugin in p.PluginImplementations(IDataValidation):
+                    if not plugin.can_validate(context, data_dict):
+                        log.debug('Skipping validation for resource {}'.format(data_dict['id']))
+                        return
+
                 del self.resources_to_validate[resource_id]
 
                 _run_async_validation(resource_id)
