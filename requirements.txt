@@ -1,3 +1,5 @@
 ckantoolkit>=0.0.3
 goodtables==1.5.1
+six>=1.0.0
+pyrsistent<0.17.0
 -e git+https://github.com/ckan/ckanext-scheming.git#egg=ckanext-scheming
