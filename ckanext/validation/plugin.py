@@ -3,6 +3,7 @@
 import logging
 import cgi
 import json
+import six
 
 import ckan.plugins as p
 import ckantoolkit as t
@@ -136,7 +137,7 @@ to create the database tables:
         if isinstance(schema_upload, cgi.FieldStorage):
             data_dict[u'schema'] = schema_upload.file.read()
         elif schema_url:
-            if (not isinstance(schema_url, basestring) or
+            if (not isinstance(schema_url, six.string_types) or
                     not schema_url.lower()[:4] == u'http'):
                 raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
             data_dict[u'schema'] = schema_url
@@ -192,7 +193,7 @@ to create the database tables:
 
             for plugin in p.PluginImplementations(IDataValidation):
                 if not plugin.can_validate(context, resource):
-                    log.debug('Skipping validation for resource {}'.format(resource['id']))
+                    log.debug('Skipping validation for resource %s', resource['id'])
                     return
 
             _run_async_validation(resource[u'id'])
@@ -270,7 +271,7 @@ to create the database tables:
             if resource_id in self.resources_to_validate:
                 for plugin in p.PluginImplementations(IDataValidation):
                     if not plugin.can_validate(context, data_dict):
-                        log.debug('Skipping validation for resource {}'.format(data_dict['id']))
+                        log.debug('Skipping validation for resource %s', data_dict['id'])
                         return
 
                 del self.resources_to_validate[resource_id]
@@ -309,6 +310,5 @@ def _run_async_validation(resource_id):
             {u'resource_id': resource_id,
              u'async': True})
     except t.ValidationError as e:
-        log.warning(
-            u'Could not run validation for resource {}: {}'.format(
-                resource_id, str(e)))
+        log.warning(u'Could not run validation for resource %s: %s',
+                    resource_id, e)

@@ -70,4 +70,4 @@ def delete_local_uploaded_file(resource_id):
             os.rmdir(second_directory)
 
     except OSError as e:
-        log.warning(u'Error deleting uploaded file: {}'.format(e))
+        log.warning(u'Error deleting uploaded file: %s', e)

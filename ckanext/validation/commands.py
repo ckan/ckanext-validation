@@ -185,11 +185,8 @@ report file on the relevant commands.''')
             {u'resource_id': resource_id,
              u'async': True})
 
-        msg = ('Resource {} from dataset {} sent to ' +
-               'the validation queue')
-
-        log.debug(
-            msg.format(resource_id, dataset_id))
+        log.debug('Resource %s from dataset %s sent to the validation queue',
+                  resource_id, dataset_id)
 
     def _process_row(self, dataset, resource, writer):
         resource_url = '{}/dataset/{}/resource/{}'.format(
