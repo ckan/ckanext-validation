@@ -3,6 +3,7 @@
 import datetime
 import uuid
 import logging
+import six
 
 from sqlalchemy import Column, Unicode, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -14,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def make_uuid():
-    return unicode(uuid.uuid4())
+    return six.text_type(uuid.uuid4())
 
 
 Base = declarative_base(metadata=metadata)

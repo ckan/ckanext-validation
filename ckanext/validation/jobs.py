@@ -3,7 +3,9 @@
 import logging
 import datetime
 import json
+import os
 import re
+import six
 
 import requests
 from sqlalchemy.orm.exc import NoResultFound
@@ -22,7 +24,7 @@ log = logging.getLogger(__name__)
 
 def run_validation_job(resource):
 
-    log.debug(u'Validating resource {}'.format(resource['id']))
+    log.debug(u'Validating resource %s', resource['id'])
 
     try:
         validation = Session.query(Validation).filter(
@@ -45,7 +47,7 @@ def run_validation_job(resource):
         options = {}
 
     resource_options = resource.get(u'validation_options')
-    if resource_options and isinstance(resource_options, basestring):
+    if resource_options and isinstance(resource_options, six.string_types):
         resource_options = json.loads(resource_options)
     if resource_options:
         options.update(resource_options)
@@ -77,7 +79,7 @@ def run_validation_job(resource):
         source = resource[u'url']
 
     schema = resource.get(u'schema')
-    if schema and isinstance(schema, basestring):
+    if schema and isinstance(schema, six.string_types):
         if schema.startswith('http'):
             r = requests.get(schema)
             schema = r.json()
@@ -119,9 +121,26 @@ def run_validation_job(resource):
 
 def _validate_table(source, _format=u'csv', schema=None, **options):
 
+    use_proxy = 'ckan.download_proxy' in t.config
+    if use_proxy:
+        proxy = t.config.get('ckan.download_proxy')
+        log.debug("Download resource for validation via proxy %s", proxy)
+        original_http_proxy = os.environ.get('HTTP_PROXY')
+        original_https_proxy = os.environ.get('HTTPS_PROXY')
+        os.environ['HTTP_PROXY'] = proxy
+        os.environ['HTTPS_PROXY'] = proxy
     report = validate(source, format=_format, schema=schema, **options)
+    if use_proxy:
+        if original_http_proxy:
+            os.environ['HTTP_PROXY'] = original_http_proxy
+        else:
+            del os.environ['HTTP_PROXY']
+        if original_https_proxy:
+            os.environ['HTTPS_PROXY'] = original_https_proxy
+        else:
+            del os.environ['HTTPS_PROXY']
 
-    log.debug(u'Validating source: {}'.format(source))
+    log.debug(u'Validating source: %s', source)
 
     return report
 
