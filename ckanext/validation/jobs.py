@@ -3,7 +3,6 @@
 import logging
 import datetime
 import json
-import os
 import re
 import six
 
@@ -121,24 +120,14 @@ def run_validation_job(resource):
 
 def _validate_table(source, _format=u'csv', schema=None, **options):
 
+    http_session = requests.Session()
+
     use_proxy = 'ckan.download_proxy' in t.config
     if use_proxy:
         proxy = t.config.get('ckan.download_proxy')
-        log.debug("Download resource for validation via proxy %s", proxy)
-        original_http_proxy = os.environ.get('HTTP_PROXY')
-        original_https_proxy = os.environ.get('HTTPS_PROXY')
-        os.environ['HTTP_PROXY'] = proxy
-        os.environ['HTTPS_PROXY'] = proxy
-    report = validate(source, format=_format, schema=schema, **options)
-    if use_proxy:
-        if original_http_proxy:
-            os.environ['HTTP_PROXY'] = original_http_proxy
-        else:
-            del os.environ['HTTP_PROXY']
-        if original_https_proxy:
-            os.environ['HTTPS_PROXY'] = original_https_proxy
-        else:
-            del os.environ['HTTPS_PROXY']
+        log.debug("Download resource for validation via proxy: %s", proxy)
+        http_session.proxies.update({'http': proxy, 'https': proxy})
+    report = validate(source, format=_format, schema=schema, http_session=http_session, **options)
 
     log.debug(u'Validating source: %s', source)
 
