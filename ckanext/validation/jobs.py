@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 def run_validation_job(resource):
 
-    log.debug(u'Validating resource {}'.format(resource['id']))
+    log.debug(u'Validating resource %s', resource['id'])
 
     try:
         validation = Session.query(Validation).filter(
@@ -119,9 +119,16 @@ def run_validation_job(resource):
 
 def _validate_table(source, _format=u'csv', schema=None, **options):
 
-    report = validate(source, format=_format, schema=schema, **options)
+    http_session = requests.Session()
 
-    log.debug(u'Validating source: {}'.format(source))
+    use_proxy = 'ckan.download_proxy' in t.config
+    if use_proxy:
+        proxy = t.config.get('ckan.download_proxy')
+        log.debug(u'Download resource for validation via proxy: %s', proxy)
+        http_session.proxies.update({'http': proxy, 'https': proxy})
+    report = validate(source, format=_format, schema=schema, http_session=http_session, **options)
+
+    log.debug(u'Validating source: %s', source)
 
     return report
 
