@@ -111,7 +111,6 @@ target yourself. Not to be used with -r or -d.''')
                                help='''Location of the CSV validation
 report file on the relevant commands.''')
 
-
     _page_size = 100
 
     def command(self):
@@ -186,11 +185,8 @@ report file on the relevant commands.''')
             {u'resource_id': resource_id,
              u'async': True})
 
-        msg = ('Resource {} from dataset {} sent to ' +
-               'the validation queue')
-
-        log.debug(
-            msg.format(resource_id, dataset_id))
+        log.debug('Resource %s from dataset %s sent to the validation queue',
+                  resource_id, dataset_id)
 
     def _process_row(self, dataset, resource, writer):
         resource_url = '{}/dataset/{}/resource/{}'.format(
@@ -309,7 +305,7 @@ report file on the relevant commands.''')
                                 outputs['resources_' + resource['validation_status']] += 1
 
                             if resource.get('validation_status') in (
-                                        'failure', 'error'):
+                                    'failure', 'error'):
                                 if full:
                                     row_counts = self._process_row_full(dataset, resource, writer)
                                     if not row_counts:
@@ -331,7 +327,6 @@ report file on the relevant commands.''')
                                     outputs['formats_success'][resource['format']] += 1
                                 else:
                                     outputs['formats_success'][resource['format']] = 1
-
 
                     if len(query['results']) < self._page_size:
                         break
@@ -380,6 +375,5 @@ Formats breakdown (validation failed or errored):
 {msg_errors}
 CSV Report stored in {output_csv}
 '''.format(**outputs)
-
 
         log.info(msg)

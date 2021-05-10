@@ -15,8 +15,8 @@ from ckanext.validation.model import create_tables, tables_exist, Validation
 from ckanext.validation.jobs import (
     run_validation_job, uploader, Session)
 from ckanext.validation.tests.helpers import (
-        VALID_REPORT, INVALID_REPORT, ERROR_REPORT, VALID_REPORT_LOCAL_FILE,
-        mock_uploads, MockFieldStorage
+    VALID_REPORT, INVALID_REPORT, ERROR_REPORT, VALID_REPORT_LOCAL_FILE,
+    mock_uploads, MockFieldStorage
 )
 
 
@@ -41,8 +41,7 @@ class TestValidationJob(object):
     @mock.patch('ckanext.validation.jobs.validate')
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
-    def test_job_run_no_schema(
-         self, mock_get_action, mock_commit, mock_validate):
+    def test_job_run_no_schema(self, mock_get_action, mock_commit, mock_validate):
 
         org = factories.Organization()
         dataset = factories.Dataset(private=True, owner_org=org['id'])
@@ -64,8 +63,7 @@ class TestValidationJob(object):
     @mock.patch('ckanext.validation.jobs.validate')
     @mock.patch.object(Session, 'commit')
     @mock.patch.object(ckantoolkit, 'get_action')
-    def test_job_run_schema(
-         self, mock_get_action, mock_commit, mock_validate):
+    def test_job_run_schema(self, mock_get_action, mock_commit, mock_validate):
 
         org = factories.Organization()
         dataset = factories.Dataset(private=True, owner_org=org['id'])
@@ -174,7 +172,7 @@ class TestValidationJob(object):
             self, mock_uploader, mock_validate):
 
         resource = factories.Resource(
-                url='__upload', url_type='upload', format='csv')
+            url='__upload', url_type='upload', format='csv')
 
         run_validation_job(resource)
 

@@ -50,10 +50,10 @@ setup(
     namespace_packages=['ckanext'],
 
     install_requires=[
-      # CKAN extensions should not list dependencies here, but in a separate
-      # ``requirements.txt`` file.
-      #
-      # http://docs.ckan.org/en/latest/extensions/best-practices.html#add-third-party-libraries-to-requirements-txt
+        # CKAN extensions should not list dependencies here, but in a separate
+        # ``requirements.txt`` file.
+        #
+        # http://docs.ckan.org/en/latest/extensions/best-practices.html#add-third-party-libraries-to-requirements-txt
     ],
 
     # If there are data files included in your packages that need to be
@@ -75,6 +75,9 @@ setup(
     entry_points={
         'ckan.plugins': [
             'validation=ckanext.validation.plugin:ValidationPlugin'
+        ],
+        'ckan.test_plugins': [
+            'test_validation_plugin = ckanext.validation.tests.test_interfaces:TestPlugin',
         ],
         'paste.paster_command': [
             'validation = ckanext.validation.commands:Validation'

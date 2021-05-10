@@ -3,6 +3,7 @@
 import datetime
 import logging
 import json
+import six
 
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -12,6 +13,7 @@ import ckan.lib.uploader as uploader
 import ckantoolkit as t
 
 from ckanext.validation.model import Validation
+from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings
 from ckanext.validation.utils import (
@@ -261,18 +263,18 @@ def resource_validation_run_batch(context, data_dict):
     count_resources = 0
 
     dataset_ids = data_dict.get('dataset_ids')
-    if isinstance(dataset_ids, basestring):
+    if isinstance(dataset_ids, six.string_types):
         try:
             dataset_ids = json.loads(dataset_ids)
-        except ValueError as e:
+        except ValueError:
             dataset_ids = [dataset_ids]
 
     search_params = data_dict.get('query')
-    if isinstance(search_params, basestring):
+    if isinstance(search_params, six.string_types):
         try:
             search_params = json.loads(search_params)
-        except ValueError as e:
-            msg = 'Error parsing search parameters'.format(search_params)
+        except ValueError:
+            msg = 'Error parsing search parameters: {}'.format(search_params)
             return {'output': msg}
 
     while True:
@@ -308,9 +310,8 @@ def resource_validation_run_batch(context, data_dict):
 
                     except t.ValidationError as e:
                         log.warning(
-                            u'Could not run validation for resource {} ' +
-                            u'from dataset {}: {}'.format(
-                                resource['id'], dataset['name'], str(e)))
+                            u'Could not run validation for resource %s from dataset %s: %s',
+                            resource['id'], dataset['name'], e)
 
             if len(query['results']) < page_size:
                 break
@@ -466,7 +467,7 @@ def resource_create(context, data_dict):
         context['use_cache'] = False
         t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError, e:
+    except t.ValidationError as e:
         try:
             raise t.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
@@ -481,12 +482,21 @@ def resource_create(context, data_dict):
     # Custom code starts
 
     if get_create_mode_from_config() == u'sync':
-        is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
-        _run_sync_validation(
-            resource_id, local_upload=is_local_upload, new_resource=True)
+
+        run_validation = True
+
+        for plugin in plugins.PluginImplementations(IDataValidation):
+            if not plugin.can_validate(context, data_dict):
+                log.debug('Skipping validation for resource %s', resource_id)
+                run_validation = False
+
+        if run_validation:
+            is_local_upload = (
+                hasattr(upload, 'filename') and
+                upload.filename is not None and
+                isinstance(upload, uploader.ResourceUpload))
+            _run_sync_validation(
+                resource_id, local_upload=is_local_upload, new_resource=True)
 
     # Custom code ends
 
@@ -578,7 +588,7 @@ def resource_update(context, data_dict):
         context['use_cache'] = False
         updated_pkg_dict = t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError, e:
+    except t.ValidationError as e:
         try:
             raise t.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
@@ -589,12 +599,20 @@ def resource_update(context, data_dict):
     # Custom code starts
 
     if get_update_mode_from_config() == u'sync':
-        is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
-        _run_sync_validation(
-            id, local_upload=is_local_upload, new_resource=False)
+
+        run_validation = True
+        for plugin in plugins.PluginImplementations(IDataValidation):
+            if not plugin.can_validate(context, data_dict):
+                log.debug('Skipping validation for resource %s', id)
+                run_validation = False
+
+        if run_validation:
+            is_local_upload = (
+                hasattr(upload, 'filename') and
+                upload.filename is not None and
+                isinstance(upload, uploader.ResourceUpload))
+            _run_sync_validation(
+                id, local_upload=is_local_upload, new_resource=True)
 
     # Custom code ends
 
@@ -623,9 +641,8 @@ def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
             {u'resource_id': resource_id,
              u'async': False})
     except t.ValidationError as e:
-        log.info(
-            u'Could not run validation for resource {}: {}'.format(
-                resource_id, str(e)))
+        log.info(u'Could not run validation for resource %s: %s',
+                 resource_id, e)
         return
 
     validation = t.get_action(u'resource_validation_show')(

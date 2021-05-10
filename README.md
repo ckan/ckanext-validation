@@ -19,7 +19,8 @@ Data description and validation for CKAN with [Frictionless Data](https://fricti
      * [Operation modes](#operation-modes)
         * [Asynchronous validation](#asynchronous-validation)
         * [Synchronous validation](#synchronous-validation)
-     * [Changes in the schema](#changes-in-the-schema)
+     * [Changes in the metadata schema](#changes-in-the-metadata-schema)
+     * [Extending via interfaces](#extending-via-interfaces)
   * [Action functions](#action-functions)
 	* [resource_validation_run](#resource_validation_run)
 	* [resource_validation_show](#resource_validation_show)
@@ -342,6 +343,53 @@ Additionally, two read-only fields are added to resources:
 * `validation_status`: Stores the last validation result for the resource. Can be one of `success`, `failure` or `error`.
 * `validation_timestamp`: Date and time of the last validation run.
 
+
+### Extending via interfaces
+
+The plugin provides the `IDataValidation` interface so other plugins can modify its behaviour.
+
+Currently it only provides the `can_validate()` method, that plugins can use to determine if a specific resource should be validated or not:
+
+```
+class IDataValidation(Interface):
+
+    def can_validate(self, context, data_dict):
+        '''
+        When implemented, this call can be used to control whether the
+        data validation should take place or not on a specific resource.
+
+        Implementations will receive a context object and the data_dict of
+        the resource.
+
+        If it returns False, the validation won't be performed, and if it
+        returns True there will be a validation job started.
+
+        Note that after this methods is called there are further checks
+        performed to ensure the resource has one of the supported formats.
+        This is controlled via the `ckanext.validation.formats` config option.
+
+        Here is an example implementation:
+
+
+        from ckan import plugins as p
+
+        from ckanext.validation.interfaces import IDataValidation
+
+
+        class MyPlugin(p.SingletonPlugin):
+
+            p.implements(IDataValidation, inherit=True)
+
+            def can_validate(self, context, data_dict):
+
+                if data_dict.get('my_custom_field') == 'xx':
+                    return False
+
+                return True
+
+        '''
+        return True
+```
 
 ## Action functions
 
