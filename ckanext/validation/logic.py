@@ -4,6 +4,7 @@ import datetime
 import logging
 import json
 
+import six
 from sqlalchemy.orm.exc import NoResultFound
 
 import ckan.plugins as plugins
@@ -262,14 +263,14 @@ def resource_validation_run_batch(context, data_dict):
     count_resources = 0
 
     dataset_ids = data_dict.get('dataset_ids')
-    if isinstance(dataset_ids, basestring):
+    if isinstance(dataset_ids, six.string_types):
         try:
             dataset_ids = json.loads(dataset_ids)
         except ValueError as e:
             dataset_ids = [dataset_ids]
 
     search_params = data_dict.get('query')
-    if isinstance(search_params, basestring):
+    if isinstance(search_params, six.string_types):
         try:
             search_params = json.loads(search_params)
         except ValueError as e:
@@ -467,7 +468,7 @@ def resource_create(context, data_dict):
         context['use_cache'] = False
         t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError, e:
+    except t.ValidationError as e:
         try:
             raise t.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
@@ -588,7 +589,7 @@ def resource_update(context, data_dict):
         context['use_cache'] = False
         updated_pkg_dict = t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError, e:
+    except t.ValidationError as e:
         try:
             raise t.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
