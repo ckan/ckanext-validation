@@ -1,7 +1,9 @@
-import __builtin__ as builtins
+from six.moves import builtins
 import cgi
 import functools
 import mock
+import six
+from six import StringIO, BytesIO
 
 from pyfakefs import fake_filesystem
 
@@ -148,3 +150,17 @@ class MockFieldStorage(cgi.FieldStorage):
         self.filename = filename
         self.name = 'upload'
         self.list = None
+
+    def __bool__(self):
+        return self.file is not None
+
+
+def get_mock_file(contents):
+    if six.PY3:
+        mock_file = BytesIO()
+        mock_file.write(contents.encode('utf8'))
+    else:
+        mock_file = StringIO()
+        mock_file.write(contents)
+
+    return mock_file

@@ -1,820 +1,813 @@
 import datetime
-import StringIO
+import six
+from six import StringIO, BytesIO
 import io
 import json
 
-from nose.tools import assert_raises, assert_equals
+import pytest
 import mock
 
 from ckan import model
-from ckan.tests.helpers import (
-    call_action, call_auth, change_config, reset_db, FunctionalTestBase
-)
+from ckan.tests.helpers import call_action, call_auth
 from ckan.tests import factories
+from ckan.tests.helpers import _get_test_app
 
 import ckantoolkit as t
 
-from ckanext.validation.model import create_tables, tables_exist, Validation
+from ckanext.validation.model import Validation
 from ckanext.validation.tests.helpers import (
-        VALID_CSV, INVALID_CSV, VALID_REPORT,
-        mock_uploads, MockFieldStorage
+    VALID_CSV,
+    INVALID_CSV,
+    VALID_REPORT,
+    mock_uploads,
+    MockFieldStorage,
+    get_mock_file,
 )
 
 
 Session = model.Session
 
 
+@pytest.mark.usefixtures("clean_db", "validation_setup")
 class TestResourceValidationRun(object):
-
-    def setup(self):
-
-        # We don't use FunctionalTestBase here as we need to change the config
-        # in individual tests
-
-        reset_db()
-
-        if not tables_exist():
-            create_tables()
-
     def test_resource_validation_run_param_missing(self):
 
-        assert_raises(
-            t.ValidationError,
-            call_action, 'resource_validation_run')
+        pytest.raises(t.ValidationError, call_action, "resource_validation_run")
 
     def test_resource_validation_run_not_exists(self):
 
-        assert_raises(
+        pytest.raises(
             t.ObjectNotFound,
-            call_action, 'resource_validation_run', resource_id='not_exists')
+            call_action,
+            "resource_validation_run",
+            resource_id="not_exists",
+        )
 
     def test_resource_validation_wrong_format(self):
 
-        resource = factories.Resource(format='pdf')
+        resource = factories.Resource(format="pdf")
 
-        with assert_raises(t.ValidationError) as e:
+        with pytest.raises(t.ValidationError) as e:
 
-            call_action('resource_validation_run', resource_id=resource['id'])
+            call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert 'Unsupported resource format' in str(e.exception)
+        assert "Unsupported resource format" in str(e)
 
     def test_resource_validation_no_url_or_upload(self):
 
-        resource = factories.Resource(url='', format='csv')
+        resource = factories.Resource(url="", format="csv")
 
-        with assert_raises(t.ValidationError) as e:
+        with pytest.raises(t.ValidationError) as e:
 
-            call_action('resource_validation_run', resource_id=resource['id'])
+            call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert 'Resource must have a valid URL' in str(e.exception)
+        assert "Resource must have a valid URL" in str(e)
 
-    @mock.patch('ckanext.validation.logic.enqueue_job')
+    @mock.patch("ckanext.validation.logic.enqueue_job")
     def test_resource_validation_with_url(self, mock_enqueue_job):
 
-        resource = factories.Resource(url='http://example.com', format='csv')
+        resource = factories.Resource(url="http://example.com", format="csv")
 
-        call_action('resource_validation_run', resource_id=resource['id'])
+        call_action("resource_validation_run", resource_id=resource["id"])
 
-    @mock.patch('ckanext.validation.logic.enqueue_job')
+    @mock.patch("ckanext.validation.logic.enqueue_job")
     def test_resource_validation_with_upload(self, mock_enqueue_job):
 
-        resource = factories.Resource(url='', url_type='upload', format='csv')
+        resource = factories.Resource(url="", url_type="upload", format="csv")
 
-        call_action('resource_validation_run', resource_id=resource['id'])
+        call_action("resource_validation_run", resource_id=resource["id"])
 
     def test_resource_validation_run_starts_job(self):
 
-        resource = factories.Resource(format='csv')
+        resource = factories.Resource(format="csv")
 
-        jobs = call_action('job_list')
+        jobs = call_action("job_list")
 
-        call_action('resource_validation_run', resource_id=resource['id'])
+        call_action("resource_validation_run", resource_id=resource["id"])
 
-        jobs_after = call_action('job_list')
+        jobs_after = call_action("job_list")
 
         assert len(jobs_after) == len(jobs) + 1
 
-    @mock.patch('ckanext.validation.logic.enqueue_job')
-    def test_resource_validation_creates_validation_object(
-            self, mock_enqueue_job):
+    @mock.patch("ckanext.validation.logic.enqueue_job")
+    def test_resource_validation_creates_validation_object(self, mock_enqueue_job):
 
-        resource = factories.Resource(format='csv')
+        resource = factories.Resource(format="csv")
 
-        call_action('resource_validation_run', resource_id=resource['id'])
+        call_action("resource_validation_run", resource_id=resource["id"])
 
-        validation = Session.query(Validation).filter(
-            Validation.resource_id == resource['id']).one()
+        validation = (
+            Session.query(Validation)
+            .filter(Validation.resource_id == resource["id"])
+            .one()
+        )
 
-        assert_equals(validation.resource_id, resource['id'])
-        assert_equals(validation.status, 'created')
+        assert validation.resource_id == resource["id"]
+        assert validation.status == "created"
         assert validation.created
-        assert_equals(validation.finished, None)
-        assert_equals(validation.report, None)
-        assert_equals(validation.error, None)
+        assert validation.finished is None
+        assert validation.report is None
+        assert validation.error is None
 
-    @change_config('ckanext.validation.run_on_create_async', False)
-    @mock.patch('ckanext.validation.logic.enqueue_job')
+    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
+    @mock.patch("ckanext.validation.logic.enqueue_job")
     def test_resource_validation_resets_existing_validation_object(
-            self, mock_enqueue_job):
+        self, mock_enqueue_job
+    ):
 
-        resource = {'format': 'CSV', 'url': 'https://some.url'}
+        resource = {"format": "CSV", "url": "https://some.url"}
 
         dataset = factories.Dataset(resources=[resource])
 
         timestamp = datetime.datetime.utcnow()
         old_validation = Validation(
-            resource_id=dataset['resources'][0]['id'],
+            resource_id=dataset["resources"][0]["id"],
             created=timestamp,
             finished=timestamp,
-            status='valid',
-            report={'some': 'report'},
-            error={'some': 'error'})
+            status="valid",
+            report={"some": "report"},
+            error={"some": "error"},
+        )
 
         Session.add(old_validation)
         Session.commit()
 
         call_action(
-            'resource_validation_run',
-            resource_id=dataset['resources'][0]['id']
+            "resource_validation_run", resource_id=dataset["resources"][0]["id"]
         )
 
-        validation = Session.query(Validation).filter(
-            Validation.resource_id == dataset['resources'][0]['id']).one()
+        validation = (
+            Session.query(Validation)
+            .filter(Validation.resource_id == dataset["resources"][0]["id"])
+            .one()
+        )
 
-        assert_equals(validation.resource_id, dataset['resources'][0]['id'])
-        assert_equals(validation.status, 'created')
+        assert validation.resource_id == dataset["resources"][0]["id"]
+        assert validation.status == "created"
         assert validation.created is not timestamp
-        assert_equals(validation.finished, None)
-        assert_equals(validation.report, None)
-        assert_equals(validation.error, None)
+        assert validation.finished is None
+        assert validation.report is None
+        assert validation.error is None
 
 
-class TestResourceValidationShow(FunctionalTestBase):
-
-    def setup(self):
-
-        super(TestResourceValidationShow, self).setup()
-
-        if not tables_exist():
-            create_tables()
-
+@pytest.mark.usefixtures("clean_db", "validation_setup")
+class TestResourceValidationShow(object):
     def test_resource_validation_show_param_missing(self):
 
-        assert_raises(
-            t.ValidationError,
-            call_action, 'resource_validation_show')
+        pytest.raises(t.ValidationError, call_action, "resource_validation_show")
 
     def test_resource_validation_show_not_exists(self):
 
-        assert_raises(
+        pytest.raises(
             t.ObjectNotFound,
-            call_action, 'resource_validation_show', resource_id='not_exists')
+            call_action,
+            "resource_validation_show",
+            resource_id="not_exists",
+        )
 
-    @change_config('ckanext.validation.run_on_create_async', False)
+    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
     def test_resource_validation_show_validation_does_not_exists(self):
 
-        resource = {'format': 'CSV', 'url': 'https://some.url'}
+        resource = {"format": "CSV", "url": "https://some.url"}
 
         dataset = factories.Dataset(resources=[resource])
 
-        assert_raises(
+        pytest.raises(
             t.ObjectNotFound,
-            call_action, 'resource_validation_show',
-            resource_id=dataset['resources'][0]['id'])
+            call_action,
+            "resource_validation_show",
+            resource_id=dataset["resources"][0]["id"],
+        )
 
-    @change_config('ckanext.validation.run_on_create_async', False)
+    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
     def test_resource_validation_show_returns_all_fields(self):
 
-        resource = {'format': 'CSV', 'url': 'https://some.url'}
+        resource = {"format": "CSV", "url": "https://some.url"}
 
         dataset = factories.Dataset(resources=[resource])
 
         timestamp = datetime.datetime.utcnow()
         validation = Validation(
-            resource_id=dataset['resources'][0]['id'],
+            resource_id=dataset["resources"][0]["id"],
             created=timestamp,
             finished=timestamp,
-            status='valid',
-            report={'some': 'report'},
-            error={'some': 'error'})
+            status="valid",
+            report={"some": "report"},
+            error={"some": "error"},
+        )
         Session.add(validation)
         Session.commit()
 
         validation_show = call_action(
-            'resource_validation_show',
-            resource_id=dataset['resources'][0]['id'])
+            "resource_validation_show", resource_id=dataset["resources"][0]["id"]
+        )
 
-        assert_equals(validation_show['id'], validation.id)
-        assert_equals(validation_show['resource_id'], validation.resource_id)
-        assert_equals(validation_show['status'], validation.status)
-        assert_equals(validation_show['report'], validation.report)
-        assert_equals(validation_show['error'], validation.error)
-        assert_equals(
-            validation_show['created'], validation.created.isoformat())
-        assert_equals(
-            validation_show['finished'], validation.finished.isoformat())
+        assert validation_show["id"] == validation.id
+        assert validation_show["resource_id"] == validation.resource_id
+        assert validation_show["status"] == validation.status
+        assert validation_show["report"] == validation.report
+        assert validation_show["error"] == validation.error
+        assert validation_show["created"] == validation.created.isoformat()
+        assert validation_show["finished"] == validation.finished.isoformat()
 
 
-class TestResourceValidationDelete(FunctionalTestBase):
-
-    def setup(self):
-
-        super(TestResourceValidationDelete, self).setup()
-
-        if not tables_exist():
-            create_tables()
-
+@pytest.mark.usefixtures("clean_db", "validation_setup")
+class TestResourceValidationDelete(object):
     def test_resource_validation_delete_param_missing(self):
 
-        assert_raises(
-            t.ValidationError,
-            call_action, 'resource_validation_delete')
+        pytest.raises(t.ValidationError, call_action, "resource_validation_delete")
 
     def test_resource_validation_delete_not_exists(self):
 
-        assert_raises(
+        pytest.raises(
             t.ObjectNotFound,
-            call_action, 'resource_validation_delete',
-            resource_id='not_exists')
+            call_action,
+            "resource_validation_delete",
+            resource_id="not_exists",
+        )
 
-    @change_config('ckanext.validation.run_on_create_async', False)
-    @change_config('ckanext.validation.run_on_update_async', False)
+    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
+    @pytest.mark.ckan_config("ckanext.validation.run_on_update_async", False)
     def test_resource_validation_delete_removes_object(self):
 
-        resource = factories.Resource(format='csv')
+        resource = factories.Resource(format="csv")
         timestamp = datetime.datetime.utcnow()
         validation = Validation(
-            resource_id=resource['id'],
+            resource_id=resource["id"],
             created=timestamp,
             finished=timestamp,
-            status='valid',
-            report={'some': 'report'},
-            error={'some': 'error'})
+            status="valid",
+            report={"some": "report"},
+            error={"some": "error"},
+        )
         Session.add(validation)
         Session.commit()
 
-        count_before = Session.query(Validation).filter(
-            Validation.resource_id == resource['id']).count()
+        count_before = (
+            Session.query(Validation)
+            .filter(Validation.resource_id == resource["id"])
+            .count()
+        )
 
-        assert_equals(count_before, 1)
+        assert count_before == 1
 
-        call_action('resource_validation_delete', resource_id=resource['id'])
+        call_action("resource_validation_delete", resource_id=resource["id"])
 
-        count_after = Session.query(Validation).filter(
-            Validation.resource_id == resource['id']).count()
+        count_after = (
+            Session.query(Validation)
+            .filter(Validation.resource_id == resource["id"])
+            .count()
+        )
 
-        assert_equals(count_after, 0)
+        assert count_after == 0
 
 
-class TestAuth(FunctionalTestBase):
-
-    def setup(self):
-
-        super(TestAuth, self).setup()
-
-        if not tables_exist():
-            create_tables()
-
+@pytest.mark.usefixtures("clean_db", "validation_setup")
+class TestAuth(object):
     def test_run_anon(self):
 
         resource = factories.Resource()
 
-        context = {
-            'user': None,
-            'model': model
-        }
+        context = {"user": None, "model": model}
 
-        assert_raises(t.NotAuthorized,
-                      call_auth, 'resource_validation_run', context=context,
-                      resource_id=resource['id'])
+        pytest.raises(
+            t.NotAuthorized,
+            call_auth,
+            "resource_validation_run",
+            context=context,
+            resource_id=resource["id"],
+        )
 
     def test_run_sysadmin(self):
 
         resource = factories.Resource()
         sysadmin = factories.Sysadmin()
 
-        context = {
-            'user': sysadmin['name'],
-            'model': model
-        }
+        context = {"user": sysadmin["name"], "model": model}
 
-        assert_equals(call_auth('resource_validation_run', context=context,
-                                resource_id=resource['id']),
-                      True)
+        assert (
+            call_auth(
+                "resource_validation_run", context=context, resource_id=resource["id"]
+            )
+            is True
+        )
 
     def test_run_non_auth_user(self):
 
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org['id'], resources=[factories.Resource()])
+            owner_org=org["id"], resources=[factories.Resource()]
+        )
 
-        context = {
-            'user': user['name'],
-            'model': model
-        }
+        context = {"user": user["name"], "model": model}
 
-        assert_raises(t.NotAuthorized,
-                      call_auth, 'resource_validation_run', context=context,
-                      resource_id=dataset['resources'][0]['id'])
+        pytest.raises(
+            t.NotAuthorized,
+            call_auth,
+            "resource_validation_run",
+            context=context,
+            resource_id=dataset["resources"][0]["id"],
+        )
 
     def test_run_auth_user(self):
 
         user = factories.User()
         org = factories.Organization(
-            users=[{'name': user['name'], 'capacity': 'editor'}])
+            users=[{"name": user["name"], "capacity": "editor"}]
+        )
         dataset = factories.Dataset(
-            owner_org=org['id'], resources=[factories.Resource()])
+            owner_org=org["id"], resources=[factories.Resource()]
+        )
 
-        context = {
-            'user': user['name'],
-            'model': model
-        }
+        context = {"user": user["name"], "model": model}
 
-        assert_equals(call_auth('resource_validation_run', context=context,
-                                resource_id=dataset['resources'][0]['id']),
-                      True)
+        assert (
+            call_auth(
+                "resource_validation_run",
+                context=context,
+                resource_id=dataset["resources"][0]["id"],
+            )
+            is True
+        )
 
     def test_delete_anon(self):
 
         resource = factories.Resource()
 
-        context = {
-            'user': None,
-            'model': model
-        }
+        context = {"user": None, "model": model}
 
-        assert_raises(t.NotAuthorized,
-                      call_auth, 'resource_validation_delete', context=context,
-                      resource_id=resource['id'])
+        pytest.raises(
+            t.NotAuthorized,
+            call_auth,
+            "resource_validation_delete",
+            context=context,
+            resource_id=resource["id"],
+        )
 
     def test_delete_sysadmin(self):
 
         resource = factories.Resource()
         sysadmin = factories.Sysadmin()
 
-        context = {
-            'user': sysadmin['name'],
-            'model': model
-        }
+        context = {"user": sysadmin["name"], "model": model}
 
-        assert_equals(call_auth('resource_validation_delete', context=context,
-                                resource_id=resource['id']),
-                      True)
+        assert (
+            call_auth(
+                "resource_validation_delete",
+                context=context,
+                resource_id=resource["id"],
+            )
+            is True
+        )
 
     def test_delete_non_auth_user(self):
 
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org['id'], resources=[factories.Resource()])
+            owner_org=org["id"], resources=[factories.Resource()]
+        )
 
-        context = {
-            'user': user['name'],
-            'model': model
-        }
+        context = {"user": user["name"], "model": model}
 
-        assert_raises(t.NotAuthorized,
-                      call_auth, 'resource_validation_delete', context=context,
-                      resource_id=dataset['resources'][0]['id'])
+        pytest.raises(
+            t.NotAuthorized,
+            call_auth,
+            "resource_validation_delete",
+            context=context,
+            resource_id=dataset["resources"][0]["id"],
+        )
 
     def test_delete_auth_user(self):
 
         user = factories.User()
         org = factories.Organization(
-            users=[{'name': user['name'], 'capacity': 'editor'}])
+            users=[{"name": user["name"], "capacity": "editor"}]
+        )
         dataset = factories.Dataset(
-            owner_org=org['id'], resources=[factories.Resource()])
+            owner_org=org["id"], resources=[factories.Resource()]
+        )
 
-        context = {
-            'user': user['name'],
-            'model': model
-        }
+        context = {"user": user["name"], "model": model}
 
-        assert_equals(call_auth('resource_validation_delete', context=context,
-                                resource_id=dataset['resources'][0]['id']),
-                      True)
+        assert (
+            call_auth(
+                "resource_validation_delete",
+                context=context,
+                resource_id=dataset["resources"][0]["id"],
+            )
+            is True
+        )
 
     def test_show_anon(self):
 
         resource = factories.Resource()
 
-        context = {
-            'user': None,
-            'model': model
-        }
+        context = {"user": None, "model": model}
 
-        assert_equals(call_auth('resource_validation_show', context=context,
-                                resource_id=resource['id']),
-                      True)
+        assert (
+            call_auth(
+                "resource_validation_show", context=context, resource_id=resource["id"]
+            )
+            is True
+        )
 
     def test_show_anon_public_dataset(self):
 
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org['id'], resources=[factories.Resource()],
-            private=False)
+            owner_org=org["id"], resources=[factories.Resource()], private=False
+        )
 
-        context = {
-            'user': user['name'],
-            'model': model
-        }
+        context = {"user": user["name"], "model": model}
 
-        assert_equals(call_auth('resource_validation_show', context=context,
-                                resource_id=dataset['resources'][0]['id']),
-                      True)
+        assert (
+            call_auth(
+                "resource_validation_show",
+                context=context,
+                resource_id=dataset["resources"][0]["id"],
+            )
+            is True
+        )
 
     def test_show_anon_private_dataset(self):
 
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org['id'], resources=[factories.Resource()],
-            private=True)
+            owner_org=org["id"], resources=[factories.Resource()], private=True
+        )
 
-        context = {
-            'user': user['name'],
-            'model': model
-        }
+        context = {"user": user["name"], "model": model}
 
-        assert_raises(t.NotAuthorized,
-                      call_auth, 'resource_validation_run', context=context,
-                      resource_id=dataset['resources'][0]['id'])
+        pytest.raises(
+            t.NotAuthorized,
+            call_auth,
+            "resource_validation_run",
+            context=context,
+            resource_id=dataset["resources"][0]["id"],
+        )
 
 
-class TestResourceValidationOnCreate(FunctionalTestBase):
+@pytest.mark.usefixtures("clean_db", "validation_setup")
+class TestResourceValidationOnCreate(object):
+    @classmethod
+    def setup_class(cls):
+        # Needed to apply the config changes at the right time so they can be picked up
+        # during startup
+        cls._original_config = dict(t.config)
+        t.config["ckanext.validation.run_on_create_sync"] = True
 
     @classmethod
-    def _apply_config_changes(cls, cfg):
-        cfg['ckanext.validation.run_on_create_sync'] = True
+    def teardown_class(cls):
 
-    def setup(self):
-
-        super(TestResourceValidationOnCreate, self).setup()
-
-        if not tables_exist():
-            create_tables()
+        t.config.clear()
+        t.config.update(cls._original_config)
 
     @mock_uploads
     def test_validation_fails_on_upload(self, mock_open):
 
-        invalid_file = StringIO.StringIO()
-        invalid_file.write(INVALID_CSV)
+        # This is needed to trigger a new environment reload that will reload the
+        # actions
+        _get_test_app()
 
-        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+        invalid_file = get_mock_file(INVALID_CSV)
+
+        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
 
         dataset = factories.Dataset()
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
 
-        with mock.patch('io.open', return_value=invalid_stream):
+        with mock.patch("io.open", return_value=invalid_stream):
 
-            with assert_raises(t.ValidationError) as e:
+            with pytest.raises(t.ValidationError) as e:
 
-                    call_action(
-                        'resource_create',
-                        package_id=dataset['id'],
-                        format='CSV',
-                        upload=mock_upload
-                    )
+                call_action(
+                    "resource_create",
+                    package_id=dataset["id"],
+                    format="CSV",
+                    upload=mock_upload,
+                )
 
-        assert 'validation' in e.exception.error_dict
-        assert 'missing-value' in str(e.exception)
-        assert 'Row 2 has a missing value in column 4' in str(e.exception)
+        assert "validation" in e.value.error_dict
+        assert "missing-value" in str(e)
+        assert "Row 2 has a missing value in column 4" in str(e)
 
     @mock_uploads
     def test_validation_fails_no_validation_object_stored(self, mock_open):
 
-        invalid_file = StringIO.StringIO()
-        invalid_file.write(INVALID_CSV)
+        # This is needed to trigger a new environment reload that will reload the
+        # actions
+        _get_test_app()
 
-        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+        invalid_file = get_mock_file(INVALID_CSV)
+
+        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
 
         dataset = factories.Dataset()
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
 
         validation_count_before = model.Session.query(Validation).count()
 
-        with mock.patch('io.open', return_value=invalid_stream):
+        with mock.patch("io.open", return_value=invalid_stream):
 
-            with assert_raises(t.ValidationError):
+            with pytest.raises(t.ValidationError):
                 call_action(
-                    'resource_create',
-                    package_id=dataset['id'],
-                    format='CSV',
-                    upload=mock_upload
+                    "resource_create",
+                    package_id=dataset["id"],
+                    format="CSV",
+                    upload=mock_upload,
                 )
 
         validation_count_after = model.Session.query(Validation).count()
 
-        assert_equals(validation_count_after, validation_count_before)
+        assert validation_count_after == validation_count_before
 
     @mock_uploads
     def test_validation_passes_on_upload(self, mock_open):
 
-        invalid_file = StringIO.StringIO()
-        invalid_file.write(VALID_CSV)
+        # This is needed to trigger a new environment reload that will reload the
+        # actions
+        _get_test_app()
 
-        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+        valid_file = get_mock_file(VALID_CSV)
+
+        mock_upload = MockFieldStorage(valid_file, "invalid.csv")
 
         dataset = factories.Dataset()
 
-        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
+        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV.encode('utf8')))
 
-        with mock.patch('io.open', return_value=valid_stream):
+        with mock.patch("io.open", return_value=valid_stream):
 
             resource = call_action(
-                'resource_create',
-                package_id=dataset['id'],
-                format='CSV',
-                upload=mock_upload
+                "resource_create",
+                package_id=dataset["id"],
+                format="CSV",
+                upload=mock_upload,
             )
 
-        assert_equals(resource['validation_status'], 'success')
-        assert 'validation_timestamp' in resource
+        assert resource["validation_status"] == "success"
+        assert "validation_timestamp" in resource
 
-    @mock.patch('ckanext.validation.jobs.validate',
-                return_value=VALID_REPORT)
+    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     def test_validation_passes_with_url(self, mock_validate):
 
-        url = 'https://example.com/valid.csv'
+        url = "https://example.com/valid.csv"
 
         dataset = factories.Dataset()
 
         resource = call_action(
-            'resource_create',
-            package_id=dataset['id'],
-            format='csv',
+            "resource_create",
+            package_id=dataset["id"],
+            format="csv",
             url=url,
         )
 
-        assert_equals(resource['validation_status'], 'success')
-        assert 'validation_timestamp' in resource
+        assert resource["validation_status"] == "success"
+        assert "validation_timestamp" in resource
 
 
-class TestResourceValidationOnUpdate(FunctionalTestBase):
+@pytest.mark.usefixtures("clean_db", "validation_setup")
+class TestResourceValidationOnUpdate(object):
+    @classmethod
+    def setup_class(cls):
+        # Needed to apply the config changes at the right time so they can be picked up
+        # during startup
+        cls._original_config = dict(t.config)
+        t.config["ckanext.validation.run_on_update_sync"] = True
 
     @classmethod
-    def _apply_config_changes(cls, cfg):
-        cfg['ckanext.validation.run_on_update_sync'] = True
+    def teardown_class(cls):
 
-    def setup(self):
-
-        super(TestResourceValidationOnUpdate, self).setup()
-
-        if not tables_exist():
-            create_tables()
+        t.config.clear()
+        t.config.update(cls._original_config)
 
     @mock_uploads
     def test_validation_fails_on_upload(self, mock_open):
 
-        dataset = factories.Dataset(resources=[
-            {
-                'url': 'https://example.com/data.csv'
-            }
-        ])
+        _get_test_app()
 
-        invalid_file = StringIO.StringIO()
-        invalid_file.write(INVALID_CSV)
+        dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
-        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+        invalid_file = get_mock_file(INVALID_CSV)
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
 
-        with mock.patch('io.open', return_value=invalid_stream):
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
 
-            with assert_raises(t.ValidationError) as e:
+        with mock.patch("io.open", return_value=invalid_stream):
+
+            with pytest.raises(t.ValidationError) as e:
 
                 call_action(
-                    'resource_update',
-                    id=dataset['resources'][0]['id'],
-                    format='CSV',
-                    upload=mock_upload
+                    "resource_update",
+                    id=dataset["resources"][0]["id"],
+                    format="CSV",
+                    upload=mock_upload,
                 )
 
-        assert 'validation' in e.exception.error_dict
-        assert 'missing-value' in str(e.exception)
-        assert 'Row 2 has a missing value in column 4' in str(e.exception)
+        assert "validation" in e.value.error_dict
+        assert "missing-value" in str(e)
+        assert "Row 2 has a missing value in column 4" in str(e)
 
     @mock_uploads
     def test_validation_fails_no_validation_object_stored(self, mock_open):
 
-        dataset = factories.Dataset(resources=[
-            {
-                'url': 'https://example.com/data.csv'
-            }
-        ])
+        _get_test_app()
 
-        invalid_file = StringIO.StringIO()
-        invalid_file.write(INVALID_CSV)
+        dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
-        mock_upload = MockFieldStorage(invalid_file, 'invalid.csv')
+        invalid_file = get_mock_file(INVALID_CSV)
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
+        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
 
-        with mock.patch('io.open', return_value=invalid_stream):
+        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
 
-            with assert_raises(t.ValidationError):
+        with mock.patch("io.open", return_value=invalid_stream):
+
+            with pytest.raises(t.ValidationError):
 
                 call_action(
-                    'resource_update',
-                    id=dataset['resources'][0]['id'],
-                    format='CSV',
-                    upload=mock_upload
+                    "resource_update",
+                    id=dataset["resources"][0]["id"],
+                    format="CSV",
+                    upload=mock_upload,
                 )
 
         validation_count_after = model.Session.query(Validation).count()
 
-        assert_equals(validation_count_after, 0)
+        assert validation_count_after == 0
 
     @mock_uploads
     def test_validation_passes_on_upload(self, mock_open):
 
-        dataset = factories.Dataset(resources=[
-            {
-                'url': 'https://example.com/data.csv'
-            }
-        ])
+        _get_test_app()
 
-        valid_file = StringIO.StringIO()
-        valid_file.write(INVALID_CSV)
+        dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
-        mock_upload = MockFieldStorage(valid_file, 'valid.csv')
+        valid_file = get_mock_file(VALID_CSV)
 
-        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
+        mock_upload = MockFieldStorage(valid_file, "valid.csv")
 
-        with mock.patch('io.open', return_value=valid_stream):
+        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV.encode('utf8')))
+
+        with mock.patch("io.open", return_value=valid_stream):
 
             resource = call_action(
-                'resource_update',
-                id=dataset['resources'][0]['id'],
-                format='CSV',
-                upload=mock_upload
+                "resource_update",
+                id=dataset["resources"][0]["id"],
+                format="CSV",
+                upload=mock_upload,
             )
 
-        assert_equals(resource['validation_status'], 'success')
-        assert 'validation_timestamp' in resource
+        assert resource["validation_status"] == "success"
+        assert "validation_timestamp" in resource
 
-    @mock.patch('ckanext.validation.jobs.validate',
-                return_value=VALID_REPORT)
+    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     def test_validation_passes_with_url(self, mock_validate):
 
-        dataset = factories.Dataset(resources=[
-            {
-                'url': 'https://example.com/data.csv'
-            }
-        ])
+        dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
         resource = call_action(
-            'resource_update',
-            id=dataset['resources'][0]['id'],
-            format='CSV',
-            url='https://example.com/some.other.csv',
+            "resource_update",
+            id=dataset["resources"][0]["id"],
+            format="CSV",
+            url="https://example.com/some.other.csv",
         )
 
-        assert_equals(resource['validation_status'], 'success')
-        assert 'validation_timestamp' in resource
+        assert resource["validation_status"] == "success"
+        assert "validation_timestamp" in resource
 
 
-class TestSchemaFields(FunctionalTestBase):
-
-    def setup(self):
-
-        super(TestSchemaFields, self).setup()
-
-        if not tables_exist():
-            create_tables()
-
+@pytest.mark.usefixtures("clean_db", "validation_setup")
+class TestSchemaFields(object):
     def test_schema_field(self):
 
         dataset = factories.Dataset()
 
         resource = call_action(
-            'resource_create',
-            package_id=dataset['id'],
-            url='http://example.com/file.csv',
-            schema='{"fields":[{"name":"id"}]}'
+            "resource_create",
+            package_id=dataset["id"],
+            url="http://example.com/file.csv",
+            schema='{"fields":[{"name":"id"}]}',
         )
 
-        assert_equals(resource['schema'], {'fields': [{'name': 'id'}]})
+        assert resource["schema"] == {"fields": [{"name": "id"}]}
 
-        assert 'schema_upload' not in resource
-        assert 'schema_url' not in resource
+        assert "schema_upload" not in resource
+        assert "schema_url" not in resource
 
     def test_schema_field_url(self):
 
-        url = 'https://example.com/schema.json'
+        url = "https://example.com/schema.json"
 
         dataset = factories.Dataset()
 
         resource = call_action(
-            'resource_create',
-            package_id=dataset['id'],
-            url='http://example.com/file.csv',
-            schema=url
+            "resource_create",
+            package_id=dataset["id"],
+            url="http://example.com/file.csv",
+            schema=url,
         )
 
-        assert_equals(resource['schema'], url)
+        assert resource["schema"] == url
 
-        assert 'schema_upload' not in resource
-        assert 'schema_url' not in resource
+        assert "schema_upload" not in resource
+        assert "schema_url" not in resource
 
     def test_schema_url_field(self):
 
-        url = 'https://example.com/schema.json'
+        url = "https://example.com/schema.json"
 
         dataset = factories.Dataset()
 
         resource = call_action(
-            'resource_create',
-            package_id=dataset['id'],
-            url='http://example.com/file.csv',
-            schema_url=url
+            "resource_create",
+            package_id=dataset["id"],
+            url="http://example.com/file.csv",
+            schema_url=url,
         )
 
-        assert_equals(resource['schema'], url)
+        assert resource["schema"] == url
 
-        assert 'schema_upload' not in resource
-        assert 'schema_url' not in resource
+        assert "schema_upload" not in resource
+        assert "schema_url" not in resource
 
     def test_schema_url_field_wrong_url(self):
 
-        url = 'not-a-url'
+        url = "not-a-url"
 
-        assert_raises(
-            t.ValidationError, call_action, 'resource_create',
-            url='http://example.com/file.csv',
-            schema_url=url
+        pytest.raises(
+            t.ValidationError,
+            call_action,
+            "resource_create",
+            url="http://example.com/file.csv",
+            schema_url=url,
         )
 
     @mock_uploads
     def test_schema_upload_field(self, mock_open):
 
-        schema_file = StringIO.StringIO('{"fields":[{"name":"category"}]}')
+        schema_file = StringIO('{"fields":[{"name":"category"}]}')
 
-        mock_upload = MockFieldStorage(schema_file, 'schema.json')
+        mock_upload = MockFieldStorage(schema_file, "schema.json")
 
         dataset = factories.Dataset()
 
         resource = call_action(
-            'resource_create',
-            package_id=dataset['id'],
-            url='http://example.com/file.csv',
-            schema_upload=mock_upload
+            "resource_create",
+            package_id=dataset["id"],
+            url="http://example.com/file.csv",
+            schema_upload=mock_upload,
         )
 
-        assert_equals(resource['schema'], {'fields': [{'name': 'category'}]})
+        assert resource["schema"] == {"fields": [{"name": "category"}]}
 
-        assert 'schema_upload' not in resource
-        assert 'schema_url' not in resource
+        assert "schema_upload" not in resource
+        assert "schema_url" not in resource
 
 
-class TestValidationOptionsField(FunctionalTestBase):
-
-    def setup(self):
-
-        super(TestValidationOptionsField, self).setup()
-
-        if not tables_exist():
-            create_tables()
-
+@pytest.mark.usefixtures("clean_db", "validation_setup")
+class TestValidationOptionsField(object):
     def test_validation_options_field(self):
 
         dataset = factories.Dataset()
 
         validation_options = {
-            'delimiter': ';',
-            'headers': 2,
-            'skip_rows': ['#'],
+            "delimiter": ";",
+            "headers": 2,
+            "skip_rows": ["#"],
         }
 
         resource = call_action(
-            'resource_create',
-            package_id=dataset['id'],
-            url='http://example.com/file.csv',
+            "resource_create",
+            package_id=dataset["id"],
+            url="http://example.com/file.csv",
             validation_options=validation_options,
         )
 
-        assert_equals(resource['validation_options'], validation_options)
+        assert resource["validation_options"] == validation_options
 
     def test_validation_options_field_string(self):
 
         dataset = factories.Dataset()
 
-        validation_options = '''{
+        validation_options = """{
             "delimiter": ";",
             "headers": 2,
             "skip_rows": ["#"]
-        }'''
+        }"""
 
         resource = call_action(
-            'resource_create',
-            package_id=dataset['id'],
-            url='http://example.com/file.csv',
+            "resource_create",
+            package_id=dataset["id"],
+            url="http://example.com/file.csv",
             validation_options=validation_options,
         )
 
-        assert_equals(resource['validation_options'],
-                      json.loads(validation_options))
+        assert resource["validation_options"] == json.loads(validation_options)

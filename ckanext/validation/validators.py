@@ -39,7 +39,7 @@ def resource_schema_validator(value, context):
     except tableschema.exceptions.ValidationError as e:
         errors = []
         for error in e.errors:
-            errors.append(error.message)
+            errors.append(str(error))
         msg = u'Invalid Table Schema: {}'.format(u', '.join(errors))
 
     if msg:
