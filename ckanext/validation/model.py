@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 
 def make_uuid():
-    return six.ensure_text(uuid.uuid4())
+    return six.text_type(uuid.uuid4())
 
 
 Base = declarative_base(metadata=metadata)
