@@ -23,6 +23,7 @@ from ckanext.validation.helpers import (
     validation_extract_report_from_errors,
     dump_json_value,
     bootstrap_version,
+    use_webassets,
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
@@ -64,9 +65,9 @@ to create the database tables:
         else:
             log.debug(u'Validation tables exist')
 
-        t.add_template_directory(config_, u'templates')
-        t.add_public_directory(config_, u'public')
-        t.add_resource(u'fanstatic', 'ckanext-validation')
+        t.add_template_directory(config_, u'../templates')
+        t.add_public_directory(config_, u'../public')
+        t.add_resource(u'../webassets', 'ckanext-validation')
 
     # IActions
 
@@ -103,6 +104,7 @@ to create the database tables:
             u'validation_extract_report_from_errors': validation_extract_report_from_errors,
             u'dump_json_value': dump_json_value,
             u'bootstrap_version': bootstrap_version,
+            u'use_webassets': use_webassets,
         }
 
     # IResourceController
