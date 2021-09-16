@@ -28,7 +28,7 @@ from ckanext.validation.tests.helpers import (
 Session = model.Session
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceValidationRun(object):
     def test_resource_validation_run_param_missing(self):
 
@@ -150,7 +150,7 @@ class TestResourceValidationRun(object):
         assert validation.error is None
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceValidationShow(object):
     def test_resource_validation_show_param_missing(self):
 
@@ -211,7 +211,7 @@ class TestResourceValidationShow(object):
         assert validation_show["finished"] == validation.finished.isoformat()
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceValidationDelete(object):
     def test_resource_validation_delete_param_missing(self):
 
@@ -262,7 +262,7 @@ class TestResourceValidationDelete(object):
         assert count_after == 0
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestAuth(object):
     def test_run_anon(self):
 
@@ -451,7 +451,7 @@ class TestAuth(object):
         )
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceValidationOnCreate(object):
     @classmethod
     def setup_class(cls):
@@ -572,7 +572,7 @@ class TestResourceValidationOnCreate(object):
         assert "validation_timestamp" in resource
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceValidationOnUpdate(object):
     @classmethod
     def setup_class(cls):
@@ -684,7 +684,7 @@ class TestResourceValidationOnUpdate(object):
         assert "validation_timestamp" in resource
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestSchemaFields(object):
     def test_schema_field(self):
 
@@ -772,7 +772,7 @@ class TestSchemaFields(object):
         assert "schema_url" not in resource
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestValidationOptionsField(object):
     def test_validation_options_field(self):
 
