@@ -17,7 +17,10 @@ def resource_schema_validator(value, context):
 
     msg = None
 
-    if isinstance(value, six.string_types):
+    if isinstance(value, dict):
+        descriptor = value
+    else:
+        value = six.ensure_text(value)
 
         if value.lower().startswith('http'):
             return value
@@ -31,8 +34,6 @@ def resource_schema_validator(value, context):
         except ValueError as e:
             msg = u'JSON error in Table Schema descriptor: {}'.format(e)
             raise Invalid(msg)
-    else:
-        descriptor = value
 
     try:
         tableschema.validate(descriptor)

@@ -5,6 +5,7 @@ import cgi
 import json
 
 import six
+from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
 import ckantoolkit as t
 
@@ -41,6 +42,7 @@ else:
     from ckanext.validation.plugin.pylons_plugin import ValidationMixin
 
 
+ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 log = logging.getLogger(__name__)
 
 
@@ -126,9 +128,10 @@ to create the database tables:
         schema_upload = data_dict.pop(u'schema_upload', None)
         schema_url = data_dict.pop(u'schema_url', None)
         schema_json = data_dict.pop(u'schema_json', None)
-
-        if isinstance(schema_upload, cgi.FieldStorage):
-            data_dict[u'schema'] = schema_upload.file.read()
+        if bool(schema_upload) and \
+                isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
+            uploaded_file = _get_underlying_file(schema_upload)
+            data_dict[u'schema'] = uploaded_file.read()
         elif schema_url:
 
             if (not isinstance(schema_url, six.string_types) or
@@ -299,3 +302,9 @@ def _run_async_validation(resource_id):
         log.warning(
             u'Could not run validation for resource {}: {}'.format(
                 resource_id, str(e)))
+
+def _get_underlying_file(wrapper):
+    if isinstance(wrapper, FlaskFileStorage):
+        return wrapper.stream
+    return wrapper.file
+

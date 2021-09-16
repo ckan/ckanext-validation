@@ -481,7 +481,6 @@ def resource_create(context, data_dict):
                   uploader.get_max_resource_size())
 
     # Custom code starts
-
     if get_create_mode_from_config() == u'sync':
 
         run_validation = True
