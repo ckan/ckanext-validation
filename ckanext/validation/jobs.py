@@ -56,9 +56,9 @@ def run_validation_job(resource):
 
     source = None
     # TODO: make generic
-    if resource.get(u'url_type') == u'upload' and not resource.get('lfs_prefix'):
+    if resource.get(u'url_type') == u'upload':
         upload = uploader.get_resource_uploader(resource)
-        if isinstance(upload, uploader.ResourceUpload):
+        if isinstance(upload, uploader.ResourceUpload) and not resource.get('lfs_prefix'):
             source = upload.get_path(resource[u'id'])
         else:
             # Upload is not the default implementation (ie it's a cloud storage
