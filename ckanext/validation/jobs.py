@@ -55,7 +55,8 @@ def run_validation_job(resource):
         {'ignore_auth': True}, {'id': resource['package_id']})
 
     source = None
-    if resource.get(u'url_type') == u'upload':
+    # TODO: make generic
+    if resource.get(u'url_type') == u'upload' and not resource.get('lfs_prefix'):
         upload = uploader.get_resource_uploader(resource)
         if isinstance(upload, uploader.ResourceUpload):
             source = upload.get_path(resource[u'id'])
