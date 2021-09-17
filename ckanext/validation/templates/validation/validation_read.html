@@ -7,7 +7,7 @@
 {% block breadcrumb_content %}
   {{ super() }}
 
-  <li><a href="{{ h.url_for(controller='package', action='resource_read', id=dataset.id, resource_id=resource.id ) }}">{{ h.resource_display_name(resource)|truncate(30) }}</a></li>
+  <li><a href="{{ h.url_for('resource.read', id=dataset.id, resource_id=resource.id ) }}">{{ h.resource_display_name(resource)|truncate(30) }}</a></li>
   <li class="active"><a href="">Validation Report</a></li>
 {% endblock %}
 
@@ -34,7 +34,6 @@
             <div id="report" {% if h.bootstrap_version() == '2' %}class="bs2"{% endif %} data-module="validation-report" data-module-report="{{ h.dump_json_value(validation.report) }}"></div>
         {% endif %}
 
-        </div>
       </div>
     </section>
 {% if h.use_webassets() %}

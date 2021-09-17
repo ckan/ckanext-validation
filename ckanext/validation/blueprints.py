@@ -7,7 +7,7 @@ from ckantoolkit import c, NotAuthorized, ObjectNotFound, abort, _, render, get_
 validation = Blueprint("validation", __name__)
 
 
-def read(self, resource_id):
+def read(id, resource_id):
 
     try:
         validation = get_action(u"resource_validation_show")(
@@ -30,6 +30,7 @@ def read(self, resource_id):
                 u"validation": validation,
                 u"resource": resource,
                 u"dataset": dataset,
+                u"pkg_dict": dataset,
             },
         )
 
