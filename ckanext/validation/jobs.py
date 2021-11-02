@@ -119,7 +119,7 @@ def run_validation_job(resource):
 
 def _validate_table(source, _format=u'csv', schema=None, **options):
 
-    http_session = requests.Session()
+    http_session = options.pop('http_session', None) or requests.Session()
 
     use_proxy = 'ckan.download_proxy' in t.config
     if use_proxy:
