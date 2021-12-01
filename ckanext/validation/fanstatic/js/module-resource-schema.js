@@ -86,6 +86,35 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onFromJSON);
       $('.controls', this.buttons_div).append(this.button_json);
 
+      // Button to infer schema
+      this.source_file = null
+      this.schema_file = null
+      this.schema_editor = null
+      this.div_modal = $('#field-schema-modal')
+      this.div_editor = $('#field-schema-editor')
+      this.button_infer = $('<a href="javascript:;" class="btn btn-default">' +
+                          '<i class="fa fa-edit"></i>' +
+                          this._('Infer') + '</a>')
+        .prop('title', this._('Infer a schema based on the data file'))
+        .on('click', (function(ev) {
+          this._onEditSchema(this.source_file, null)
+        }).bind(this))
+        .hide();
+      $('.controls', this.buttons_div).append(this.button_infer);
+      $('#field-image-url').change((function(ev) {
+        this.source_file = ev.target.value
+        this.button_infer.show()
+      }).bind(this))
+      $('#field-image-upload').change((function(ev) {
+        this.source_file = ev.target.files[0]
+        this.button_infer.show()
+      }).bind(this))
+      $('.btn-remove-url').click((function(ev) {
+        this.source_file = null
+        this.button_infer.hide()
+      }).bind(this))
+
+      // Remove text
       var removeText = this._('Clear');
 
       // Change the clear file upload button too
@@ -98,6 +127,19 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onRemoveURL)
         .insertBefore(this.field_url_input);
 
+      // TODO: disable linked schema editing?
+      // Button to open the schema editor when there is a URL set
+      $('<a href="javascript:;" class="btn btn-default btn-remove-url" style="right: 75px;">'
+        + 'Editor' + '</a>')
+        .prop('title', 'Open the schema editor')
+        .on('click', (function(ev) {
+          var schema = this.field_url_input.prop('readonly')
+            ? this.schema_file
+            : this.field_url_input.val()
+          this._onEditSchema(null, schema)
+        }).bind(this))
+        .insertBefore(this.field_url_input);
+
       // Button for resetting the form when there is a JSON text set
       $('<a href="javascript:;" class="btn btn-default btn-remove-url">'
         + removeText + '</a>')
@@ -105,11 +147,21 @@ this.ckan.module('resource-schema', function($) {
         .on('click', this._onRemoveJSON)
         .insertBefore(this.field_json_input);
 
+      // Button to open the schema editor when there is a JSON text set
+      $('<a href="javascript:;" class="btn btn-default btn-remove-url" style="right: 75px;">'
+        + 'Editor' + '</a>')
+        .prop('title', 'Open the schema editor')
+        .on('click', (function(ev) {
+          this._onEditSchema(null, this.field_json_input.val())
+        }).bind(this))
+        .insertBefore(this.field_json_input);
+
       // Fields storage. Used in this.changeState
       this.fields = $('<i />')
         .add(this.button_upload)
         .add(this.button_url)
         .add(this.button_json)
+        .add(this.button_infer)
         .add(this.field_upload)
         .add(this.field_url)
         .add(this.field_json);
@@ -121,6 +173,7 @@ this.ckan.module('resource-schema', function($) {
       } else {
         this._showOnlyButtons();
       }
+
     },
 
     /* Update the `this.label` text
@@ -190,6 +243,9 @@ this.ckan.module('resource-schema', function($) {
       this.field_json_input.val('');
       this.field_json_input.prop('readonly', false);
 
+      // Show infer button if source file is provided
+      if (this.source_file) this.button_infer.show()
+
       this.field_schema_input.val('');
     },
 
@@ -227,8 +283,11 @@ this.ckan.module('resource-schema', function($) {
       }
     },
 
-    _onInputChange: function() {
+    _onInputChange: function(ev) {
       var file_name = this.field_upload_input.val().split(/^C:\\fakepath\\/).pop();
+
+      // Save schema file
+      this.schema_file = ev.target.files[0]
 
       this.field_url_input.val(file_name);
       this.field_url_input.prop('readonly', true);
@@ -253,6 +312,43 @@ this.ckan.module('resource-schema', function($) {
       return url; // filename
     },
 
+    _onEditSchema: function(source, schema) {
+
+      // Props
+      var props = {
+        source: source,
+        schema: schema,
+        onSave: this._onSaveSchema,
+        disablePreview: true,
+      }
+
+      // Render/show
+      var element = this.div_editor[0]
+      var component = tableschemaUI.EditorSchema
+      if (this.schema_editor) this.schema_editor.dispose()
+      this.schema_editor = tableschemaUI.render(component, props, element)
+      this.div_modal.modal('show')
+
+    },
+
+    _onSaveSchema: function(schema, error) {
+
+      // Success
+      if (!error) {
+        var schemaText = JSON.stringify(schema, null, 2)
+        this.field_url_input.prop('readonly', false)
+        this.field_url_input.val('')
+        this.field_json_input.val(schemaText)
+        this.field_schema_input.val(schemaText)
+        this._showOnlyFieldJSON()
+      }
+
+      // Dispose
+      this.div_modal.modal('hide')
+      this.schema_editor.dispose()
+      this.schema_editor = null
+
+    }
 
   };
 });

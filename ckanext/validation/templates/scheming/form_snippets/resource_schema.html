@@ -54,7 +54,28 @@
         )
     }}
 
+    {# Schema Editor #}
+    <div class="modal fade modal-backport" id="field-schema-modal" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document" style="width: 75vw;">
+        <div class="modal-content">
+          <div style="position: absolute; right: 1em; top: 1em; z-index: 100;">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div id="field-schema-editor"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
+    {# Bootstrap backport styles #}
+    {% if h.bootstrap_version() == '2' %}
+      {% resource 'ckanext-validation/resource-schema-form-bs2' %}
+    {% else %}
+      {% resource 'ckanext-validation/resource-schema-form-bs3' %}
+    {% endif %}
 
     {# Actual field containing the value #}
     {% set existing_value = h.scheming_display_json_value(value, indent=None) if is_json else value %}
