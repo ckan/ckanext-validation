@@ -34,6 +34,16 @@ def _get_resource_update_page_as_sysadmin(app, id, resource_id):
     return env, response
 
 
+def _post(app, url, extra_environ=None, data=None):
+    ''' Submit a POST request to 'app',
+    using either webtest or Flask syntax.
+    '''
+    if hasattr(app, 'flask_app'):
+        app.post(url=url, extra_environ=extra_environ, data=data)
+    else:
+        app.post(url, data, extra_environ=extra_environ)
+
+
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceSchemaForm(object):
     def test_resource_form_includes_json_fields(self, app):
@@ -59,7 +69,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/new".format(dataset['id']),
             extra_environ=env,
             data=data,
@@ -84,7 +95,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/new".format(dataset['id']),
             extra_environ=env,
             data=data,
@@ -113,7 +125,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/new".format(dataset['id']),
             extra_environ=env,
             data=data,
@@ -137,7 +150,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/new".format(dataset['id']),
             extra_environ=env,
             data=data,
@@ -169,7 +183,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
@@ -198,7 +213,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
@@ -226,7 +242,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
@@ -257,7 +274,8 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
@@ -295,7 +313,8 @@ class TestResourceValidationOptionsForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/new".format(dataset['id']),
             extra_environ=env,
             data=data,
@@ -336,7 +355,8 @@ class TestResourceValidationOptionsForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
         # TODO: url
-        app.post(
+        _post(
+            app,
             url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
