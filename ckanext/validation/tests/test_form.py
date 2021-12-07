@@ -107,7 +107,7 @@ class TestResourceSchemaForm(object):
         assert dataset["resources"][0]["schema"] == value
 
     @mock_uploads
-    def test_resource_form_create_upload(self, mock_open, app):
+    def test_resource_form_create_upload(self, mock_open, app=None):
         dataset = Dataset()
 
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
