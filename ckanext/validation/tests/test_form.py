@@ -8,7 +8,7 @@ import pytest
 import ckantoolkit as t
 from ckantoolkit.tests.factories import Sysadmin, Dataset
 from ckantoolkit.tests.helpers import (
-    call_action,
+    call_action
 )
 
 from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV, mock_uploads
@@ -41,7 +41,8 @@ def _post(app, url, extra_environ=None, data=None):
     if hasattr(app, 'flask_app'):
         app.post(url=url, extra_environ=extra_environ, data=data)
     else:
-        app.post(url, data, extra_environ=extra_environ)
+        from ckantoolkit.tests.helpers import _get_test_app
+        _get_test_app().post(url, data, extra_environ=extra_environ)
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
