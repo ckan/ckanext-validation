@@ -38,11 +38,14 @@ def _post(app, url, extra_environ=None, data=None):
     ''' Submit a POST request to 'app',
     using either webtest or Flask syntax.
     '''
-    if hasattr(app, 'flask_app'):
+    if hasattr(app, 'test_client'):
+        # Flask app
         app.post(url=url, extra_environ=extra_environ, data=data)
     else:
-        from ckantoolkit.tests.helpers import _get_test_app
-        _get_test_app().post(url, data, extra_environ=extra_environ)
+        if not app:
+            from ckantoolkit.tests.helpers import _get_test_app
+            app = _get_test_app()
+        app.post(url, data, extra_environ=extra_environ)
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
