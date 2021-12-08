@@ -221,7 +221,6 @@ to create the database tables:
             needs_validation = True
 
         if needs_validation:
-            log.debug("Marking resource %s for validation", updated_resource)
             self.resources_to_validate[updated_resource[u'id']] = True
 
         return updated_resource
@@ -258,7 +257,6 @@ to create the database tables:
             # This is a resource
             resource_id = data_dict[u'id']
 
-            log.debug("Resource ID: %s, resources to validate: %s", resource_id, self.resources_to_validate)
             if resource_id in self.resources_to_validate:
                 for plugin in p.PluginImplementations(IDataValidation):
                     if not plugin.can_validate(context, data_dict):
