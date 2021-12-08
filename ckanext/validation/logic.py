@@ -80,7 +80,7 @@ def resource_validation_run(context, data_dict):
     :rtype: string
 
     '''
-
+    log.debug("Preparing resource validation for %s", data_dict)
     t.check_access(u'resource_validation_run', context, data_dict)
 
     if not data_dict.get(u'resource_id'):
@@ -127,6 +127,7 @@ def resource_validation_run(context, data_dict):
     Session.add(validation)
     Session.commit()
 
+    log.debug("About to run resource validation for %s, async is %s", resource, async_job)
     if async_job:
         enqueue_job(run_validation_job, [resource])
     else:
