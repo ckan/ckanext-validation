@@ -3,6 +3,7 @@
 import logging
 import cgi
 import json
+import six
 
 import ckan.plugins as p
 import ckantoolkit as t
@@ -136,7 +137,7 @@ to create the database tables:
         if isinstance(schema_upload, cgi.FieldStorage):
             data_dict[u'schema'] = schema_upload.file.read()
         elif schema_url:
-            if (not isinstance(schema_url, basestring) or
+            if (not isinstance(schema_url, six.string_types) or
                     not schema_url.lower()[:4] == u'http'):
                 raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
             data_dict[u'schema'] = schema_url
@@ -149,6 +150,7 @@ to create the database tables:
         return self._process_schema_fields(data_dict)
 
     resources_to_validate = {}
+    packages_to_skip = {}
 
     def after_create(self, context, data_dict):
 
@@ -180,18 +182,18 @@ to create the database tables:
             resource.get(u'url_type') == u'upload' or
             # URL defined
             resource.get(u'url')
-            ) and (
+        ) and (
             # Make sure format is supported
             resource.get(u'format', u'').lower() in
                 settings.SUPPORTED_FORMATS
-                )):
+        )):
             needs_validation = True
 
         if needs_validation:
 
             for plugin in p.PluginImplementations(IDataValidation):
                 if not plugin.can_validate(context, resource):
-                    log.debug('Skipping validation for resource {}'.format(resource['id']))
+                    log.debug('Skipping validation for resource %s', resource['id'])
                     return
 
             _run_async_validation(resource[u'id'])
@@ -200,11 +202,14 @@ to create the database tables:
 
         updated_resource = self._process_schema_fields(updated_resource)
 
+        # the call originates from a resource API, so don't validate the entire package
+        self.packages_to_skip[updated_resource['package_id']] = True
+
         if not get_update_mode_from_config() == u'async':
             return updated_resource
 
         needs_validation = False
-        if ((
+        if (
             # New file uploaded
             updated_resource.get(u'upload') or
             # External URL changed
@@ -215,11 +220,10 @@ to create the database tables:
             # Format changed
             (updated_resource.get(u'format', u'').lower() !=
              current_resource.get(u'format', u'').lower())
-            ) and (
+        ) and (
             # Make sure format is supported
             updated_resource.get(u'format', u'').lower() in
-                settings.SUPPORTED_FORMATS
-                )):
+                settings.SUPPORTED_FORMATS):
             needs_validation = True
 
         if needs_validation:
@@ -245,6 +249,11 @@ to create the database tables:
             return
 
         if is_dataset:
+            package_id = data_dict.get('id')
+            if package_id in self.packages_to_skip:
+                del self.packages_to_skip[package_id]
+                return
+
             for resource in data_dict.get(u'resources', []):
                 if resource[u'id'] in self.resources_to_validate:
                     # This is part of a resource_update call, it will be
@@ -262,7 +271,7 @@ to create the database tables:
             if resource_id in self.resources_to_validate:
                 for plugin in p.PluginImplementations(IDataValidation):
                     if not plugin.can_validate(context, data_dict):
-                        log.debug('Skipping validation for resource {}'.format(data_dict['id']))
+                        log.debug('Skipping validation for resource %s', data_dict['id'])
                         return
 
                 del self.resources_to_validate[resource_id]
@@ -301,6 +310,5 @@ def _run_async_validation(resource_id):
             {u'resource_id': resource_id,
              u'async': True})
     except t.ValidationError as e:
-        log.warning(
-            u'Could not run validation for resource {}: {}'.format(
-                resource_id, str(e)))
+        log.warning(u'Could not run validation for resource %s: %s',
+                    resource_id, e)

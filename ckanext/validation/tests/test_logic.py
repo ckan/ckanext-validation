@@ -16,8 +16,8 @@ import ckantoolkit as t
 
 from ckanext.validation.model import create_tables, tables_exist, Validation
 from ckanext.validation.tests.helpers import (
-        VALID_CSV, INVALID_CSV, VALID_REPORT,
-        mock_uploads, MockFieldStorage
+    VALID_CSV, INVALID_CSV, VALID_REPORT,
+    mock_uploads, MockFieldStorage
 )
 
 
@@ -472,12 +472,12 @@ class TestResourceValidationOnCreate(FunctionalTestBase):
 
             with assert_raises(t.ValidationError) as e:
 
-                    call_action(
-                        'resource_create',
-                        package_id=dataset['id'],
-                        format='CSV',
-                        upload=mock_upload
-                    )
+                call_action(
+                    'resource_create',
+                    package_id=dataset['id'],
+                    format='CSV',
+                    upload=mock_upload
+                )
 
         assert 'validation' in e.exception.error_dict
         assert 'missing-value' in str(e.exception)
