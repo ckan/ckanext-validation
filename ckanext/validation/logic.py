@@ -467,7 +467,7 @@ def resource_create(context, data_dict):
         context['use_cache'] = False
         t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError, e:
+    except t.ValidationError as e:
         try:
             raise t.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
@@ -588,7 +588,7 @@ def resource_update(context, data_dict):
         context['use_cache'] = False
         updated_pkg_dict = t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError, e:
+    except t.ValidationError as e:
         try:
             raise t.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
