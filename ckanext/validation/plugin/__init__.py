@@ -5,7 +5,7 @@ import cgi
 import json
 
 import ckan.plugins as p
-import ckantoolkit as t
+import ckan.plugins.toolkit as toolkit
 
 from ckanext.validation import settings
 from ckanext.validation.model import tables_exist
@@ -37,10 +37,17 @@ from ckanext.validation.interfaces import IDataValidation
 log = logging.getLogger(__name__)
 
 
+if toolkit.check_ckan_version(u'2.9'):
+    from ckanext.validation.plugin.flask_plugin import MixinPlugin
+    ckan_29_or_higher = True
+else:
+    from ckanext.validation.plugin.pylons_plugin import MixinPlugin
+    ckan_29_or_higher = False
+
+
 class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
     p.implements(p.IActions)
-    p.implements(p.IRoutes, inherit=True)
     p.implements(p.IAuthFunctions)
     p.implements(p.IResourceController, inherit=True)
     p.implements(p.IPackageController, inherit=True)
@@ -50,18 +57,18 @@ class ValidationPlugin(p.SingletonPlugin):
     # IConfigurer
 
     def update_config(self, config_):
-        if not tables_exist():
-            log.critical(u'''
-The validation extension requires a database setup. Please run the following
-to create the database tables:
-    paster --plugin=ckanext-validation validation init-db
-''')
-        else:
-            log.debug(u'Validation tables exist')
+#        if not tables_exist():
+#            log.critical(u'''
+#The validation extension requires a database setup. Please run the following
+#to create the database tables:
+#    paster --plugin=ckanext-validation validation init-db
+#''')
+#        else:
+#            log.debug(u'Validation tables exist')
 
-        t.add_template_directory(config_, u'templates')
-        t.add_public_directory(config_, u'public')
-        t.add_resource(u'fanstatic', 'ckanext-validation')
+        toolkit.add_template_directory(config_, u'../templates')
+        toolkit.add_public_directory(config_, u',,.public')
+        toolkit.add_resource(u'../fanstatic', 'ckanext-validation')
 
     # IRoutes
 

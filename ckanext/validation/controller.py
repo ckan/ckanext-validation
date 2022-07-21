@@ -1,39 +1,44 @@
 # encoding: utf-8
 
-from ckantoolkit import (
-    BaseController, c, NotAuthorized, ObjectNotFound,
+import ckan.plugins.toolkit as toolkit
+from ckan.plugins.toolkit import (
+    c, NotAuthorized, ObjectNotFound,
     abort, _, render, get_action)
 
 
-class ValidationController(BaseController):
+def validation(resource_id):
+    try:
+        validation = get_action(u'resource_validation_show')(
+            {u'user': c.user},
+            {u'resource_id': resource_id})
 
-    def validation(self, resource_id):
+        resource = get_action(u'resource_show')(
+            {u'user': c.user},
+            {u'id': resource_id})
 
-        try:
-            validation = get_action(u'resource_validation_show')(
-                {u'user': c.user},
-                {u'resource_id': resource_id})
+        dataset = get_action(u'package_show')(
+            {u'user': c.user},
+            {u'id': resource[u'package_id']})
 
-            resource = get_action(u'resource_show')(
-                {u'user': c.user},
-                {u'id': resource_id})
+        # Needed for core resource templates
+        c.package = c.pkg_dict = dataset
+        c.resource = resource
 
-            dataset = get_action(u'package_show')(
-                {u'user': c.user},
-                {u'id': resource[u'package_id']})
+        return render(u'validation/validation_read.html', extra_vars={
+            u'validation': validation,
+            u'resource': resource,
+            u'dataset': dataset,
+        })
 
-            # Needed for core resource templates
-            c.package = c.pkg_dict = dataset
-            c.resource = resource
+    except NotAuthorized:
+        abort(403, _(u'Unauthorized to read this validation report'))
+    except ObjectNotFound:
 
-            return render(u'validation/validation_read.html', extra_vars={
-                u'validation': validation,
-                u'resource': resource,
-                u'dataset': dataset,
-            })
+        abort(404, _(u'No validation report exists for this resource'))
 
-        except NotAuthorized:
-            abort(403, _(u'Unauthorized to read this validation report'))
-        except ObjectNotFound:
+if not toolkit.check_ckan_version(u'2.9'):
 
-            abort(404, _(u'No validation report exists for this resource'))
+    class ValidationController(toolkit.BaseController):
+    
+        def validation(self, resource_id):
+            return validation(resource_id)
