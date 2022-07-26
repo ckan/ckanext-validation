@@ -124,10 +124,6 @@ class TestResourceControllerHooksUpdate(object):
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceControllerHooksCreate(object):
-    def setup(self):
-        reset_db()
-        if not tables_exist():
-            create_tables()
 
     @mock.patch("ckanext.validation.logic.enqueue_job")
     def test_validation_does_not_run_on_other_formats(self, mock_enqueue):
@@ -176,6 +172,7 @@ class TestResourceControllerHooksCreate(object):
         mock_enqueue.assert_not_called()
 
 
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestPackageControllerHooksCreate(object):
 
     @mock.patch("ckanext.validation.logic.enqueue_job")
@@ -241,11 +238,8 @@ class TestPackageControllerHooksCreate(object):
         assert mock_enqueue.call_args[0][1][0]["id"] == resource1["id"]
 
 
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestPackageControllerHooksUpdate(object):
-    def setup(self):
-        reset_db()
-        if not tables_exist():
-            create_tables()
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
     @mock.patch("ckanext.validation.logic.enqueue_job")
