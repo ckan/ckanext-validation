@@ -6,7 +6,7 @@ import io
 import ckantoolkit
 
 from ckan.lib.uploader import ResourceUpload
-from ckan.tests.helpers import call_action, reset_db, change_config
+from ckan.tests.helpers import call_action
 from ckan.tests import factories
 
 from ckanext.validation.model import create_tables, tables_exist, Validation
@@ -34,7 +34,7 @@ def mock_get_resource_uploader(data_dict):
 @pytest.mark.usefixtures("clean_db", "validation_setup")
 class TestValidationJob(object):
 
-    @change_config("ckanext.validation.run_on_create_async", False)
+    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     @mock.patch.object(Session, "commit")
     @mock.patch.object(ckantoolkit, "get_action")

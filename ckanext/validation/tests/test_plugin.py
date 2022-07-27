@@ -3,7 +3,6 @@ import mock
 
 from ckan.tests.helpers import call_action, reset_db
 from ckan.tests import factories
-from ckan.tests.helpers import change_config
 
 from ckanext.validation.model import create_tables, tables_exist
 from ckanext.validation.jobs import run_validation_job
