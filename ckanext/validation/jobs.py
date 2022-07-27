@@ -55,8 +55,10 @@ def run_validation_job(resource):
         {'ignore_auth': True}, {'id': resource['package_id']})
 
     source = None
+    print(resource)
     if resource.get(u'url_type') == u'upload':
         upload = uploader.get_resource_uploader(resource)
+        print(upload)
         if isinstance(upload, uploader.ResourceUpload):
             source = upload.get_path(resource[u'id'])
         else:
