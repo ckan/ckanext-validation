@@ -10,7 +10,6 @@ import mock
 from ckan import model
 from ckan.tests.helpers import call_action, call_auth
 from ckan.tests import factories
-from ckan.tests.helpers import _get_test_app
 
 import ckantoolkit as t
 
@@ -469,10 +468,6 @@ class TestResourceValidationOnCreate(object):
     @mock_uploads
     def test_validation_fails_on_upload(self, mock_open):
 
-        # This is needed to trigger a new environment reload that will reload the
-        # actions
-        _get_test_app()
-
         invalid_file = get_mock_file(INVALID_CSV)
 
         mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
@@ -498,10 +493,6 @@ class TestResourceValidationOnCreate(object):
 
     @mock_uploads
     def test_validation_fails_no_validation_object_stored(self, mock_open):
-
-        # This is needed to trigger a new environment reload that will reload the
-        # actions
-        _get_test_app()
 
         invalid_file = get_mock_file(INVALID_CSV)
 
@@ -529,10 +520,6 @@ class TestResourceValidationOnCreate(object):
 
     @mock_uploads
     def test_validation_passes_on_upload(self, mock_open):
-
-        # This is needed to trigger a new environment reload that will reload the
-        # actions
-        _get_test_app()
 
         valid_file = get_mock_file(VALID_CSV)
 
@@ -590,8 +577,6 @@ class TestResourceValidationOnUpdate(object):
     @mock_uploads
     def test_validation_fails_on_upload(self, mock_open):
 
-        _get_test_app()
-
         dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
         invalid_file = get_mock_file(INVALID_CSV)
@@ -618,8 +603,6 @@ class TestResourceValidationOnUpdate(object):
     @mock_uploads
     def test_validation_fails_no_validation_object_stored(self, mock_open):
 
-        _get_test_app()
-
         dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
         invalid_file = get_mock_file(INVALID_CSV)
@@ -645,8 +628,6 @@ class TestResourceValidationOnUpdate(object):
 
     @mock_uploads
     def test_validation_passes_on_upload(self, mock_open):
-
-        _get_test_app()
 
         dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 

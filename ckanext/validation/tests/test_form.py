@@ -8,7 +8,7 @@ import pytest
 import ckantoolkit as t
 from ckantoolkit.tests.factories import Sysadmin, Dataset
 from ckantoolkit.tests.helpers import (
-    call_action,
+    call_action, _get_test_app
 )
 
 from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV, mock_uploads
@@ -94,8 +94,7 @@ class TestResourceSchemaForm(object):
 
         assert dataset["resources"][0]["schema"] == value
 
-    @mock_uploads
-    def test_resource_form_create_upload(self, mock_open, app):
+    def test_resource_form_create_upload(self):
         dataset = Dataset()
 
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
@@ -110,14 +109,20 @@ class TestResourceSchemaForm(object):
             "save": "",
         }
 
-        user = Sysadmin()
-        env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/new".format(dataset['id']),
-            extra_environ=env,
-            data=data,
-        )
+        app = _get_test_app()
+
+        @mock_uploads
+        def post(app, data, mock_open):
+
+            user = Sysadmin()
+            env = {"REMOTE_USER": user["name"].encode("ascii")}
+            # TODO: url
+            app.post(
+                url="/dataset/{}/resource/new".format(dataset['id']),
+                extra_environ=env,
+                data=data,
+            )
+        post(app, data)
 
         dataset = call_action("package_show", id=dataset["id"])
 

@@ -210,7 +210,6 @@ class TestValidationJob(object):
         invalid_file = get_mock_file(invalid_csv)
 
         mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
-
         resource = factories.Resource(format="csv", upload=mock_upload)
 
         invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
