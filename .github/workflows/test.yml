@@ -44,14 +44,7 @@ jobs:
         paster --plugin=ckan db init -c test.ini
         paster --plugin=ckanext-validation validation init-db -c test.ini
     - name: Run tests
-      run: nosetests --ckan \
-          --nologcapture \
-          --with-pylons=test.ini \
-          --with-coverage \
-          --cover-package=ckanext.validation \
-          --cover-inclusive \
-          --cover-erase \
-          --cover-tests
+      run: nosetests --ckan --nologcapture --with-pylons=test.ini --with-coverage --cover-package=ckanext.validation --cover-inclusive --cover-erase --cover-tests ckanext
 
     - name: Upload coverage report to codecov
       uses: codecov/codecov-action@v1
