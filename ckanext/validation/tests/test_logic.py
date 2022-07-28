@@ -1,6 +1,4 @@
 import datetime
-import six
-from six import StringIO, BytesIO
 import io
 import json
 
@@ -734,7 +732,7 @@ class TestSchemaFields(object):
     @mock_uploads
     def test_schema_upload_field(self, mock_open):
 
-        schema_file = StringIO('{"fields":[{"name":"category"}]}')
+        schema_file = io.StringIO('{"fields":[{"name":"category"}]}')
 
         mock_upload = MockFieldStorage(schema_file, "schema.json")
 
