@@ -4,6 +4,7 @@ import functools
 import mock
 from io import BytesIO
 
+from werkzeug.datastructures import FileStorage
 from pyfakefs import fake_filesystem
 
 import ckan.lib.uploader
@@ -142,26 +143,8 @@ def mock_uploads(func):
     return wrapper
 
 
-if toolkit.check_ckan_version(min_version="2.9"):
-
-    from werkzeug.datastructures import FileStorage
-
-    class MockFieldStorage(FileStorage):
-        pass
-else:
-
-    class MockFieldStorage(cgi.FieldStorage):
-
-        def __init__(self, fp, filename):
-
-            self.file = fp
-            self.filename = filename
-            self.name = 'upload'
-            self.list = None
-
-        def __bool__(self):
-            return self.file is not None
-
+class MockFieldStorage(FileStorage):
+    pass
 
 def get_mock_file(contents):
     mock_file = BytesIO()

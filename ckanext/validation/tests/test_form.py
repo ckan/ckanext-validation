@@ -4,7 +4,6 @@ import mock
 import datetime
 
 import pytest
-import six
 
 import ckantoolkit as t
 from ckantoolkit.tests.factories import Sysadmin, Dataset
@@ -14,39 +13,29 @@ from ckantoolkit.tests.helpers import (
 
 from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV, mock_uploads
 
-is_ckan29_or_higher = t.check_ckan_version(min_version="2.9")
-
 
 def _post(app, url, extra_environ=None, data=None, upload=None):
     ''' Submit a POST request to 'app',
     using either webtest or Flask syntax.
     '''
-    if is_ckan29_or_higher:
-        if upload:
-            for entry in upload:
-                data[entry[0]] = (io.BytesIO(entry[2]), entry[1])
-        app.post(
-            url=url, extra_environ=extra_environ, data=data)
-    else:
-        app.post(
-            url, data, extra_environ=extra_environ, upload_files=upload)
+    if upload:
+        for entry in upload:
+            data[entry[0]] = (io.BytesIO(entry[2]), entry[1])
+    app.post(
+        url=url, extra_environ=extra_environ, data=data)
 
 
 def _new_resource_url(dataset_id):
 
-    if is_ckan29_or_higher:
-        url = "/dataset/{}/resource/new".format(dataset_id)
-    else:
-        url = "/dataset/new_resource/{}".format(dataset_id)
+    url = "/dataset/{}/resource/new".format(dataset_id)
+
     return url
 
 
 def _edit_resource_url(dataset_id, resource_id):
 
-    if is_ckan29_or_higher:
-        url = "/dataset/{}/resource/{}/edit".format(dataset_id, resource_id)
-    else:
-        url = "/dataset/{}/resource_edit/{}".format(dataset_id, resource_id)
+    url = "/dataset/{}/resource/{}/edit".format(dataset_id, resource_id)
+
     return url
 
 
@@ -136,7 +125,7 @@ class TestResourceSchemaForm(object):
         dataset = Dataset()
 
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
-        json_value = six.ensure_binary(json.dumps(value).encode('utf8'))
+        json_value = bytes(json.dumps(value).encode('utf8'))
 
         data = {
             "url": "https://example.com/data.csv",
@@ -291,7 +280,7 @@ class TestResourceSchemaForm(object):
         )
 
         value = {"fields": [{"name": "code"}, {"name": "department"}, {"name": "date"}]}
-        json_value = six.ensure_binary(json.dumps(value).encode('utf8'))
+        json_value = bytes(json.dumps(value).encode('utf8'))
 
         upload = ('schema_upload', 'schema.json', json_value)
 
