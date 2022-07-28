@@ -35,11 +35,8 @@ from ckanext.validation.utils import (
     get_update_mode_from_config,
 )
 from ckanext.validation.interfaces import IDataValidation
-
-if t.check_ckan_version(min_version="2.9"):
-    from ckanext.validation.plugin.flask_plugin import ValidationMixin
-else:
-    from ckanext.validation.plugin.pylons_plugin import ValidationMixin
+from ckanext.validation import blueprints, cli
+from ckanext.validation.plugin.flask_plugin import ValidationMixin
 
 
 ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
@@ -54,6 +51,18 @@ class ValidationPlugin(ValidationMixin):
     p.implements(p.IPackageController, inherit=True)
     p.implements(p.ITemplateHelpers)
     p.implements(p.IValidators)
+    p.implements(p.IBlueprint)
+    p.implements(p.IClick)
+
+    # IBlueprint
+
+    def get_blueprint(self):
+        return [blueprints.validation]
+
+    # IClick
+
+    def get_commands(self):
+        return [cli.validation]
 
     # IConfigurer
 
@@ -133,7 +142,7 @@ to create the database tables:
             data_dict[u'schema'] = uploaded_file.read()
         elif schema_url:
 
-            if (not isinstance(schema_url, six.string_types) or
+            if (not isinstance(schema_url, str) or
                     not schema_url.lower()[:4] == u'http'):
                 raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
             data_dict[u'schema'] = schema_url
