@@ -640,12 +640,13 @@ Check the command help for more details:
 
 To run the tests, do:
 
-    nosetests --nologcapture --with-pylons=test.ini
+    pip install -r dev-requirements.txt
+    pytest --ckan-ini=test-custom.ini
 
 
 ## Copying and License
 
-This material is copyright (c) [Open Knowledge International](https://okfn.org).
+This material is copyright (c) [Open Knowledge Foundation](https://okfn.org).
 
 It is open and licensed under the GNU Affero General Public License (AGPL) v3.0 whose full text may be found at:
 
