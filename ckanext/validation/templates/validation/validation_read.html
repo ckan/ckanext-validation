@@ -7,7 +7,7 @@
 {% block breadcrumb_content %}
   {{ super() }}
 
-  <li><a href="{{ h.url_for(controller='package', action='resource_read', id=dataset.id, resource_id=resource.id ) }}">{{ h.resource_display_name(resource)|truncate(30) }}</a></li>
+  <li><a href="{{ h.url_for('resource.read', id=dataset.id, resource_id=resource.id ) }}">{{ h.resource_display_name(resource)|truncate(30) }}</a></li>
   <li class="active"><a href="">Validation Report</a></li>
 {% endblock %}
 
@@ -34,11 +34,14 @@
             <div id="report" {% if h.bootstrap_version() == '2' %}class="bs2"{% endif %} data-module="validation-report" data-module-report="{{ h.dump_json_value(validation.report) }}"></div>
         {% endif %}
 
-        </div>
       </div>
     </section>
-
-   {% resource 'ckanext-validation/report' %}
+{% if h.use_webassets() %}
+    {% snippet 'validation/snippets/validation_asset.html', name='ckanext-validation/report-css' %}
+    {% snippet 'validation/snippets/validation_asset.html', name='ckanext-validation/report-js' %}
+{% else %}
+    {% snippet 'validation/snippets/validation_resource.html', name='ckanext-validation/report' %}
+{% endif %}
 
 {% endblock %}
 

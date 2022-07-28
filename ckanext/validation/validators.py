@@ -1,6 +1,8 @@
 # encoding: utf-8
 import json
 
+import six
+
 import tableschema
 
 from ckantoolkit import Invalid, config
@@ -15,7 +17,10 @@ def resource_schema_validator(value, context):
 
     msg = None
 
-    if isinstance(value, basestring):
+    if isinstance(value, dict):
+        descriptor = value
+    else:
+        value = six.ensure_text(value)
 
         if value.lower().startswith('http'):
             return value
@@ -29,15 +34,13 @@ def resource_schema_validator(value, context):
         except ValueError as e:
             msg = u'JSON error in Table Schema descriptor: {}'.format(e)
             raise Invalid(msg)
-    else:
-        descriptor = value
 
     try:
         tableschema.validate(descriptor)
     except tableschema.exceptions.ValidationError as e:
         errors = []
         for error in e.errors:
-            errors.append(error.message)
+            errors.append(str(error))
         msg = u'Invalid Table Schema: {}'.format(u', '.join(errors))
 
     if msg:

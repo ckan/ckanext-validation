@@ -2,7 +2,7 @@
 import json
 
 from ckan.lib.helpers import url_for_static
-from ckantoolkit import url_for, _, config, asbool, literal
+from ckantoolkit import url_for, _, config, asbool, literal, h
 
 
 def get_validation_badge(resource, in_listing=False):
@@ -89,3 +89,7 @@ def bootstrap_version():
         return '3'
     else:
         return '2'
+
+
+def use_webassets():
+    return int(h.ckan_version().split('.')[1]) >= 9

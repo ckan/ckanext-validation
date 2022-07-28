@@ -4,6 +4,8 @@ import logging
 import cgi
 import json
 
+import six
+from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
 import ckantoolkit as t
 
@@ -22,6 +24,7 @@ from ckanext.validation.helpers import (
     validation_extract_report_from_errors,
     dump_json_value,
     bootstrap_version,
+    use_webassets,
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
@@ -33,14 +36,19 @@ from ckanext.validation.utils import (
 )
 from ckanext.validation.interfaces import IDataValidation
 
+if t.check_ckan_version(min_version="2.9"):
+    from ckanext.validation.plugin.flask_plugin import ValidationMixin
+else:
+    from ckanext.validation.plugin.pylons_plugin import ValidationMixin
 
+
+ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 log = logging.getLogger(__name__)
 
 
-class ValidationPlugin(p.SingletonPlugin):
+class ValidationPlugin(ValidationMixin):
     p.implements(p.IConfigurer)
     p.implements(p.IActions)
-    p.implements(p.IRoutes, inherit=True)
     p.implements(p.IAuthFunctions)
     p.implements(p.IResourceController, inherit=True)
     p.implements(p.IPackageController, inherit=True)
@@ -59,22 +67,9 @@ to create the database tables:
         else:
             log.debug(u'Validation tables exist')
 
-        t.add_template_directory(config_, u'templates')
-        t.add_public_directory(config_, u'public')
-        t.add_resource(u'fanstatic', 'ckanext-validation')
-
-    # IRoutes
-
-    def before_map(self, map_):
-
-        controller = u'ckanext.validation.controller:ValidationController'
-
-        map_.connect(
-            u'validation_read',
-            u'/dataset/{id}/resource/{resource_id}/validation',
-            controller=controller, action=u'validation')
-
-        return map_
+        t.add_template_directory(config_, u'../templates')
+        t.add_public_directory(config_, u'../public')
+        t.add_resource(u'../webassets', 'ckanext-validation')
 
     # IActions
 
@@ -111,6 +106,7 @@ to create the database tables:
             u'validation_extract_report_from_errors': validation_extract_report_from_errors,
             u'dump_json_value': dump_json_value,
             u'bootstrap_version': bootstrap_version,
+            u'use_webassets': use_webassets,
         }
 
     # IResourceController
@@ -132,11 +128,12 @@ to create the database tables:
         schema_upload = data_dict.pop(u'schema_upload', None)
         schema_url = data_dict.pop(u'schema_url', None)
         schema_json = data_dict.pop(u'schema_json', None)
-
-        if isinstance(schema_upload, cgi.FieldStorage):
-            data_dict[u'schema'] = schema_upload.file.read()
+        if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
+            uploaded_file = _get_underlying_file(schema_upload)
+            data_dict[u'schema'] = uploaded_file.read()
         elif schema_url:
-            if (not isinstance(schema_url, basestring) or
+
+            if (not isinstance(schema_url, six.string_types) or
                     not schema_url.lower()[:4] == u'http'):
                 raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
             data_dict[u'schema'] = schema_url
@@ -304,3 +301,9 @@ def _run_async_validation(resource_id):
         log.warning(
             u'Could not run validation for resource {}: {}'.format(
                 resource_id, str(e)))
+
+def _get_underlying_file(wrapper):
+    if isinstance(wrapper, FlaskFileStorage):
+        return wrapper.stream
+    return wrapper.file
+
