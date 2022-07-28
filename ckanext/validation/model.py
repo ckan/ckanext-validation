@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 def make_uuid():
-    return uuid.uuid4()
+    return str(uuid.uuid4())
 
 
 Base = declarative_base(metadata=metadata)
