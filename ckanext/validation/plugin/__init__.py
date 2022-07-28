@@ -35,7 +35,6 @@ from ckanext.validation.utils import (
 )
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation import blueprints, cli
-from ckanext.validation.plugin.flask_plugin import ValidationMixin
 
 
 ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
