@@ -13,6 +13,39 @@ from ckantoolkit.tests.helpers import (
 
 from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV, mock_uploads
 
+is_ckan29_or_higher = t.check_ckan_version(min_version="2.9")
+
+
+def _post(app, url, extra_environ=None, data=None):
+    ''' Submit a POST request to 'app',
+    using either webtest or Flask syntax.
+    '''
+    if hasattr(app, 'test_client'):
+        # Flask app
+        app.post(
+            url=url, extra_environ=extra_environ, data=data)
+    else:
+        app.post(
+            url, data, extra_environ=extra_environ)
+
+
+def _new_resource_url(dataset_id):
+
+    if is_ckan29_or_higher:
+        url = "/dataset/{}/resource/new".format(dataset_id)
+    else:
+        url = "/dataset/new_resource/{}".format(dataset_id)
+    return url
+
+
+def _edit_resource_url(dataset_id, resource_id):
+
+    if is_ckan29_or_higher:
+        url = "/dataset/{}/resource/{}/edit".format(dataset_id, resource_id)
+    else:
+        url = "/dataset/{}/resource_edit/{}".format(dataset_id, resource_id)
+    return url
+
 
 def _get_resource_new_page_as_sysadmin(app, id):
     user = Sysadmin()
@@ -58,9 +91,10 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/new".format(dataset['id']),
+
+        _post(
+            app,
+            url=_new_resource_url(dataset['id']),
             extra_environ=env,
             data=data,
         )
@@ -83,9 +117,10 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/new".format(dataset['id']),
+
+        _post(
+            app,
+            url=_new_resource_url(dataset['id']),
             extra_environ=env,
             data=data,
         )
@@ -116,9 +151,10 @@ class TestResourceSchemaForm(object):
 
             user = Sysadmin()
             env = {"REMOTE_USER": user["name"].encode("ascii")}
-            # TODO: url
-            app.post(
-                url="/dataset/{}/resource/new".format(dataset['id']),
+
+            _post(
+            app,
+                url=_new_resource_url(dataset['id']),
                 extra_environ=env,
                 data=data,
             )
@@ -141,9 +177,10 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/new".format(dataset['id']),
+
+        _post(
+            app,
+            url=_new_resource_url(dataset['id']),
             extra_environ=env,
             data=data,
         )
@@ -173,9 +210,10 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
+
+        _post(
+            app,
+            url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
         )
@@ -202,9 +240,10 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
+
+        _post(
+            app,
+            url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
         )
@@ -230,9 +269,10 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
+
+        _post(
+            app,
+            url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
         )
@@ -261,9 +301,10 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
+
+        _post(
+            app,
+            url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
         )
@@ -299,9 +340,10 @@ class TestResourceValidationOptionsForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/new".format(dataset['id']),
+
+        _post(
+            app,
+            url=_new_resource_url(dataset['id']),
             extra_environ=env,
             data=data,
         )
@@ -340,9 +382,10 @@ class TestResourceValidationOptionsForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-        # TODO: url
-        app.post(
-            url="/dataset/{}/resource/{}/edit".format(dataset['id'], dataset['resources'][0]['id']),
+
+        _post(
+            app,
+            url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
         )
