@@ -1,9 +1,8 @@
-from six.moves import builtins
+import builtins
 import cgi
 import functools
 import mock
-import six
-from six import StringIO, BytesIO
+from io import BytesIO
 
 from pyfakefs import fake_filesystem
 
@@ -165,11 +164,7 @@ else:
 
 
 def get_mock_file(contents):
-    if six.PY3:
-        mock_file = BytesIO()
-        mock_file.write(contents.encode('utf8'))
-    else:
-        mock_file = StringIO()
-        mock_file.write(contents)
+    mock_file = BytesIO()
+    mock_file.write(contents.encode('utf8'))
 
     return mock_file
