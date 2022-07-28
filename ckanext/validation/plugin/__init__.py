@@ -4,7 +4,6 @@ import logging
 import cgi
 import json
 
-import six
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
 import ckantoolkit as t
