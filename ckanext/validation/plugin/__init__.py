@@ -128,8 +128,7 @@ to create the database tables:
         schema_upload = data_dict.pop(u'schema_upload', None)
         schema_url = data_dict.pop(u'schema_url', None)
         schema_json = data_dict.pop(u'schema_json', None)
-        if bool(schema_upload) and \
-                isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
+        if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
             uploaded_file = _get_underlying_file(schema_upload)
             data_dict[u'schema'] = uploaded_file.read()
         elif schema_url:

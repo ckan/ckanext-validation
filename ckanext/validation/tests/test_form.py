@@ -4,6 +4,7 @@ import mock
 import datetime
 
 import pytest
+import six
 
 import ckantoolkit as t
 from ckantoolkit.tests.factories import Sysadmin, Dataset
@@ -16,17 +17,19 @@ from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV, mock_upload
 is_ckan29_or_higher = t.check_ckan_version(min_version="2.9")
 
 
-def _post(app, url, extra_environ=None, data=None):
+def _post(app, url, extra_environ=None, data=None, upload=None):
     ''' Submit a POST request to 'app',
     using either webtest or Flask syntax.
     '''
-    if hasattr(app, 'test_client'):
-        # Flask app
+    if is_ckan29_or_higher:
+        if upload:
+            for entry in upload:
+                data[entry[0]] = (io.BytesIO(entry[2]), entry[1])
         app.post(
             url=url, extra_environ=extra_environ, data=data)
     else:
         app.post(
-            url, data, extra_environ=extra_environ)
+            url, data, extra_environ=extra_environ, upload_files=upload)
 
 
 def _new_resource_url(dataset_id):
@@ -133,16 +136,15 @@ class TestResourceSchemaForm(object):
         dataset = Dataset()
 
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
-        json_value = io.BytesIO(json.dumps(value).encode('utf8'))
-
-        upload = (json_value, "schema.json")
+        json_value = six.ensure_binary(json.dumps(value).encode('utf8'))
 
         data = {
             "url": "https://example.com/data.csv",
-            "schema_upload": upload,
             "id": "",
             "save": "",
         }
+
+        upload = ('schema_upload', 'schema.json', json_value)
 
         app = _get_test_app()
 
@@ -157,6 +159,7 @@ class TestResourceSchemaForm(object):
                 url=_new_resource_url(dataset['id']),
                 extra_environ=env,
                 data=data,
+                upload=[upload]
             )
         post(app, data)
 
@@ -288,13 +291,12 @@ class TestResourceSchemaForm(object):
         )
 
         value = {"fields": [{"name": "code"}, {"name": "department"}, {"name": "date"}]}
-        json_value = io.BytesIO(json.dumps(value).encode('utf8'))
+        json_value = six.ensure_binary(json.dumps(value).encode('utf8'))
 
-        upload = (json_value, "schema.json")
+        upload = ('schema_upload', 'schema.json', json_value)
 
         data = {
             "url": "https://example.com/data.csv",
-            "schema_upload": upload,
             "id": "",
             "save": "",
         }
@@ -307,6 +309,7 @@ class TestResourceSchemaForm(object):
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
             data=data,
+            upload=[upload],
         )
 
         dataset = call_action("package_show", id=dataset["id"])
