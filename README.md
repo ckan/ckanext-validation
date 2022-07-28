@@ -50,11 +50,9 @@ If you are eager to get started, jump to the [Installation](#installation) and [
 
 ## Versions supported and requirements
 
-This extension has been tested with CKAN 2.4 to 2.7.
+This extension is currently tested in CKAN 2.8 and CKAN 2.9.
 
 It is strongly recommended to use it alongside [ckanext-scheming](https://github.com/ckan/ckanext-scheming) to define the necessary extra fields in the default CKAN schema.
-
-If you want to use [asynchronous validation](#asynchronous-validation) with background jobs and are using CKAN 2.6 or lower, [ckanext-rq](https://github.com/ckan/ckanext-rq) is also needed. Please refer to both READMEs for installation instructions.
 
 
 ## Installation
