@@ -52,9 +52,9 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        mock_validate.assert_called_with(
-            "http://example.com/file.csv", format="csv", schema=None, http_session=mock.ANY,
-        )
+        assert mock_validate.call_args[0][0] == "http://example.com/file.csv"
+        assert mock_validate.call_args[1]["format"] == "csv"
+        assert mock_validate.call_args[1]["schema"] is None
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     @mock.patch.object(Session, "commit")
@@ -80,9 +80,9 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        mock_validate.assert_called_with(
-            "http://example.com/file.csv", format="csv", schema=schema, http_session=mock.ANY,
-        )
+        assert mock_validate.call_args[0][0] == "http://example.com/file.csv"
+        assert mock_validate.call_args[1]["format"] == "csv"
+        assert mock_validate.call_args[1]["schema"] == schema
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     @mock.patch.object(
@@ -107,9 +107,9 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        mock_validate.assert_called_with(
-            "/tmp/example/{}".format(resource["id"]), format="csv", schema=None, http_session=mock.ANY,
-        )
+        assert mock_validate.call_args[0][0] == "/tmp/example/{}".format(resource["id"])
+        assert mock_validate.call_args[1]["format"] == "csv"
+        assert mock_validate.call_args[1]["schema"] is None
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     def test_job_run_valid_stores_validation_object(self, mock_validate):
@@ -210,6 +210,7 @@ class TestValidationJob(object):
         invalid_file = get_mock_file(invalid_csv)
 
         mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
+
         resource = factories.Resource(format="csv", upload=mock_upload)
 
         invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
