@@ -41,7 +41,7 @@ ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 log = logging.getLogger(__name__)
 
 
-class ValidationPlugin(ValidationMixin):
+class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
     p.implements(p.IActions)
     p.implements(p.IAuthFunctions)
