@@ -53,7 +53,7 @@ class TestValidationJob(object):
         run_validation_job(resource)
 
         mock_validate.assert_called_with(
-            "http://example.com/file.csv", format="csv", schema=None
+            "http://example.com/file.csv", format="csv", schema=None, http_session=mock.ANY,
         )
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
@@ -81,7 +81,7 @@ class TestValidationJob(object):
         run_validation_job(resource)
 
         mock_validate.assert_called_with(
-            "http://example.com/file.csv", format="csv", schema=schema
+            "http://example.com/file.csv", format="csv", schema=schema, http_session=mock.ANY,
         )
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
@@ -108,7 +108,7 @@ class TestValidationJob(object):
         run_validation_job(resource)
 
         mock_validate.assert_called_with(
-            "/tmp/example/{}".format(resource["id"]), format="csv", schema=None
+            "/tmp/example/{}".format(resource["id"]), format="csv", schema=None, http_session=mock.ANY,
         )
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
