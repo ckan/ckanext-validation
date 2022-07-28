@@ -10,15 +10,15 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # http://packaging.python.org/en/latest/tutorial.html#version
-    version='0.0.4',
+    version='1.0.0',
 
-    description='''Data description and validation for CKAN with [Frictionless Data tools.''',
+    description='''Data description and validation for CKAN with Frictionless Data tools.''',
 
     # The project's main homepage.
     url='https://github.com/frictionlessdata/ckanext-validation',
 
     # Author details
-    author='''Open Knowledge International''',
+    author='''Open Knowledge Foundation''',
     author_email='''info@okfn.org''',
 
     # Choose your license
