@@ -188,7 +188,7 @@ to create the database tables:
 
             for plugin in p.PluginImplementations(IDataValidation):
                 if not plugin.can_validate(context, resource):
-                    log.debug('Skipping validation for resource {}'.format(resource['id']))
+                    log.debug('Skipping validation for resource %s', resource['id'])
                     return
 
             _run_async_validation(resource[u'id'])
@@ -259,7 +259,7 @@ to create the database tables:
             if resource_id in self.resources_to_validate:
                 for plugin in p.PluginImplementations(IDataValidation):
                     if not plugin.can_validate(context, data_dict):
-                        log.debug('Skipping validation for resource {}'.format(data_dict['id']))
+                        log.debug('Skipping validation for resource %s', data_dict['id'])
                         return
 
                 del self.resources_to_validate[resource_id]
@@ -299,8 +299,8 @@ def _run_async_validation(resource_id):
              u'async': True})
     except t.ValidationError as e:
         log.warning(
-            u'Could not run validation for resource {}: {}'.format(
-                resource_id, str(e)))
+            u'Could not run validation for resource %s: %s',
+                resource_id, e)
 
 def _get_underlying_file(wrapper):
     if isinstance(wrapper, FlaskFileStorage):
