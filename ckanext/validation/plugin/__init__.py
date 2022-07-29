@@ -146,6 +146,7 @@ to create the database tables:
         return self._process_schema_fields(data_dict)
 
     resources_to_validate = {}
+    packages_to_skip = {}
 
     def after_create(self, context, data_dict):
 
@@ -188,7 +189,7 @@ to create the database tables:
 
             for plugin in p.PluginImplementations(IDataValidation):
                 if not plugin.can_validate(context, resource):
-                    log.debug('Skipping validation for resource {}'.format(resource['id']))
+                    log.debug('Skipping validation for resource %s', resource['id'])
                     return
 
             _run_async_validation(resource[u'id'])
@@ -196,6 +197,15 @@ to create the database tables:
     def before_update(self, context, current_resource, updated_resource):
 
         updated_resource = self._process_schema_fields(updated_resource)
+
+        # the call originates from a resource API, so don't validate the entire package
+        package_id = updated_resource.get('package_id')
+        if not package_id:
+            existing_resource = t.get_action('resource_show')(
+                context={'ignore_auth': True}, data_dict={'id': updated_resource['id']})
+            if existing_resource:
+                package_id = existing_resource['package_id']
+        self.packages_to_skip[package_id] = True
 
         if not get_update_mode_from_config() == u'async':
             return updated_resource
@@ -242,6 +252,13 @@ to create the database tables:
             return
 
         if is_dataset:
+            package_id = data_dict.get('id')
+            if self.packages_to_skip.pop(package_id, None) or context.get('save', False):
+                # Either we're updating an individual resource,
+                # or we're updating the package metadata via the web form;
+                # in both cases, we don't need to validate every resource.
+                return
+
             for resource in data_dict.get(u'resources', []):
                 if resource[u'id'] in self.resources_to_validate:
                     # This is part of a resource_update call, it will be
@@ -259,7 +276,7 @@ to create the database tables:
             if resource_id in self.resources_to_validate:
                 for plugin in p.PluginImplementations(IDataValidation):
                     if not plugin.can_validate(context, data_dict):
-                        log.debug('Skipping validation for resource {}'.format(data_dict['id']))
+                        log.debug('Skipping validation for resource %s', data_dict['id'])
                         return
 
                 del self.resources_to_validate[resource_id]
@@ -299,8 +316,8 @@ def _run_async_validation(resource_id):
              u'async': True})
     except t.ValidationError as e:
         log.warning(
-            u'Could not run validation for resource {}: {}'.format(
-                resource_id, str(e)))
+            u'Could not run validation for resource %s: %s',
+                resource_id, e)
 
 def _get_underlying_file(wrapper):
     if isinstance(wrapper, FlaskFileStorage):
