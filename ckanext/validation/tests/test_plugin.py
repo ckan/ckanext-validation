@@ -1,5 +1,5 @@
 import pytest
-import mock
+from unittest import mock
 
 from ckan.tests.helpers import call_action, reset_db
 from ckan.tests import factories

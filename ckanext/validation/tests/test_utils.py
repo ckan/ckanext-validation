@@ -1,6 +1,6 @@
 import os
 import uuid
-import mock
+from unittest import mock
 
 import pytest
 from pyfakefs import fake_filesystem_unittest

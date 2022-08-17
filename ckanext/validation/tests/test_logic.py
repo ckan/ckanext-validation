@@ -3,7 +3,7 @@ import io
 import json
 
 import pytest
-import mock
+from unittest import mock
 
 from ckan import model
 from ckan.tests.helpers import call_action, call_auth

@@ -1,7 +1,7 @@
 import builtins
 import cgi
 import functools
-import mock
+from unittest import mock
 from io import BytesIO
 
 from werkzeug.datastructures import FileStorage
