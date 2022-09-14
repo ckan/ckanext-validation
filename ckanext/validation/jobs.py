@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 def run_validation_job(resource):
 
-    log.debug(u'Validating resource %s', resource['id'])
+    log.debug('Validating resource %s', resource['id'])
 
     try:
         validation = Session.query(Validation).filter(
@@ -34,18 +34,18 @@ def run_validation_job(resource):
     if not validation:
         validation = Validation(resource_id=resource['id'])
 
-    validation.status = u'running'
+    validation.status = 'running'
     Session.add(validation)
     Session.commit()
 
     options = t.config.get(
-        u'ckanext.validation.default_validation_options')
+        'ckanext.validation.default_validation_options')
     if options:
         options = json.loads(options)
     else:
         options = {}
 
-    resource_options = resource.get(u'validation_options')
+    resource_options = resource.get('validation_options')
     if resource_options and isinstance(resource_options, str):
         resource_options = json.loads(resource_options)
     if resource_options:
@@ -55,29 +55,29 @@ def run_validation_job(resource):
         {'ignore_auth': True}, {'id': resource['package_id']})
 
     source = None
-    if resource.get(u'url_type') == u'upload':
+    if resource.get('url_type') == 'upload':
         upload = uploader.get_resource_uploader(resource)
         if isinstance(upload, uploader.ResourceUpload):
-            source = upload.get_path(resource[u'id'])
+            source = upload.get_path(resource['id'])
         else:
             # Upload is not the default implementation (ie it's a cloud storage
             # implementation)
             pass_auth_header = t.asbool(
-                t.config.get(u'ckanext.validation.pass_auth_header', True))
-            if dataset[u'private'] and pass_auth_header:
+                t.config.get('ckanext.validation.pass_auth_header', True))
+            if dataset['private'] and pass_auth_header:
                 s = requests.Session()
                 s.headers.update({
-                    u'Authorization': t.config.get(
-                        u'ckanext.validation.pass_auth_header_value',
+                    'Authorization': t.config.get(
+                        'ckanext.validation.pass_auth_header_value',
                         _get_site_user_api_key())
                 })
 
-                options[u'http_session'] = s
+                options['http_session'] = s
 
     if not source:
-        source = resource[u'url']
+        source = resource['url']
 
-    schema = resource.get(u'schema')
+    schema = resource.get('schema')
     if schema and isinstance(schema, str):
         if schema.startswith('http'):
             r = requests.get(schema)
@@ -85,7 +85,7 @@ def run_validation_job(resource):
         else:
             schema = json.loads(schema)
 
-    _format = resource[u'format'].lower()
+    _format = resource['format'].lower()
 
     report = _validate_table(source, _format=_format, schema=schema, **options)
 
@@ -96,13 +96,13 @@ def run_validation_job(resource):
     for index, warning in enumerate(report.get('warnings', [])):
         report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
 
-    if report['table-count'] > 0:
-        validation.status = u'success' if report[u'valid'] else u'failure'
-        validation.report = report
+    if report['stats']['tasks'] > 0:
+        validation.status = 'success' if report['valid'] else 'failure'
+        validation.report = report.to_json()
     else:
-        validation.status = u'error'
+        validation.status = 'error'
         validation.error = {
-            'message': '\n'.join(report['warnings']) or u'No tables found'}
+            'message': [str(err) for err in report['errors']] if len(report['errors']) > 0 else 'No tables found'}
     validation.finished = datetime.datetime.utcnow()
 
     Session.add(validation)
@@ -118,18 +118,21 @@ def run_validation_job(resource):
          'validation_timestamp': validation.finished.isoformat()})
 
 
-def _validate_table(source, _format=u'csv', schema=None, **options):
+def _validate_table(source, _format='csv', schema=None, **options):
 
-    http_session = options.pop('http_session', None) or requests.Session()
+    # TODO: Search if there is an equivalent way to use a proxy in Frictionless Framework v5
+    # http_session = options.pop('http_session', None) or requests.Session()
 
-    use_proxy = 'ckan.download_proxy' in t.config
-    if use_proxy:
-        proxy = t.config.get('ckan.download_proxy')
-        log.debug(u'Download resource for validation via proxy: %s', proxy)
-        http_session.proxies.update({'http': proxy, 'https': proxy})
-    report = validate(source, format=_format, schema=schema, http_session=http_session, **options)
+    # use_proxy = 'ckan.download_proxy' in t.config
+    # if use_proxy:
+    #     proxy = t.config.get('ckan.download_proxy')
+    #     log.debug('Download resource for validation via proxy: %s', proxy)
+    #     http_session.proxies.update({'http': proxy, 'https': proxy})
 
-    log.debug(u'Validating source: %s', source)
+    #report = validate(source, format=_format, schema=schema, http_session=http_session, **options)
+
+    report = validate(source, format=_format, schema=schema, **options)
+    log.debug('Validating source: %s', source)
 
     return report
 
