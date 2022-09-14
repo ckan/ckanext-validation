@@ -1,7 +1,9 @@
- /* Image Upload
+"use strict";
+
+/* Image Upload
  *
  */
-this.ckan.module('resource-schema', function($) {
+ckan.module('resource-schema', function($) {
   return {
     /* options object can be extended using data-module-* attributes */
     options: {
