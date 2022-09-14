@@ -83,13 +83,12 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
+
         dataset = call_action("package_show", id=dataset["id"])
 
         assert dataset["resources"][0]["schema"] == value
@@ -109,19 +108,17 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
 
         assert dataset["resources"][0]["schema"] == value
 
-    def test_resource_form_create_upload(self):
+    def test_resource_form_create_upload(self, app):
         dataset = Dataset()
 
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
@@ -131,26 +128,17 @@ class TestResourceSchemaForm(object):
             "url": "https://example.com/data.csv",
             "id": "",
             "save": "",
+            "schema_upload": (io.BytesIO(json_value), "test_page_one_input.csv"),
         }
 
-        upload = ('schema_upload', 'schema.json', json_value)
+        user = Sysadmin()
+        env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        app = _get_test_app()
-
-        @mock_uploads
-        def post(app, data, mock_open):
-
-            user = Sysadmin()
-            env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-            _post(
-            app,
-                url=_new_resource_url(dataset['id']),
-                extra_environ=env,
-                data=data,
-                upload=[upload]
-            )
-        post(app, data)
+        app.post(
+            url=_new_resource_url(dataset['id']),
+            extra_environ=env,
+            data=data
+        )
 
         dataset = call_action("package_show", id=dataset["id"])
 
