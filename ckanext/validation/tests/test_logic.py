@@ -447,7 +447,8 @@ class TestAuth(object):
         )
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins", "change_config_for_create_sync", "app")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+@pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", True)
 class TestResourceValidationOnCreate(object):
 
     @pytest.mark.usefixtures("mock_uploads")
@@ -538,7 +539,8 @@ class TestResourceValidationOnCreate(object):
         assert "validation_timestamp" in resource
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins", "change_config_for_update_sync", "app")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+@pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", True)
 class TestResourceValidationOnUpdate(object):
 
     @pytest.mark.usefixtures("mock_uploads")

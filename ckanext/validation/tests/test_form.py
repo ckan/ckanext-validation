@@ -11,7 +11,7 @@ from ckantoolkit.tests.helpers import (
     call_action, _get_test_app
 )
 
-from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV, mock_uploads
+from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV
 
 
 def _post(app, url, extra_environ=None, data=None, upload=None):
@@ -375,7 +375,8 @@ class TestResourceValidationOptionsForm(object):
         assert dataset["resources"][0]["validation_options"] == value
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads", "change_config_for_create_sync")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads")
+@pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", True)
 class TestResourceValidationOnCreateForm(object):
 
     def test_resource_form_create_valid(self, app):
@@ -427,7 +428,8 @@ class TestResourceValidationOnCreateForm(object):
         assert "Row 2 has a missing value in column 4" in response.body
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads", "change_config_for_update_sync")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads")
+@pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", True)
 class TestResourceValidationOnUpdateForm(object):
 
     def test_resource_form_update_valid(self, app):

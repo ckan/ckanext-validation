@@ -420,7 +420,8 @@ def _validation_dictize(validation):
     return out
 
 
-def resource_create(context, data_dict):
+@t.chained_action
+def resource_create(up_func, context, data_dict):
     '''Appends a new resource to a datasets list of resources.
 
     This is duplicate of the CKAN core resource_create action, with just the
@@ -432,6 +433,10 @@ def resource_create(context, data_dict):
     points that will allow a better approach.
 
     '''
+
+    if get_create_mode_from_config() != 'sync':
+        return up_func(context, data_dict)
+
     model = context['model']
 
     package_id = t.get_or_bust(data_dict, 'package_id')
@@ -480,22 +485,21 @@ def resource_create(context, data_dict):
                   uploader.get_max_resource_size())
 
     # Custom code starts
-    if get_create_mode_from_config() == u'sync':
 
-        run_validation = True
+    run_validation = True
 
-        for plugin in plugins.PluginImplementations(IDataValidation):
-            if not plugin.can_validate(context, data_dict):
-                log.debug('Skipping validation for resource {}'.format(resource_id))
-                run_validation = False
+    for plugin in plugins.PluginImplementations(IDataValidation):
+        if not plugin.can_validate(context, data_dict):
+            log.debug('Skipping validation for resource {}'.format(resource_id))
+            run_validation = False
 
-        if run_validation:
-            is_local_upload = (
-                hasattr(upload, 'filename') and
-                upload.filename is not None and
-                isinstance(upload, uploader.ResourceUpload))
-            _run_sync_validation(
-                resource_id, local_upload=is_local_upload, new_resource=True)
+    if run_validation:
+        is_local_upload = (
+            hasattr(upload, 'filename') and
+            upload.filename is not None and
+            isinstance(upload, uploader.ResourceUpload))
+        _run_sync_validation(
+            resource_id, local_upload=is_local_upload, new_resource=True)
 
     # Custom code ends
 
@@ -522,7 +526,8 @@ def resource_create(context, data_dict):
     return resource
 
 
-def resource_update(context, data_dict):
+@t.chained_action
+def resource_update(up_func, context, data_dict):
     '''Update a resource.
 
     This is duplicate of the CKAN core resource_update action, with just the
@@ -534,6 +539,10 @@ def resource_update(context, data_dict):
     points that will allow a better approach.
 
     '''
+
+    if get_update_mode_from_config() != 'sync':
+        return up_func(context, data_dict)
+
     model = context['model']
     id = t.get_or_bust(data_dict, "id")
 
@@ -597,21 +606,19 @@ def resource_update(context, data_dict):
 
     # Custom code starts
 
-    if get_update_mode_from_config() == u'sync':
+    run_validation = True
+    for plugin in plugins.PluginImplementations(IDataValidation):
+        if not plugin.can_validate(context, data_dict):
+            log.debug('Skipping validation for resource {}'.format(id))
+            run_validation = False
 
-        run_validation = True
-        for plugin in plugins.PluginImplementations(IDataValidation):
-            if not plugin.can_validate(context, data_dict):
-                log.debug('Skipping validation for resource {}'.format(id))
-                run_validation = False
-
-        if run_validation:
-            is_local_upload = (
-                hasattr(upload, 'filename') and
-                upload.filename is not None and
-                isinstance(upload, uploader.ResourceUpload))
-            _run_sync_validation(
-                id, local_upload=is_local_upload, new_resource=False)
+    if run_validation:
+        is_local_upload = (
+            hasattr(upload, 'filename') and
+            upload.filename is not None and
+            isinstance(upload, uploader.ResourceUpload))
+        _run_sync_validation(
+            id, local_upload=is_local_upload, new_resource=False)
 
     # Custom code ends
 

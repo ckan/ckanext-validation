@@ -86,12 +86,9 @@ to create the database tables:
             u'resource_validation_show': resource_validation_show,
             u'resource_validation_delete': resource_validation_delete,
             u'resource_validation_run_batch': resource_validation_run_batch,
+            u'resource_create': custom_resource_create,
+            u'resource_update': custom_resource_update,
         }
-
-        if get_create_mode_from_config() == u'sync':
-            new_actions[u'resource_create'] = custom_resource_create
-        if get_update_mode_from_config() == u'sync':
-            new_actions[u'resource_update'] = custom_resource_update
 
         return new_actions
 
