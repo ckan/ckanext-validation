@@ -1,5 +1,6 @@
 import pytest
 
+from ckan.lib import uploader
 from ckanext.validation.model import create_tables, tables_exist
 
 
@@ -7,3 +8,9 @@ from ckanext.validation.model import create_tables, tables_exist
 def validation_setup():
     if not tables_exist():
         create_tables()
+
+
+@pytest.fixture
+def mock_uploads(ckan_config, monkeypatch, tmpdir):
+    monkeypatch.setitem(ckan_config, "ckan.storage_path", str(tmpdir))
+    monkeypatch.setattr(uploader, "_storage_path", str(tmpdir))
