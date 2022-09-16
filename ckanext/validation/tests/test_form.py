@@ -375,18 +375,6 @@ class TestResourceValidationOptionsForm(object):
         assert dataset["resources"][0]["validation_options"] == value
 
 
-
-@pytest.fixture
-def change_config_for_create_sync():
-    # Needed to apply the config changes at the right time so they can be picked up
-    # during startup
-    _original_config = dict(t.config)
-    t.config["ckanext.validation.run_on_create_sync"] = True
-    yield
-    t.config.clear()
-    t.config.update(_original_config)
-
-
 @pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads", "change_config_for_create_sync")
 class TestResourceValidationOnCreateForm(object):
 
@@ -437,17 +425,6 @@ class TestResourceValidationOnCreateForm(object):
         assert "validation" in response.body
         assert "missing-value" in response.body
         assert "Row 2 has a missing value in column 4" in response.body
-
-
-@pytest.fixture
-def change_config_for_update_sync():
-    # Needed to apply the config changes at the right time so they can be picked up
-    # during startup
-    _original_config = dict(t.config)
-    t.config["ckanext.validation.run_on_update_sync"] = True
-    yield
-    t.config.clear()
-    t.config.update(_original_config)
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads", "change_config_for_update_sync")

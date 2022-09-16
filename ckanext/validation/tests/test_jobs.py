@@ -16,7 +16,6 @@ from ckanext.validation.tests.helpers import (
     INVALID_REPORT,
     ERROR_REPORT,
     VALID_REPORT_LOCAL_FILE,
-    mock_uploads,
     MockFieldStorage,
     get_mock_file,
 )
@@ -203,8 +202,8 @@ class TestValidationJob(object):
             updated_resource["validation_timestamp"] == validation.finished.isoformat()
         )
 
-    @mock_uploads
-    def test_job_local_paths_are_hidden(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_job_local_paths_are_hidden(self):
 
         invalid_csv = "id,type\n" + "1,a,\n" * 1010
         invalid_file = get_mock_file(invalid_csv)
@@ -232,8 +231,8 @@ class TestValidationJob(object):
         warning = validation.report["warnings"][0]
         assert warning == "Table inspection has reached 1000 row(s) limit"
 
-    @mock_uploads
-    def test_job_pass_validation_options(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_job_pass_validation_options(self):
 
         invalid_csv = """
 
@@ -266,8 +265,8 @@ a,b,c
 
         assert validation.report["valid"] is True
 
-    @mock_uploads
-    def test_job_pass_validation_options_string(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_job_pass_validation_options_string(self):
 
         invalid_csv = """
 
