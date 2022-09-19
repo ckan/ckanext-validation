@@ -14,17 +14,6 @@ from ckantoolkit.tests.helpers import (
 from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV
 
 
-def _post(app, url, extra_environ=None, data=None, upload=None):
-    ''' Submit a POST request to 'app',
-    using either webtest or Flask syntax.
-    '''
-    if upload:
-        for entry in upload:
-            data[entry[0]] = (io.BytesIO(entry[2]), entry[1])
-    app.post(
-        url=url, extra_environ=extra_environ, data=data)
-
-
 def _new_resource_url(dataset_id):
 
     url = "/dataset/{}/resource/new".format(dataset_id)
@@ -128,7 +117,7 @@ class TestResourceSchemaForm(object):
             "url": "https://example.com/data.csv",
             "id": "",
             "save": "",
-            "schema_upload": (io.BytesIO(json_value), "test_page_one_input.csv"),
+            "schema_upload": (io.BytesIO(json_value), "schema.json"),
         }
 
         user = Sysadmin()
@@ -158,11 +147,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -191,11 +179,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -221,11 +208,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -250,11 +236,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -276,17 +261,15 @@ class TestResourceSchemaForm(object):
             "url": "https://example.com/data.csv",
             "id": "",
             "save": "",
+            "schema_upload": (io.BytesIO(json_value), "schema.json"),
         }
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
-            upload=[upload],
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -321,11 +304,10 @@ class TestResourceValidationOptionsForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -363,11 +345,10 @@ class TestResourceValidationOptionsForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
