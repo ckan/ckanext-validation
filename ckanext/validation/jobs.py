@@ -101,6 +101,7 @@ def run_validation_job(resource):
         validation.report = json.dumps(report)
     else:
         validation.status = 'error'
+        validation.report = json.dumps(report)
         validation.error = {
             'message': [str(err) for err in report['errors']] if len(report['errors']) > 0 else 'No tables found'}
     validation.finished = datetime.datetime.utcnow()
