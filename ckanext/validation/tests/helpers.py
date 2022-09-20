@@ -130,7 +130,7 @@ def _mock_open_if_open_fails(*args, **kwargs):
         return _mock_file_open(*args, **kwargs)
 
 
-def mock_uploads(func):
+def mock_uploads_fake_fs(func):
     @change_config('ckan.storage_path', '/doesnt_exist')
     @mock.patch.object(ckan.lib.uploader, 'os', _mock_os)
     @mock.patch.object(builtins, 'open',

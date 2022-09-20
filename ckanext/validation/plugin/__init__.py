@@ -86,12 +86,9 @@ to create the database tables:
             u'resource_validation_show': resource_validation_show,
             u'resource_validation_delete': resource_validation_delete,
             u'resource_validation_run_batch': resource_validation_run_batch,
+            u'resource_create': custom_resource_create,
+            u'resource_update': custom_resource_update,
         }
-
-        if get_create_mode_from_config() == u'sync':
-            new_actions[u'resource_create'] = custom_resource_create
-        if get_update_mode_from_config() == u'sync':
-            new_actions[u'resource_update'] = custom_resource_update
 
         return new_actions
 
@@ -137,7 +134,9 @@ to create the database tables:
         schema_json = data_dict.pop(u'schema_json', None)
         if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
             uploaded_file = _get_underlying_file(schema_upload)
-            data_dict[u'schema'] = str(uploaded_file.read(), encoding='utf8')
+            data_dict[u'schema'] = uploaded_file.read()
+            if isinstance(data_dict["schema"], (bytes, bytearray)):
+                data_dict["schema"] = data_dict["schema"].decode()
         elif schema_url:
 
             if (not isinstance(schema_url, str) or
@@ -158,7 +157,7 @@ to create the database tables:
 
         is_dataset = self._data_dict_is_dataset(data_dict)
 
-        if not get_create_mode_from_config() == u'async':
+       if not get_create_mode_from_config() == u'async':
             return
 
         if is_dataset:
