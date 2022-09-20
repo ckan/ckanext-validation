@@ -90,7 +90,7 @@ def run_validation_job(resource):
     report = _validate_table(source, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
-    for table in report.get('tables', []):
+    for table in report['tables']:
         if table['source'].startswith('/'):
             table['source'] = resource['url']
     for index, warning in enumerate(report.get('warnings', [])):
