@@ -90,11 +90,13 @@ def run_validation_job(resource):
     report = _validate_table(source, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
-    for table in report['tables']:
-        if table['source'].startswith('/'):
-            table['source'] = resource['url']
-    for index, warning in enumerate(report.get('warnings', [])):
-        report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
+    if 'tables' in report:
+        for table in report['tables']:
+            if table['source'].startswith('/'):
+                table['source'] = resource['url']
+    if 'warnings' in report:
+        for index, warning in enumerate(report['warnings']):
+            report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
 
     if 'valid' in report and report['valid']:
         validation.status = 'success' if report['valid'] else 'failure'
