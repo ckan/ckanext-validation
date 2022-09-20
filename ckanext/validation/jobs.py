@@ -96,9 +96,9 @@ def run_validation_job(resource):
     for index, warning in enumerate(report.get('warnings', [])):
         report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
 
-    if report['stats']['tasks'] > 0:
+    if report['valid']:
         validation.status = 'success' if report['valid'] else 'failure'
-        validation.report = report.to_json()
+        validation.report = json.dumps(report)
     else:
         validation.status = 'error'
         validation.error = {

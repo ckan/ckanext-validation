@@ -470,8 +470,8 @@ class TestResourceValidationOnCreate(object):
             )
 
         assert "validation" in e.value.error_dict
-        assert "missing-value" in str(e)
-        assert "Row 2 has a missing value in column 4" in str(e)
+        assert "missing-cell" in str(e)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
@@ -566,8 +566,8 @@ class TestResourceValidationOnUpdate(object):
                 )
 
         assert "validation" in e.value.error_dict
-        assert "missing-value" in str(e)
-        assert "Row 2 has a missing value in column 4" in str(e)
+        assert "missing-cell" in str(e)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
@@ -647,7 +647,7 @@ class TestSchemaFields(object):
             schema='{"fields":[{"name":"id"}]}',
         )
 
-        assert resource["schema"] == {"fields": [{"name": "id"}]}
+        assert json.loads(resource["schema"]) == {"fields": [{"name": "id"}]}
 
         assert "schema_upload" not in resource
         assert "schema_url" not in resource
@@ -716,7 +716,7 @@ class TestSchemaFields(object):
             schema_upload=mock_upload,
         )
 
-        assert resource["schema"] == {"fields": [{"name": "category"}]}
+        assert json.loads(resource["schema"]) == {"fields": [{"name": "category"}]}
 
         assert "schema_upload" not in resource
         assert "schema_url" not in resource
@@ -760,4 +760,4 @@ class TestValidationOptionsField(object):
             validation_options=validation_options,
         )
 
-        assert resource["validation_options"] == json.loads(validation_options)
+        assert json.loads(resource["validation_options"]) == json.loads(validation_options)

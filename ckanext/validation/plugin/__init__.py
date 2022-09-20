@@ -157,7 +157,7 @@ to create the database tables:
 
         is_dataset = self._data_dict_is_dataset(data_dict)
 
-       if not get_create_mode_from_config() == u'async':
+        if not get_create_mode_from_config() == u'async':
             return
 
         if is_dataset:
