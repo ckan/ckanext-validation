@@ -96,14 +96,17 @@ def run_validation_job(resource):
     for index, warning in enumerate(report.get('warnings', [])):
         report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
 
-    if report['valid']:
+    if 'valid' in report and report['valid']:
         validation.status = 'success' if report['valid'] else 'failure'
         validation.report = json.dumps(report)
     else:
         validation.status = 'error'
         validation.report = json.dumps(report)
-        validation.error = {
-            'message': [str(err) for err in report['errors']] if len(report['errors']) > 0 else 'No tables found'}
+        if 'tables' in report: 
+            validation.error = {
+                'message': [str(err) for err in report['tables'][0]['errors']] if len(report['tables'][0]['errors']) > 0 else 'No tables found'}
+        else:
+            validation.error = {'message': []}
     validation.finished = datetime.datetime.utcnow()
 
     Session.add(validation)
