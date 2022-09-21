@@ -8,7 +8,7 @@ import re
 import requests
 from sqlalchemy.orm.exc import NoResultFound
 # from goodtables import validate
-from frictionless import validate
+from frictionless import validate, system, Report
 
 from ckan.model import Session
 import ckan.lib.uploader as uploader
@@ -90,15 +90,16 @@ def run_validation_job(resource):
     report = _validate_table(source, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
-    if 'tables' in report.keys():
+    if type(report) == Report:
+        report = report.to_dict()
+    if 'tables' in report:
         for table in report['tables']:
             if table['source'].startswith('/'):
                 table['source'] = resource['url']
-    if 'warnings' in report.keys():
+    if 'warnings' in report:
         for index, warning in enumerate(report['warnings']):
             report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
-
-    if 'valid' in report.keys() and report['valid']:
+    if 'valid' in report and report['valid']:
         validation.status = 'success' if report['valid'] else 'failure'
         validation.report = json.dumps(report)
     else:
@@ -137,8 +138,10 @@ def _validate_table(source, _format='csv', schema=None, **options):
 
     #report = validate(source, format=_format, schema=schema, http_session=http_session, **options)
 
-    report = validate(source, format=_format, schema=schema, **options)
-    log.debug('Validating source: %s', source)
+
+    with system.use_context(trusted=True):
+        report = validate(source, format=_format, schema=schema, **options)
+        log.debug('Validating source: %s', source)
 
     return report
 
