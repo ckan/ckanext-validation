@@ -51,8 +51,12 @@ def validation_extract_report_from_errors(errors):
         if error == 'validation':
             report = errors[error][0]
             # Remove full path from table source
-            source = report['tasks'][0]['resource']['path']
-            report['tasks'][0]['resource']['path'] = source.split('/')[-1]
+            if 'tasks' in report:
+                source = report['tasks'][0]['place']
+                report['tasks'][0]['place'] = source.split('/')[-1]
+            elif 'tables' in report:
+                source = report['tables'][0]['source']
+                report['tables'][0]['source'] = source.split('/')[-1]
             msg = _('''
 There are validation issues with this file, please see the
 <a {params}>report</a> for details. Once you have resolved the issues,
