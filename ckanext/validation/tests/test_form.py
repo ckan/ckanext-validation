@@ -80,7 +80,7 @@ class TestResourceSchemaForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["schema"]) == value
+        assert dataset["resources"][0]["schema"] == value
 
     def test_resource_form_create_json(self, app):
         dataset = Dataset()
@@ -105,7 +105,7 @@ class TestResourceSchemaForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["schema"]) == value
+        assert dataset["resources"][0]["schema"] == value
 
     def test_resource_form_create_upload(self, app):
         dataset = Dataset()
@@ -131,7 +131,7 @@ class TestResourceSchemaForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["schema"]) == value
+        assert dataset["resources"][0]["schema"] == value
 
     def test_resource_form_create_url(self, app):
         dataset = Dataset()
@@ -187,7 +187,7 @@ class TestResourceSchemaForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["schema"]) == value
+        assert dataset["resources"][0]["schema"] == value
 
     def test_resource_form_update_json(self, app):
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
@@ -216,7 +216,7 @@ class TestResourceSchemaForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["schema"]) == value
+        assert dataset["resources"][0]["schema"] == value
 
     def test_resource_form_update_url(self, app):
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
@@ -274,7 +274,7 @@ class TestResourceSchemaForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["schema"]) == value
+        assert dataset["resources"][0]["schema"] == value
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup")
@@ -312,7 +312,7 @@ class TestResourceValidationOptionsForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["validation_options"]) == value
+        assert dataset["resources"][0]["validation_options"] == value
 
     def test_resource_form_update(self, app):
         value = {
@@ -353,7 +353,7 @@ class TestResourceValidationOptionsForm(object):
 
         dataset = call_action("package_show", id=dataset["id"])
 
-        assert json.loads(dataset["resources"][0]["validation_options"]) == value
+        assert dataset["resources"][0]["validation_options"] == value
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads")
@@ -458,8 +458,8 @@ class TestResourceValidationOnUpdateForm(object):
         )
 
         assert "validation" in response.body
-        assert "missing-value" in response.body
-        assert "Row 2 has a missing value in column 4" in response.body
+        assert "missing-cell" in response.body
+        assert "This row has less values compared to the header row" in response.body
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup")

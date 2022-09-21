@@ -647,7 +647,7 @@ class TestSchemaFields(object):
             schema='{"fields":[{"name":"id"}]}',
         )
 
-        assert json.loads(resource["schema"]) == {"fields": [{"name": "id"}]}
+        assert resource["schema"] == {"fields": [{"name": "id"}]}
 
         assert "schema_upload" not in resource
         assert "schema_url" not in resource
@@ -716,7 +716,7 @@ class TestSchemaFields(object):
             schema_upload=mock_upload,
         )
 
-        assert json.loads(resource["schema"]) == {"fields": [{"name": "category"}]}
+        assert resource["schema"] == {"fields": [{"name": "category"}]}
 
         assert "schema_upload" not in resource
         assert "schema_url" not in resource
@@ -760,4 +760,4 @@ class TestValidationOptionsField(object):
             validation_options=validation_options,
         )
 
-        assert json.loads(resource["validation_options"]) == json.loads(validation_options)
+        assert resource["validation_options"] == json.loads(validation_options)
