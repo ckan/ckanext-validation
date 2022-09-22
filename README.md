@@ -36,7 +36,7 @@ Data description and validation for CKAN with [Frictionless Data](https://fricti
 
 ## Overview
 
-This extension brings data validation powered by the [Goodtables](https://github.com/frictionlessdata/goodtables-py) library to CKAN. It provides out of the box features to validate tabular data and integrate validation reports to the CKAN interface.
+This extension brings data validation powered by the [Frictionless Framework](https://github.com/frictionlessdata/framework) library to CKAN. It provides out of the box features to validate tabular data and integrate validation reports to the CKAN interface.
 
 Data validation can be performed automatically on the background or during dataset creation, and the results are stored against each resource.
 
@@ -51,7 +51,7 @@ If you are eager to get started, jump to the [Installation](#installation) and [
 
 ## Versions supported and requirements
 
-This extension is currently tested in CKAN 2.8 and CKAN 2.9.
+This extension is currently tested in CKAN 2.9.
 
 It is strongly recommended to use it alongside [ckanext-scheming](https://github.com/ckan/ckanext-scheming) to define the necessary extra fields in the default CKAN schema.
 
@@ -76,7 +76,6 @@ Once installed, add the `validation` plugin to the `ckan.plugins` configuration 
 
     ckan.plugins = ... validation
 
-*Note:* if using CKAN 2.6 or lower and [asynchronous validation](#asynchronous-validation), also add the `rq` plugin ([see Versions supported and requirements](#versions-supported-and-requirements)) to `ckan.plugins`.
 
 ### Adding schema fields to the Resource metadata
 
@@ -108,7 +107,7 @@ You can also provide [validation options](#validation-options) that will be used
 
 	ckanext.validation.default_validation_options={
 	    "skip_checks": ["blank-rows", "duplicate-headers"],
-    	"headers": 3}
+    	}
 
 Make sure to use indentation if the value spans multiple lines otherwise it won't be parsed.
 
@@ -238,9 +237,6 @@ The following validation options would make validation pass:
 
 ```json
 {
-    "headers": 3,
-    "delimiter": ";",
-    "skip_rows": ["#"],
     "skip_checks": ["blank-rows"]
 }
 
@@ -327,7 +323,7 @@ The extension requires changes in the default CKAN resource metadata schema to a
 Here's more detail on the fields added:
 
 * `schema`: This can be a [Table Schema](http://frictionlessdata.io/specs/table-schema/) JSON object or an URL pointing to one. In the UI form you can upload a JSON file, link to one providing a URL or enter it directly. If uploaded, the file contents will be read and stored in the `schema` field. In all three cases the contents will be validated against the Table Schema specification.
-* `validation_options`: A JSON object with validation options that will be passed to [Goodtables](https://github.com/frictionlessdata/goodtables-py#validatesource-options).
+* `validation_options`: A JSON object with validation options that will be passed to Frictionless Framework [validate](https://framework.frictionlessdata.io/docs/guides/validating-data.html) function.
 
 ![Form fields](https://i.imgur.com/ixKOCij.png)
 
