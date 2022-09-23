@@ -127,19 +127,17 @@ def run_validation_job(resource):
 
 def _validate_table(source, _format='csv', schema=None, **options):
 
-    # TODO: Search if there is an equivalent way to use a proxy in Frictionless Framework v5
-    # http_session = options.pop('http_session', None) or requests.Session()
+    frictionless_context = { 'trusted': True }
+    http_session = options.pop('http_session', None) or requests.Session()
 
-    # use_proxy = 'ckan.download_proxy' in t.config
-    # if use_proxy:
-    #     proxy = t.config.get('ckan.download_proxy')
-    #     log.debug('Download resource for validation via proxy: %s', proxy)
-    #     http_session.proxies.update({'http': proxy, 'https': proxy})
+    use_proxy = 'ckan.download_proxy' in t.config
+    if use_proxy:
+        proxy = t.config.get('ckan.download_proxy')
+        log.debug('Download resource for validation via proxy: %s', proxy)
+        http_session.proxies.update({'http': proxy, 'https': proxy})
+        frictionless_context['http_session'] = http_session
 
-    #report = validate(source, format=_format, schema=schema, http_session=http_session, **options)
-
-
-    with system.use_context(trusted=True):
+    with system.use_context(**frictionless_context):
         report = validate(source, format=_format, schema=schema, **options)
         log.debug('Validating source: %s', source)
 
