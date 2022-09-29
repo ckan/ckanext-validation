@@ -7,7 +7,6 @@ import re
 
 import requests
 from sqlalchemy.orm.exc import NoResultFound
-# from goodtables import validate
 from frictionless import validate, system, Report, Schema
 
 from ckan.model import Session

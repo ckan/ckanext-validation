@@ -51,7 +51,7 @@ If you are eager to get started, jump to the [Installation](#installation) and [
 
 ## Versions supported and requirements
 
-This extension is currently tested in CKAN 2.9.
+This extension is currently tested in CKAN 2.9 (Python 3).
 
 It is strongly recommended to use it alongside [ckanext-scheming](https://github.com/ckan/ckanext-scheming) to define the necessary extra fields in the default CKAN schema.
 
