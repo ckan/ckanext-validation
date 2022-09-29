@@ -81,7 +81,7 @@ class TestValidationJob(object):
 
         assert mock_validate.call_args[0][0] == "http://example.com/file.csv"
         assert mock_validate.call_args[1]["format"] == "csv"
-        assert mock_validate.call_args[1]["schema"] == json.dumps(schema)
+        assert mock_validate.call_args[1]["schema"].to_dict() == schema
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     @mock.patch.object(

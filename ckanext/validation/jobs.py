@@ -8,7 +8,7 @@ import re
 import requests
 from sqlalchemy.orm.exc import NoResultFound
 # from goodtables import validate
-from frictionless import validate, system, Report
+from frictionless import validate, system, Report, Schema
 
 from ckan.model import Session
 import ckan.lib.uploader as uploader
@@ -83,8 +83,7 @@ def run_validation_job(resource):
             if schema.startswith('http'):
                 r = requests.get(schema)
                 schema = r.json()
-        else:
-            schema = json.dumps(schema)
+            schema = json.loads(schema)
 
     _format = resource['format'].lower()
 
@@ -138,8 +137,10 @@ def _validate_table(source, _format='csv', schema=None, **options):
         http_session.proxies.update({'http': proxy, 'https': proxy})
         frictionless_context['http_session'] = http_session
 
+    resource_schema = Schema.from_descriptor(schema) if schema else None
+
     with system.use_context(**frictionless_context):
-        report = validate(source, format=_format, schema=schema, **options)
+        report = validate(source, format=_format, schema=resource_schema, **options)
         log.debug('Validating source: %s', source)
 
     return report
