@@ -15,6 +15,7 @@ import ckan.lib.uploader as uploader
 import ckantoolkit as t
 
 from ckanext.validation.model import Validation
+from ckanext.validation.utils import get_update_mode_from_config
 
 
 log = logging.getLogger(__name__)
@@ -115,13 +116,24 @@ def run_validation_job(resource):
     Session.commit()
 
     # Store result status in resource
-    t.get_action('resource_patch')(
-        {'ignore_auth': True,
-         'user': t.get_action('get_site_user')({'ignore_auth': True})['name'],
-         '_validation_performed': True},
-        {'id': resource['id'],
-         'validation_status': validation.status,
-         'validation_timestamp': validation.finished.isoformat()})
+    data_dict = {
+        'id': resource['id'],
+        'validation_status': validation.status,
+        'validation_timestamp': validation.finished.isoformat(),
+    }
+
+    if get_update_mode_from_config() == 'sync':
+        data_dict['_skip_next_validation'] = True,
+
+    patch_context = {
+        'ignore_auth': True,
+        'user': t.get_action('get_site_user')({'ignore_auth': True})['name'],
+        '_validation_performed': True
+    }
+    t.get_action('resource_patch')(patch_context, data_dict)
+
+
+
 
 
 def _validate_table(source, _format='csv', schema=None, **options):
