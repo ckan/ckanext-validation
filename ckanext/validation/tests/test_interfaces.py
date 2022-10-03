@@ -104,7 +104,9 @@ class TestInterfaceSync():
             format='CSV',
             package_id=dataset['id']
         )
-        assert _get_plugin_calls() == 1
+        # One for the resource_update, one for the resource_patch one
+        # to store the result, which does not trigger another job
+        assert _get_plugin_calls() == 2
 
         assert mock_validation.called
 
