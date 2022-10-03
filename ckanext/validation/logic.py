@@ -612,7 +612,8 @@ def resource_update(up_func, context, data_dict):
             log.debug('Skipping validation for resource {}'.format(id))
             run_validation = False
 
-    run_validation = not data_dict.pop('_skip_next_validation', None)
+    if run_validation:
+        run_validation = not data_dict.pop('_skip_next_validation', None)
 
     if run_validation:
         is_local_upload = (
