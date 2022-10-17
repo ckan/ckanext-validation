@@ -109,7 +109,7 @@ def run_validation_job(resource):
             validation.error = {
                 'message': [str(err) for err in report['tables'][0]['errors']] if len(report['tables'][0]['errors']) > 0 else 'No tables found'}
         else:
-            validation.error = {'message': []}
+            validation.error = {'message': ['Error running validation']}
     validation.finished = datetime.datetime.utcnow()
 
     Session.add(validation)
