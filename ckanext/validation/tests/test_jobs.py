@@ -141,7 +141,6 @@ class TestValidationJob(object):
         )
 
         assert validation.status == "error"
-        print(json.dumps(json.loads(validation.report), indent=4))
         assert json.loads(validation.report) == INVALID_REPORT
         assert validation.finished
 
