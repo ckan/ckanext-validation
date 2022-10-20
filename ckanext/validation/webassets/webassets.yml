@@ -31,12 +31,15 @@ report-js:
   filter: rjsmin
   output: ckanext-validation/%(version)s_report.js
   contents:
-    - vendor/goodtables-ui/goodtables-ui.js
+    - vendor/frictionless-components/frictionless-components.min.js
     - js/module-validation-report.js
-
+  extra:
+    preload:
+      - base/main
 
 report-css:
   output: ckanext-validation/%(version)s_validation_report.css
   contents:
-    - vendor/goodtables-ui/goodtables-ui.css
-    - css/validation-report.css
+    - vendor/frictionless-components/frictionless-components.min.css
+
+
