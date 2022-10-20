@@ -140,14 +140,14 @@ def _validate_table(source, _format='csv', schema=None, **options):
 
     frictionless_context = { 'trusted': True }
     http_session = options.pop('http_session', None) or requests.Session()
-
     use_proxy = 'ckan.download_proxy' in t.config
+
     if use_proxy:
         proxy = t.config.get('ckan.download_proxy')
         log.debug('Download resource for validation via proxy: %s', proxy)
         http_session.proxies.update({'http': proxy, 'https': proxy})
-        frictionless_context['http_session'] = http_session
 
+    frictionless_context['http_session'] = http_session
     resource_schema = Schema.from_descriptor(schema) if schema else None
 
     with system.use_context(**frictionless_context):

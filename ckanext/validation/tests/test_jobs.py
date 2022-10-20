@@ -202,7 +202,8 @@ class TestValidationJob(object):
         assert (
             updated_resource["validation_timestamp"] == validation.finished.isoformat()
         )
-# TODO: The vollowing test is not valid on frictionless v5. 
+
+# TODO: The following test is not valid on frictionless v5. 
 # The local path is not hidden and there is no warning for more
 # than 1000 rows tables
 #
