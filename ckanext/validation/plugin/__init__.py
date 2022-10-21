@@ -23,6 +23,7 @@ from ckanext.validation.helpers import (
     validation_extract_report_from_errors,
     dump_json_value,
     bootstrap_version,
+    validation_dict,
     use_webassets,
 )
 from ckanext.validation.validators import (
@@ -110,6 +111,7 @@ to create the database tables:
             u'validation_extract_report_from_errors': validation_extract_report_from_errors,
             u'dump_json_value': dump_json_value,
             u'bootstrap_version': bootstrap_version,
+            u'validation_dict': validation_dict,
             u'use_webassets': use_webassets,
         }
 
