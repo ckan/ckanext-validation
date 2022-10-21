@@ -72,9 +72,9 @@ Create the database tables running:
 
 ## Configuration
 
-Once installed, add the `validation` plugin to the `ckan.plugins` configuration option in your INI file:
+Once installed, add the `validation` plugin to the `ckan.plugins` configuration option in your INI file. If using ckanext-scheming, the `validation` plugins should be loaded **before** the `scheming_datasets` one:
 
-    ckan.plugins = ... validation
+    ckan.plugins = ... validation scheming_datasets
 
 *Note:* if using CKAN 2.6 or lower and [asynchronous validation](#asynchronous-validation), also add the `rq` plugin ([see Versions supported and requirements](#versions-supported-and-requirements)) to `ckan.plugins`.
 
