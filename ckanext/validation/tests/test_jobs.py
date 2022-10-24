@@ -140,7 +140,7 @@ class TestValidationJob(object):
             .one()
         )
 
-        assert validation.status == "error"
+        assert validation.status == "failure"
         assert json.loads(validation.report) == INVALID_REPORT
         assert validation.finished
 
