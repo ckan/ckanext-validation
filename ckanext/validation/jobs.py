@@ -7,7 +7,7 @@ import re
 
 import requests
 from sqlalchemy.orm.exc import NoResultFound
-from frictionless import validate, system, Report, Schema
+from frictionless import validate, system, Report, Schema, Dialect, Check
 
 from ckan.model import Session
 import ckan.lib.uploader as uploader
@@ -99,7 +99,7 @@ def run_validation_job(resource):
     if 'warnings' in report:
         for index, warning in enumerate(report['warnings']):
             report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
-    if 'valid' in report and report['valid']:
+    if 'valid' in report:
         validation.status = 'success' if report['valid'] else 'failure'
         validation.report = json.dumps(report)
     else:
@@ -149,6 +149,16 @@ def _validate_table(source, _format='csv', schema=None, **options):
 
     frictionless_context['http_session'] = http_session
     resource_schema = Schema.from_descriptor(schema) if schema else None
+
+    # Load the Resource Dialect as described in https://framework.frictionlessdata.io/docs/framework/dialect.html
+    if 'dialect' in options:
+        dialect = Dialect.from_descriptor(options['dialect'])
+        options['dialect'] = dialect
+
+    # Load the list of checks and its parameters declaratively as in https://framework.frictionlessdata.io/docs/checks/table.html
+    if 'checks' in options:
+        checklist = [Check.from_descriptor(c) for c in options['checks']]
+        options['checks'] = checklist
 
     with system.use_context(**frictionless_context):
         report = validate(source, format=_format, schema=resource_schema, **options)
