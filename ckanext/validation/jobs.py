@@ -97,6 +97,7 @@ def run_validation_job(resource):
             if table['place'].startswith('/'):
                 table['place'] = resource['url']
     if 'warnings' in report:
+        validation.status = 'error'
         for index, warning in enumerate(report['warnings']):
             report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
     if 'valid' in report:

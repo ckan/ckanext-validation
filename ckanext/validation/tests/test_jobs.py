@@ -140,7 +140,7 @@ class TestValidationJob(object):
             .one()
         )
 
-        assert validation.status == "error"
+        assert validation.status == "failure"
         assert json.loads(validation.report) == INVALID_REPORT
         assert validation.finished
 
@@ -158,7 +158,7 @@ class TestValidationJob(object):
         )
 
         assert validation.status == "error"
-        assert validation.error == {"message": ['Error running validation']}
+        assert validation.error == {"message": ['Errors validating the data']}
         assert validation.finished
 
     @mock.patch(
@@ -180,7 +180,7 @@ class TestValidationJob(object):
         )
 
         report = json.loads(validation.report)
-        assert report["tables"][0]["source"].startswith("http")
+        assert report["tasks"][0]["place"].startswith("http")
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     def test_job_run_valid_stores_status_in_resource(self, mock_validate):
