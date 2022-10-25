@@ -162,7 +162,7 @@ that cover common issues with tabular data files.
 
 These checks include structural problems like missing headers or values, blank
 rows, etc., but also can validate the data contents themselves (see 
-[Data Schemas](#data-schemas)) or even run [custom checks](https://github.com/frictionlessdata/goodtables-py#custom-constraint).
+[Data Schemas](#data-schemas)) or even run [custom checks](https://framework.frictionlessdata.io/docs/guides/validating-data.html#custom-checks).
 
 The result of this validation is a JSON report. This report contains all the
 issues found (if any) with their relevant context (row number, columns
