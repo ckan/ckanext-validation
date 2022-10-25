@@ -138,6 +138,7 @@ def run_validation_job(resource):
 
 def _validate_table(source, _format='csv', schema=None, **options):
 
+    # This option is needed to allow Frictionless Framework to validate absolute paths
     frictionless_context = { 'trusted': True }
     http_session = options.pop('http_session', None) or requests.Session()
     use_proxy = 'ckan.download_proxy' in t.config
