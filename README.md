@@ -154,8 +154,8 @@ published in CKAN, that is the contents of tabular files (Excel, CSV, etc)
 hosted in CKAN itself or elsewhere. Whenever a resource of the appropriate
 format is created or updated, the extension will validate the data against a
 collection of checks. This validation is powered by
-[Goodtables](https://github.com/frictionlessdata/goodtables-py), a very
-powerful data validation library developed by [Open Knowledge International](https://okfn.org) 
+[Frictionless Framework](https://github.com/frictionlessdata/framework), a very
+powerful data validation library developed by the [Open Knowledge Foundation](https://okfn.org) 
 as part of the [Frictionless Data](https://frictionlessdata.io) project.
 Goodtables provides an extensive suite of [checks](https://github.com/frictionlessdata/goodtables-py#checks)
 that cover common issues with tabular data files.
