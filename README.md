@@ -303,7 +303,11 @@ The following validation options would make validation pass:
       "csv": {
         "delimiter": ";"
       }
-    }
+    },
+    "checks: [
+      {"type": "table-dimensions", "minRows": 3},
+      {"type": 'ascii-value'}
+    ]
 }
 
 ```
