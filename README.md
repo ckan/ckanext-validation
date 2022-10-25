@@ -270,8 +270,8 @@ As we saw before, the validation process involves many different checks and
 it's very likely that what "valid" data actually means will vary across CKAN
 instances or datasets. The validation process can be tweaked by passing any of
 the [supported
-options](https://github.com/frictionlessdata/goodtables-py#validatesource-options)
-to Goodtables. These can be used to add or remove specific checks, control
+options](https://framework.frictionlessdata.io/docs/guides/validating-data.html)
+to Frictionless Framework. These can be used to add or remove specific checks, control
 limits, etc.
 
 For instance, the following file would fail validation using the default
