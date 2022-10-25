@@ -157,7 +157,7 @@ collection of checks. This validation is powered by
 [Frictionless Framework](https://github.com/frictionlessdata/framework), a very
 powerful data validation library developed by the [Open Knowledge Foundation](https://okfn.org) 
 as part of the [Frictionless Data](https://frictionlessdata.io) project.
-Goodtables provides an extensive suite of [checks](https://github.com/frictionlessdata/goodtables-py#checks)
+Frictionless Framework provides an extensive suite of [checks](https://framework.frictionlessdata.io/docs/checks/baseline.html)
 that cover common issues with tabular data files.
 
 These checks include structural problems like missing headers or values, blank
