@@ -83,10 +83,9 @@ Create the database tables running:
 
 ## Configuration
 
-Once installed, add the `validation` plugin to the `ckan.plugins` configuration
-option in your INI file:
+Once installed, add the `validation` plugin to the `ckan.plugins` configuration option in your INI file. If using ckanext-scheming, the `validation` plugins should be loaded **before** the `scheming_datasets` one:
 
-    ckan.plugins = ... validation
+    ckan.plugins = ... validation scheming_datasets
 
 
 ### Adding schema fields to the Resource metadata
