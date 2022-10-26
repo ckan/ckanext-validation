@@ -303,7 +303,7 @@ The following validation options would make validation pass:
         "delimiter": ";"
       }
     },
-    "checks: [
+    "checks": [
       {"type": "table-dimensions", "minRows": 3},
       {"type": 'ascii-value'}
     ]
