@@ -8,7 +8,7 @@
           </h3>
       </div>
       <div class="modal-body">
-        <div id="report" data-module="validation-report" data-module-report="{{ h.dump_json_value(validation_report) }}"></div>
+        <div id="report" data-module="validation-report" data-module-report="{{ validation_report }}"></div>
       </div>
     </div>
   </div>
@@ -16,7 +16,7 @@
 
 {% if h.use_webassets() %}
     {% snippet 'validation/snippets/validation_asset.html', name='ckanext-validation/report-css' %}
-    {% snippet 'validation/snippets/validation_asset.html', name='ckanext-validation/report-js' %}
+    {% snippet 'validation/snippets/validation_asset.html', name='ckanext-validation/report-form-js' %}
 {% else %}
     {% snippet 'validation/snippets/validation_resource.html', name='ckanext-validation/report-form' %}
 {% endif %}

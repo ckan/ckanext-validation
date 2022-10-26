@@ -7,7 +7,7 @@ ckan.module('validation-report', function (jQuery) {
     },
     initialize: function() {
       let element = document.getElementById('report')
-      let report = JSON.parse(this.options.report)
+      let report = this.options.report
       frictionlessComponents.render(frictionlessComponents.Report, { report }, element)
     }
   }

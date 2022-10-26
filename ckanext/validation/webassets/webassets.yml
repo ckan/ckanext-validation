@@ -16,14 +16,13 @@ report-form-js:
   filter: rjsmin
   output: ckanext-validation/%(version)s_report_form.js
   contents:
-    - vendor/goodtables-ui/goodtables-ui.js
     - js/module-validation-report.js
+    - vendor/frictionless-components/frictionless-components.min.js
     - js/module-modal-dialog.js
 
 report-form-css:
   output: ckanext-validation/%(version)s_validation_report_form.css
   contents:
-    - vendor/goodtables-ui/goodtables-ui.css
     - css/validation-report.css
     - css/validation-report-form.css
 
