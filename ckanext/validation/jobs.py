@@ -92,10 +92,10 @@ def run_validation_job(resource):
     # Hide uploaded files
     if type(report) == Report:
         report = report.to_dict()
-    if 'tables' in report:
-        for table in report['tables']:
-            if table['source'].startswith('/'):
-                table['source'] = resource['url']
+    if 'tasks' in report:
+        for table in report['tasks']:
+            if table['place'].startswith('/'):
+                table['place'] = resource['url']
     if 'warnings' in report:
         for index, warning in enumerate(report['warnings']):
             report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)

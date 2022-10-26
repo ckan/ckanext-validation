@@ -180,7 +180,7 @@ class TestValidationJob(object):
         )
 
         report = json.loads(validation.report)
-        assert report["tables"][0]["source"].startswith("http")
+        assert report["tasks"][0]["place"].startswith("http")
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     def test_job_run_valid_stores_status_in_resource(self, mock_validate):
@@ -202,110 +202,73 @@ class TestValidationJob(object):
             updated_resource["validation_timestamp"] == validation.finished.isoformat()
         )
 
-# TODO: The following test is not valid on frictionless v5. 
-# The local path is not hidden and there is no warning for more
-# than 1000 rows tables
-#
-#    @pytest.mark.usefixtures("mock_uploads")
-#    def test_job_local_paths_are_hidden(self):
-#
-#        invalid_csv = "id,type\n" + "1,a,\n" * 1010
-#        invalid_file = get_mock_file(invalid_csv)
-#
-#        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
-#
-#        resource = factories.Resource(format="csv", upload=mock_upload)
-#
-#        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
-#
-#        with mock.patch("io.open", return_value=invalid_stream):
-#
-#            run_validation_job(resource)
-#
-#        validation = (
-#            Session.query(Validation)
-#            .filter(Validation.resource_id == resource["id"])
-#            .one()
-#        )
-#
-#        report = json.loads(validation.report)
-#        source = report["tasks"][0]["resource"]["path"]
-#        assert source.startswith("http")
-#        assert source.endswith("invalid.csv")
-#
-#        warning = report["warnings"][0]
-#        assert warning == "Table inspection has reached 1000 row(s) limit"
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_job_local_paths_are_hidden(self):
 
-#TODO: Check how to pass arguments to skip rows in frictionless v5
-#    @pytest.mark.usefixtures("mock_uploads")
-#    def test_job_pass_validation_options(self):
-#
-#        invalid_csv = """
-#
-#a,b,c
-##comment
-#1,2,3
-#"""
-#
-#        validation_options = {"headers": 3, "skip_rows": ["#"]}
-#
-#        invalid_file = get_mock_file(invalid_csv)
-#
-#        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
-#
-#        resource = factories.Resource(
-#            format="csv", upload=mock_upload, validation_options=validation_options
-#        )
-#
-#        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
-#
-#        with mock.patch("io.open", return_value=invalid_stream):
-#
-#            run_validation_job(resource)
-#
-#        validation = (
-#            Session.query(Validation)
-#            .filter(Validation.resource_id == resource["id"])
-#            .one()
-#        )
-#
-#        assert validation.report["valid"] is True
-#
-#TODO: Check how to pass arguments to skip rows in frictionless v5
-#    @pytest.mark.usefixtures("mock_uploads")
-#    def test_job_pass_validation_options_string(self):
-#
-#        invalid_csv = """
-#
-#a;b;c
-##comment
-#1;2;3
-#"""
-#
-#        validation_options = """{
-#            "headers": 3,
-#            "skip_rows": ["#"]
-#        }"""
-#
-#        invalid_file = get_mock_file(invalid_csv)
-#
-#        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
-#
-#        resource = factories.Resource(
-#            format="csv", upload=mock_upload, validation_options=validation_options
-#        )
-#
-#        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
-#
-#        with mock.patch("io.open", return_value=invalid_stream):
-#
-#            run_validation_job(resource)
-#
-#        validation = (
-#            Session.query(Validation)
-#            .filter(Validation.resource_id == resource["id"])
-#            .one()
-#        )
-#
-#        report = json.loads(validation.report)
-#        assert report["valid"] is True
+        invalid_csv = "id,type\n" + "1,a,\n" * 1010
+        invalid_file = get_mock_file(invalid_csv)
+
+        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
+
+        resource = factories.Resource(format="csv", upload=mock_upload)
+
+        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
+
+        with mock.patch("io.open", return_value=invalid_stream):
+            run_validation_job(resource)
+
+        validation = (
+            Session.query(Validation)
+            .filter(Validation.resource_id == resource["id"])
+            .one()
+        )
+
+        report = json.loads(validation.report)
+        source = report["tasks"][0]["place"]
+        assert source.startswith("http")
+        assert source.endswith("invalid.csv")
+
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_job_pass_validation_options_string(self):
+
+        invalid_csv = """
+
+a;b;c
+#comment
+1;2;3
+"""
+
+        validation_options = """
+         {
+            "dialect":  {
+              "header": true,
+              "headerRows": [2],
+              "commentChar": "#",
+              "csv": {
+                "delimiter": ";"
+              }
+            }
+        }
+        """
+
+        invalid_file = get_mock_file(invalid_csv)
+        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
+
+        resource = factories.Resource(
+            format="csv", upload=mock_upload, validation_options=validation_options
+        )
+
+        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
+
+        with mock.patch("io.open", return_value=invalid_stream):
+
+            run_validation_job(resource)
+
+        validation = (
+            Session.query(Validation)
+            .filter(Validation.resource_id == resource["id"])
+            .one()
+        )
+
+        report = json.loads(validation.report)
+        assert report["valid"] is True
