@@ -17,8 +17,6 @@ ckan.module('modal-dialog', function (jQuery) {
      */
     initialize: function () {
       jQuery.proxyAll(this, /_on/);
-      console.log('HERE', this)
-
       this.el.on('click', this._onClick);
       this.modal = $('#' + this.options.div)
     },
