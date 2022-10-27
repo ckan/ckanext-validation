@@ -470,8 +470,8 @@ class TestResourceValidationOnCreate(object):
             )
 
         assert "validation" in e.value.error_dict
-        assert "missing-value" in str(e)
-        assert "Row 2 has a missing value in column 4" in str(e)
+        assert "missing-cell" in str(e)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
@@ -566,8 +566,8 @@ class TestResourceValidationOnUpdate(object):
                 )
 
         assert "validation" in e.value.error_dict
-        assert "missing-value" in str(e)
-        assert "Row 2 has a missing value in column 4" in str(e)
+        assert "missing-cell" in str(e)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):

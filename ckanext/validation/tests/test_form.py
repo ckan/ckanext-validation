@@ -405,8 +405,9 @@ class TestResourceValidationOnCreateForm(object):
         )
 
         assert "validation" in response.body
-        assert "missing-value" in response.body
-        assert "Row 2 has a missing value in column 4" in response.body
+        assert "missing-cell" in response.body
+        assert 'Row at position \\&#34;2\\&#34; has a missing cell in field \\&#34;d\\&#34; at position \\&#34;4\\&#34;' in response.body
+        assert "This row has less values compared to the header row" in response.body
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads")
@@ -458,8 +459,8 @@ class TestResourceValidationOnUpdateForm(object):
         )
 
         assert "validation" in response.body
-        assert "missing-value" in response.body
-        assert "Row 2 has a missing value in column 4" in response.body
+        assert "missing-cell" in response.body
+        assert "This row has less values compared to the header row" in response.body
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup")

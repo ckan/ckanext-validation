@@ -659,26 +659,31 @@ def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
         {u'ignore_auth': True},
         {u'resource_id': resource_id})
 
-    report = validation['report']
+    if validation['report']:
+        report = json.loads(validation['report'])
 
-    if not report['valid']:
+        if not report['valid']:
 
-        # Delete validation object
-        t.get_action(u'resource_validation_delete')(
-            {u'ignore_auth': True},
-            {u'resource_id': resource_id}
-        )
-
-        # Delete uploaded file
-        if local_upload:
-            delete_local_uploaded_file(resource_id)
-
-        if new_resource:
-            # Delete resource
-            t.get_action(u'resource_delete')(
-                {u'ignore_auth': True, 'user': None},
-                {u'id': resource_id}
+            # Delete validation object
+            t.get_action(u'resource_validation_delete')(
+                {u'ignore_auth': True},
+                {u'resource_id': resource_id}
             )
 
+            # Delete uploaded file
+            if local_upload:
+                delete_local_uploaded_file(resource_id)
+
+            if new_resource:
+                # Delete resource
+                t.get_action(u'resource_delete')(
+                    {u'ignore_auth': True, 'user': None},
+                    {u'id': resource_id}
+                )
+
+            raise t.ValidationError({
+                u'validation': [report]})
+    else:
         raise t.ValidationError({
-            u'validation': [report]})
+            'validation': []
+        })

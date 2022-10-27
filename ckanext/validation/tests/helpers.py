@@ -95,7 +95,7 @@ ERROR_REPORT = {
 VALID_REPORT_LOCAL_FILE = {
     'error-count': 0,
     'table-count': 1,
-    'tables': [
+    'tasks': [
         {
             'error-count': 0,
             'errors': [],
@@ -106,7 +106,7 @@ VALID_REPORT_LOCAL_FILE = {
                 'other'
             ],
             'row-count': 79,
-            'source': '/data/resources/31f/d4c/1e-9c82-424b-b78b-48cd08db6e64',
+            'place': '/data/resources/31f/d4c/1e-9c82-424b-b78b-48cd08db6e64',
             'time': 0.007,
             'valid': True
         }

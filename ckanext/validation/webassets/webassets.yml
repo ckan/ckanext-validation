@@ -6,6 +6,9 @@ validation-css:
 resource-schema-form:
   filter: rjsmin
   output: ckanext-validation/%(version)s_resource_schema_form.js
+  extra:
+      preload:
+         - base/main
   contents:
     - js/module-resource-schema.js
 
@@ -13,27 +16,32 @@ report-form-js:
   filter: rjsmin
   output: ckanext-validation/%(version)s_report_form.js
   contents:
-    - vendor/goodtables-ui/goodtables-ui.js
     - js/module-validation-report.js
+    - vendor/frictionless-components/frictionless-components.min.js
     - js/module-modal-dialog.js
+  extra:
+    preload:
+      - base/main
 
 report-form-css:
   output: ckanext-validation/%(version)s_validation_report_form.css
   contents:
-    - vendor/goodtables-ui/goodtables-ui.css
-    - css/validation-report.css
     - css/validation-report-form.css
+    - vendor/frictionless-components/frictionless-components.min.css
 
 report-js:
   filter: rjsmin
   output: ckanext-validation/%(version)s_report.js
   contents:
-    - vendor/goodtables-ui/goodtables-ui.js
+    - vendor/frictionless-components/frictionless-components.min.js
     - js/module-validation-report.js
-
+  extra:
+    preload:
+      - base/main
 
 report-css:
   output: ckanext-validation/%(version)s_validation_report.css
   contents:
-    - vendor/goodtables-ui/goodtables-ui.css
-    - css/validation-report.css
+    - vendor/frictionless-components/frictionless-components.min.css
+
+
