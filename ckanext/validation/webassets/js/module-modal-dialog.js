@@ -1,4 +1,6 @@
-this.ckan.module('modal-dialog', function (jQuery) {
+"use strict";
+
+ckan.module('modal-dialog', function (jQuery) {
   return {
 
     /* holds the loaded lightbox */
@@ -15,7 +17,6 @@ this.ckan.module('modal-dialog', function (jQuery) {
      */
     initialize: function () {
       jQuery.proxyAll(this, /_on/);
-
       this.el.on('click', this._onClick);
       this.modal = $('#' + this.options.div)
     },

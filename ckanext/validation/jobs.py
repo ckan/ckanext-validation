@@ -86,30 +86,31 @@ def run_validation_job(resource):
             schema = json.loads(schema)
 
     _format = resource['format'].lower()
-
     report = _validate_table(source, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
     if type(report) == Report:
         report = report.to_dict()
+
     if 'tasks' in report:
         for table in report['tasks']:
             if table['place'].startswith('/'):
                 table['place'] = resource['url']
     if 'warnings' in report:
+        validation.status = 'error'
         for index, warning in enumerate(report['warnings']):
             report['warnings'][index] = re.sub(r'Table ".*"', 'Table', warning)
     if 'valid' in report:
         validation.status = 'success' if report['valid'] else 'failure'
         validation.report = json.dumps(report)
     else:
-        validation.status = 'error'
         validation.report = json.dumps(report)
-        if 'tables' in report: 
+        if 'errors' in report and report['errors']: 
+            validation.status = 'error'
             validation.error = {
-                'message': [str(err) for err in report['tables'][0]['errors']] if len(report['tables'][0]['errors']) > 0 else 'No tables found'}
+                'message': [str(err) for err in report['errors']]}
         else:
-            validation.error = {'message': ['Error running validation']}
+            validation.error = {'message': ['Errors validating the data']}
     validation.finished = datetime.datetime.utcnow()
 
     Session.add(validation)
@@ -131,7 +132,6 @@ def run_validation_job(resource):
         '_validation_performed': True
     }
     t.get_action('resource_patch')(patch_context, data_dict)
-
 
 
 

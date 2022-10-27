@@ -158,7 +158,7 @@ class TestValidationJob(object):
         )
 
         assert validation.status == "error"
-        assert validation.error == {"message": ['Error running validation']}
+        assert validation.error == {"message": ['Errors validating the data']}
         assert validation.finished
 
     @mock.patch(
