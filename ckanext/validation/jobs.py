@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 def run_validation_job(resource):
 
     log.debug(u'Validating resource %s', resource['id'])
-
+    # breakpoint()
     try:
         validation = Session.query(Validation).filter(
             Validation.resource_id == resource['id']).one()
