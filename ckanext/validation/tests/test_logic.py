@@ -145,6 +145,59 @@ class TestResourceValidationRun(object):
         assert validation.report is None
         assert validation.error is None
 
+    @mock.patch("ckanext.validation.logic.enqueue_job")
+    def test_resource_validation_only_called_on_resource_created(
+        self, mock_enqueue_job
+    ):
+
+        resource1 = {"format": "CSV", "url": "https://some.url"}
+
+        dataset = factories.Dataset(resources=[resource1])
+
+        assert mock_enqueue_job.call_count == 1
+        assert mock_enqueue_job.call_args[0][1][0]["id"] == dataset["resources"][0]["id"]
+
+        mock_enqueue_job.reset_mock()
+
+        resource2 = call_action(
+            "resource_create",
+            package_id=dataset["id"],
+            name="resource_2",
+            format="CSV",
+            url="https://some.url"
+        )
+
+        assert mock_enqueue_job.call_count == 1
+        assert mock_enqueue_job.call_args[0][1][0]["id"] == resource2["id"]
+
+    @mock.patch("ckanext.validation.logic.enqueue_job")
+    def test_resource_validation_only_called_on_resource_updated(
+        self, mock_enqueue_job
+    ):
+
+        resource1 = {"name": "resource_1", "format": "CSV", "url": "https://some.url"}
+        resource2 = {"name": "resource_2", "format": "CSV", "url": "https://some.url"}
+
+        dataset = factories.Dataset(resources=[resource1, resource2])
+
+        assert mock_enqueue_job.call_count == 2
+
+        mock_enqueue_job.reset_mock()
+
+        resource_1_id = [r["id"] for r in dataset["resources"] if r["name"] == "resource_1"][0]
+
+        call_action(
+            "resource_update",
+            id=resource_1_id,
+            name="resource_1",
+            format="CSV",
+            url="https://some.updated.url",
+            description="updated"
+        )
+
+        assert mock_enqueue_job.call_count == 1
+        assert mock_enqueue_job.call_args[0][1][0]["id"] == resource_1_id
+
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceValidationShow(object):
