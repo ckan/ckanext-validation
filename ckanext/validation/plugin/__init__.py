@@ -117,6 +117,9 @@ to create the database tables:
 
     # IResourceController
 
+    resources_to_validate = {}
+    packages_to_skip = {}
+
     def _process_schema_fields(self, data_dict):
         u'''
         Normalize the different ways of providing the `schema` field
@@ -151,10 +154,11 @@ to create the database tables:
         return data_dict
 
     def before_create(self, context, data_dict):
-        return self._process_schema_fields(data_dict)
 
-    resources_to_validate = {}
-    packages_to_skip = {}
+        is_dataset = self._data_dict_is_dataset(data_dict)
+        if not is_dataset:
+            context["_resource_create_call"] = True
+            return self._process_schema_fields(data_dict)
 
     def after_create(self, context, data_dict):
 
@@ -266,6 +270,14 @@ to create the database tables:
                 # or we're updating the package metadata via the web form;
                 # in both cases, we don't need to validate every resource.
                 return
+
+            if context.pop("_resource_create_call", False):
+                new_resource = data_dict["resources"][-1]
+                if new_resource:
+                    # This is part of a resource_create call, we only need to validate
+                    # the new resource being created
+                    self._handle_validation_for_resource(context, new_resource)
+                    return
 
             for resource in data_dict.get(u'resources', []):
                 if resource[u'id'] in self.resources_to_validate:
