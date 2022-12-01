@@ -4,7 +4,6 @@ import logging
 import cgi
 import json
 
-import six
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
 import ckantoolkit as t
@@ -24,6 +23,7 @@ from ckanext.validation.helpers import (
     validation_extract_report_from_errors,
     dump_json_value,
     bootstrap_version,
+    validation_dict,
     use_webassets,
 )
 from ckanext.validation.validators import (
@@ -35,18 +35,14 @@ from ckanext.validation.utils import (
     get_update_mode_from_config,
 )
 from ckanext.validation.interfaces import IDataValidation
-
-if t.check_ckan_version(min_version="2.9"):
-    from ckanext.validation.plugin.flask_plugin import ValidationMixin
-else:
-    from ckanext.validation.plugin.pylons_plugin import ValidationMixin
+from ckanext.validation import blueprints, cli
 
 
 ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 log = logging.getLogger(__name__)
 
 
-class ValidationPlugin(ValidationMixin):
+class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
     p.implements(p.IActions)
     p.implements(p.IAuthFunctions)
@@ -54,6 +50,18 @@ class ValidationPlugin(ValidationMixin):
     p.implements(p.IPackageController, inherit=True)
     p.implements(p.ITemplateHelpers)
     p.implements(p.IValidators)
+    p.implements(p.IBlueprint)
+    p.implements(p.IClick)
+
+    # IBlueprint
+
+    def get_blueprint(self):
+        return [blueprints.validation]
+
+    # IClick
+
+    def get_commands(self):
+        return [cli.validation]
 
     # IConfigurer
 
@@ -79,12 +87,9 @@ to create the database tables:
             u'resource_validation_show': resource_validation_show,
             u'resource_validation_delete': resource_validation_delete,
             u'resource_validation_run_batch': resource_validation_run_batch,
+            u'resource_create': custom_resource_create,
+            u'resource_update': custom_resource_update,
         }
-
-        if get_create_mode_from_config() == u'sync':
-            new_actions[u'resource_create'] = custom_resource_create
-        if get_update_mode_from_config() == u'sync':
-            new_actions[u'resource_update'] = custom_resource_update
 
         return new_actions
 
@@ -106,6 +111,7 @@ to create the database tables:
             u'validation_extract_report_from_errors': validation_extract_report_from_errors,
             u'dump_json_value': dump_json_value,
             u'bootstrap_version': bootstrap_version,
+            u'validation_dict': validation_dict,
             u'use_webassets': use_webassets,
         }
 
@@ -131,9 +137,11 @@ to create the database tables:
         if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
             uploaded_file = _get_underlying_file(schema_upload)
             data_dict[u'schema'] = uploaded_file.read()
+            if isinstance(data_dict["schema"], (bytes, bytearray)):
+                data_dict["schema"] = data_dict["schema"].decode()
         elif schema_url:
 
-            if (not isinstance(schema_url, six.string_types) or
+            if (not isinstance(schema_url, str) or
                     not schema_url.lower()[:4] == u'http'):
                 raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
             data_dict[u'schema'] = schema_url

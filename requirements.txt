@@ -1,4 +1,5 @@
-six>=1.12.0
 ckantoolkit>=0.0.3
-goodtables==1.5.1
+frictionless==5.0.0b9
+markupsafe==2.0.1
+tableschema
 -e git+https://github.com/ckan/ckanext-scheming.git#egg=ckanext-scheming

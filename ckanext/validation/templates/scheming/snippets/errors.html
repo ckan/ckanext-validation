@@ -6,9 +6,9 @@
 
   {% if validation_report %}
     {% if h.bootstrap_version() == '3' %}
-      {% snippet 'validation/snippets/validation_report_dialog.html', validation_report=validation_report %}
+      {% snippet 'validation/snippets/validation_report_dialog.html', validation_report=h.dump_json_value(validation_report) %}
     {% else %}
-      {% snippet 'validation/snippets/validation_report_dialog_bs2.html', validation_report=validation_report %}
+      {% snippet 'validation/snippets/validation_report_dialog_bs2.html', validation_report=h.dump_json_value(validation_report) %}
     {% endif %}
   {% endif %}
 

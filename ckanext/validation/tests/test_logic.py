@@ -1,11 +1,9 @@
 import datetime
-import six
-from six import StringIO, BytesIO
 import io
 import json
 
 import pytest
-import mock
+from unittest import mock
 
 from ckan import model
 from ckan.tests.helpers import call_action, call_auth
@@ -18,7 +16,6 @@ from ckanext.validation.tests.helpers import (
     VALID_CSV,
     INVALID_CSV,
     VALID_REPORT,
-    mock_uploads,
     MockFieldStorage,
     get_mock_file,
 )
@@ -451,22 +448,11 @@ class TestAuth(object):
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+@pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", True)
 class TestResourceValidationOnCreate(object):
-    @classmethod
-    def setup_class(cls):
-        # Needed to apply the config changes at the right time so they can be picked up
-        # during startup
-        cls._original_config = dict(t.config)
-        t.config["ckanext.validation.run_on_create_sync"] = True
 
-    @classmethod
-    def teardown_class(cls):
-
-        t.config.clear()
-        t.config.update(cls._original_config)
-
-    @mock_uploads
-    def test_validation_fails_on_upload(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_validation_fails_on_upload(self):
 
         invalid_file = get_mock_file(INVALID_CSV)
 
@@ -474,25 +460,21 @@ class TestResourceValidationOnCreate(object):
 
         dataset = factories.Dataset()
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
+        with pytest.raises(t.ValidationError) as e:
 
-        with mock.patch("io.open", return_value=invalid_stream):
-
-            with pytest.raises(t.ValidationError) as e:
-
-                call_action(
-                    "resource_create",
-                    package_id=dataset["id"],
-                    format="CSV",
-                    upload=mock_upload,
-                )
+            call_action(
+                "resource_create",
+                package_id=dataset["id"],
+                format="CSV",
+                upload=mock_upload,
+            )
 
         assert "validation" in e.value.error_dict
-        assert "missing-value" in str(e)
-        assert "Row 2 has a missing value in column 4" in str(e)
+        assert "missing-cell" in str(e)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
 
-    @mock_uploads
-    def test_validation_fails_no_validation_object_stored(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_validation_fails_no_validation_object_stored(self):
 
         invalid_file = get_mock_file(INVALID_CSV)
 
@@ -504,22 +486,20 @@ class TestResourceValidationOnCreate(object):
 
         validation_count_before = model.Session.query(Validation).count()
 
-        with mock.patch("io.open", return_value=invalid_stream):
-
-            with pytest.raises(t.ValidationError):
-                call_action(
-                    "resource_create",
-                    package_id=dataset["id"],
-                    format="CSV",
-                    upload=mock_upload,
-                )
+        with pytest.raises(t.ValidationError):
+            call_action(
+                "resource_create",
+                package_id=dataset["id"],
+                format="CSV",
+                upload=mock_upload,
+            )
 
         validation_count_after = model.Session.query(Validation).count()
 
         assert validation_count_after == validation_count_before
 
-    @mock_uploads
-    def test_validation_passes_on_upload(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_validation_passes_on_upload(self):
 
         valid_file = get_mock_file(VALID_CSV)
 
@@ -560,22 +540,11 @@ class TestResourceValidationOnCreate(object):
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+@pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", True)
 class TestResourceValidationOnUpdate(object):
-    @classmethod
-    def setup_class(cls):
-        # Needed to apply the config changes at the right time so they can be picked up
-        # during startup
-        cls._original_config = dict(t.config)
-        t.config["ckanext.validation.run_on_update_sync"] = True
 
-    @classmethod
-    def teardown_class(cls):
-
-        t.config.clear()
-        t.config.update(cls._original_config)
-
-    @mock_uploads
-    def test_validation_fails_on_upload(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_validation_fails_on_upload(self):
 
         dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
@@ -597,11 +566,11 @@ class TestResourceValidationOnUpdate(object):
                 )
 
         assert "validation" in e.value.error_dict
-        assert "missing-value" in str(e)
-        assert "Row 2 has a missing value in column 4" in str(e)
+        assert "missing-cell" in str(e)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
 
-    @mock_uploads
-    def test_validation_fails_no_validation_object_stored(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_validation_fails_no_validation_object_stored(self):
 
         dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
@@ -626,8 +595,8 @@ class TestResourceValidationOnUpdate(object):
 
         assert validation_count_after == 0
 
-    @mock_uploads
-    def test_validation_passes_on_upload(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_validation_passes_on_upload(self):
 
         dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
@@ -731,10 +700,10 @@ class TestSchemaFields(object):
             schema_url=url,
         )
 
-    @mock_uploads
-    def test_schema_upload_field(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_schema_upload_field(self):
 
-        schema_file = StringIO('{"fields":[{"name":"category"}]}')
+        schema_file = io.StringIO('{"fields":[{"name":"category"}]}')
 
         mock_upload = MockFieldStorage(schema_file, "schema.json")
 

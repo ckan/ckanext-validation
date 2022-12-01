@@ -1,11 +1,11 @@
 import os
 import uuid
-import mock
+from unittest import mock
 
 import pytest
 from pyfakefs import fake_filesystem_unittest
 
-from ckanext.validation.tests.helpers import mock_uploads
+from ckanext.validation.tests.helpers import mock_uploads_fake_fs
 from ckanext.validation.utils import (
     get_create_mode_from_config,
     get_update_mode_from_config,
@@ -69,7 +69,7 @@ class TestConfig(object):
 
 
 class TestFiles(object):
-    @mock_uploads
+    @mock_uploads_fake_fs
     def test_local_path(self, mock_open):
 
         resource_id = str(uuid.uuid4())
@@ -80,7 +80,7 @@ class TestFiles(object):
             resource_id[0:3], resource_id[3:6], resource_id[6:]
         )
 
-    @mock_uploads
+    @mock_uploads_fake_fs
     def test_delete_upload_file(self, mock_open):
 
         resource_id = str(uuid.uuid4())
@@ -100,7 +100,7 @@ class TestFiles(object):
 
         patcher.tearDown()
 
-    @mock_uploads
+    @mock_uploads_fake_fs
     def test_delete_file_not_deleted_if_resources_first(self, mock_open):
 
         resource_id = str(uuid.uuid4())
@@ -121,7 +121,7 @@ class TestFiles(object):
 
         patcher.tearDown()
 
-    @mock_uploads
+    @mock_uploads_fake_fs
     def test_delete_file_not_deleted_if_resources_second(self, mock_open):
 
         resource_id = str(uuid.uuid4())
@@ -142,7 +142,7 @@ class TestFiles(object):
 
         patcher.tearDown()
 
-    @mock_uploads
+    @mock_uploads_fake_fs
     def test_delete_passes_if_os_exeception(self, mock_open):
 
         resource_id = str(uuid.uuid4())

@@ -1,7 +1,7 @@
 {% import 'macros/form.html' as form %}
 
   {% set value = data[field.field_name] %}
-  {% set is_url = (value|truncate(4, end='')|lower == 'http') %}
+  {% set is_url = value and value[4:]|lower == 'http' %}
   {% set is_json = not is_url and value %}
 
   <div class="image-upload"

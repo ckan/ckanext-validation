@@ -1,5 +1,5 @@
 import pytest
-import mock
+from unittest import mock
 import json
 import io
 
@@ -16,7 +16,6 @@ from ckanext.validation.tests.helpers import (
     INVALID_REPORT,
     ERROR_REPORT,
     VALID_REPORT_LOCAL_FILE,
-    mock_uploads,
     MockFieldStorage,
     get_mock_file,
 )
@@ -82,7 +81,7 @@ class TestValidationJob(object):
 
         assert mock_validate.call_args[0][0] == "http://example.com/file.csv"
         assert mock_validate.call_args[1]["format"] == "csv"
-        assert mock_validate.call_args[1]["schema"] == schema
+        assert mock_validate.call_args[1]["schema"].to_dict() == schema
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     @mock.patch.object(
@@ -125,7 +124,7 @@ class TestValidationJob(object):
         )
 
         assert validation.status == "success"
-        assert validation.report == VALID_REPORT
+        assert json.loads(validation.report) == VALID_REPORT
         assert validation.finished
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=INVALID_REPORT)
@@ -142,7 +141,7 @@ class TestValidationJob(object):
         )
 
         assert validation.status == "failure"
-        assert validation.report == INVALID_REPORT
+        assert json.loads(validation.report) == INVALID_REPORT
         assert validation.finished
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=ERROR_REPORT)
@@ -159,8 +158,7 @@ class TestValidationJob(object):
         )
 
         assert validation.status == "error"
-        assert validation.report is None
-        assert validation.error == {"message": "Some warning"}
+        assert validation.error == {"message": ['Errors validating the data']}
         assert validation.finished
 
     @mock.patch(
@@ -181,7 +179,8 @@ class TestValidationJob(object):
             .one()
         )
 
-        assert validation.report["tables"][0]["source"].startswith("http")
+        report = json.loads(validation.report)
+        assert report["tasks"][0]["place"].startswith("http")
 
     @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
     def test_job_run_valid_stores_status_in_resource(self, mock_validate):
@@ -203,8 +202,8 @@ class TestValidationJob(object):
             updated_resource["validation_timestamp"] == validation.finished.isoformat()
         )
 
-    @mock_uploads
-    def test_job_local_paths_are_hidden(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_job_local_paths_are_hidden(self):
 
         invalid_csv = "id,type\n" + "1,a,\n" * 1010
         invalid_file = get_mock_file(invalid_csv)
@@ -216,7 +215,6 @@ class TestValidationJob(object):
         invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
 
         with mock.patch("io.open", return_value=invalid_stream):
-
             run_validation_job(resource)
 
         validation = (
@@ -225,49 +223,13 @@ class TestValidationJob(object):
             .one()
         )
 
-        source = validation.report["tables"][0]["source"]
+        report = json.loads(validation.report)
+        source = report["tasks"][0]["place"]
         assert source.startswith("http")
         assert source.endswith("invalid.csv")
 
-        warning = validation.report["warnings"][0]
-        assert warning == "Table inspection has reached 1000 row(s) limit"
-
-    @mock_uploads
-    def test_job_pass_validation_options(self, mock_open):
-
-        invalid_csv = """
-
-a,b,c
-#comment
-1,2,3
-"""
-
-        validation_options = {"headers": 3, "skip_rows": ["#"]}
-
-        invalid_file = get_mock_file(invalid_csv)
-
-        mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
-
-        resource = factories.Resource(
-            format="csv", upload=mock_upload, validation_options=validation_options
-        )
-
-        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
-
-        with mock.patch("io.open", return_value=invalid_stream):
-
-            run_validation_job(resource)
-
-        validation = (
-            Session.query(Validation)
-            .filter(Validation.resource_id == resource["id"])
-            .one()
-        )
-
-        assert validation.report["valid"] is True
-
-    @mock_uploads
-    def test_job_pass_validation_options_string(self, mock_open):
+    @pytest.mark.usefixtures("mock_uploads")
+    def test_job_pass_validation_options_string(self):
 
         invalid_csv = """
 
@@ -276,13 +238,20 @@ a;b;c
 1;2;3
 """
 
-        validation_options = """{
-            "headers": 3,
-            "skip_rows": ["#"]
-        }"""
+        validation_options = """
+         {
+            "dialect":  {
+              "header": true,
+              "headerRows": [2],
+              "commentChar": "#",
+              "csv": {
+                "delimiter": ";"
+              }
+            }
+        }
+        """
 
         invalid_file = get_mock_file(invalid_csv)
-
         mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
 
         resource = factories.Resource(
@@ -301,4 +270,5 @@ a;b;c
             .one()
         )
 
-        assert validation.report["valid"] is True
+        report = json.loads(validation.report)
+        assert report["valid"] is True

@@ -1,10 +1,9 @@
 import json
 import io
-import mock
+from unittest import mock
 import datetime
 
 import pytest
-import six
 
 import ckantoolkit as t
 from ckantoolkit.tests.factories import Sysadmin, Dataset
@@ -12,41 +11,20 @@ from ckantoolkit.tests.helpers import (
     call_action, _get_test_app
 )
 
-from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV, mock_uploads
-
-is_ckan29_or_higher = t.check_ckan_version(min_version="2.9")
-
-
-def _post(app, url, extra_environ=None, data=None, upload=None):
-    ''' Submit a POST request to 'app',
-    using either webtest or Flask syntax.
-    '''
-    if is_ckan29_or_higher:
-        if upload:
-            for entry in upload:
-                data[entry[0]] = (io.BytesIO(entry[2]), entry[1])
-        app.post(
-            url=url, extra_environ=extra_environ, data=data)
-    else:
-        app.post(
-            url, data, extra_environ=extra_environ, upload_files=upload)
+from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV
 
 
 def _new_resource_url(dataset_id):
 
-    if is_ckan29_or_higher:
-        url = "/dataset/{}/resource/new".format(dataset_id)
-    else:
-        url = "/dataset/new_resource/{}".format(dataset_id)
+    url = "/dataset/{}/resource/new".format(dataset_id)
+
     return url
 
 
 def _edit_resource_url(dataset_id, resource_id):
 
-    if is_ckan29_or_higher:
-        url = "/dataset/{}/resource/{}/edit".format(dataset_id, resource_id)
-    else:
-        url = "/dataset/{}/resource_edit/{}".format(dataset_id, resource_id)
+    url = "/dataset/{}/resource/{}/edit".format(dataset_id, resource_id)
+
     return url
 
 
@@ -94,13 +72,12 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
+
         dataset = call_action("package_show", id=dataset["id"])
 
         assert dataset["resources"][0]["schema"] == value
@@ -120,48 +97,37 @@ class TestResourceSchemaForm(object):
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
 
         assert dataset["resources"][0]["schema"] == value
 
-    def test_resource_form_create_upload(self):
+    def test_resource_form_create_upload(self, app):
         dataset = Dataset()
 
         value = {"fields": [{"name": "code"}, {"name": "department"}]}
-        json_value = six.ensure_binary(json.dumps(value).encode('utf8'))
+        json_value = bytes(json.dumps(value).encode('utf8'))
 
         data = {
             "url": "https://example.com/data.csv",
             "id": "",
             "save": "",
+            "schema_upload": (io.BytesIO(json_value), "schema.json"),
         }
 
-        upload = ('schema_upload', 'schema.json', json_value)
+        user = Sysadmin()
+        env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        app = _get_test_app()
-
-        @mock_uploads
-        def post(app, data, mock_open):
-
-            user = Sysadmin()
-            env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-            _post(
-            app,
-                url=_new_resource_url(dataset['id']),
-                extra_environ=env,
-                data=data,
-                upload=[upload]
-            )
-        post(app, data)
+        app.post(
+            url=_new_resource_url(dataset['id']),
+            extra_environ=env,
+            data=data
+        )
 
         dataset = call_action("package_show", id=dataset["id"])
 
@@ -181,11 +147,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -214,11 +179,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -244,11 +208,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -273,11 +236,10 @@ class TestResourceSchemaForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -291,7 +253,7 @@ class TestResourceSchemaForm(object):
         )
 
         value = {"fields": [{"name": "code"}, {"name": "department"}, {"name": "date"}]}
-        json_value = six.ensure_binary(json.dumps(value).encode('utf8'))
+        json_value = bytes(json.dumps(value).encode('utf8'))
 
         upload = ('schema_upload', 'schema.json', json_value)
 
@@ -299,17 +261,15 @@ class TestResourceSchemaForm(object):
             "url": "https://example.com/data.csv",
             "id": "",
             "save": "",
+            "schema_upload": (io.BytesIO(json_value), "schema.json"),
         }
 
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
-
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
-            upload=[upload],
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -344,11 +304,10 @@ class TestResourceValidationOptionsForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_new_resource_url(dataset['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -386,11 +345,10 @@ class TestResourceValidationOptionsForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        _post(
-            app,
+        app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,
-            data=data,
+            data=data
         )
 
         dataset = call_action("package_show", id=dataset["id"])
@@ -398,131 +356,111 @@ class TestResourceValidationOptionsForm(object):
         assert dataset["resources"][0]["validation_options"] == value
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
-@pytest.mark.skip(reason="Need to update this for py3")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads")
+@pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", True)
 class TestResourceValidationOnCreateForm(object):
-    @classmethod
-    def setup_class(cls):
-        # Needed to apply the config changes at the right time so they can be picked up
-        # during startup
-        cls._original_config = dict(t.config)
-        t.config["ckanext.validation.run_on_create_sync"] = True
 
-    @classmethod
-    def teardown_class(cls):
-
-        t.config.clear()
-        t.config.update(cls._original_config)
-
-    @mock_uploads
-    def test_resource_form_create_valid(self, mock_open, app):
-
-        raise pytest.Skip
+    def test_resource_form_create_valid(self, app):
 
         dataset = Dataset()
 
-        env, response = _get_resource_new_page_as_sysadmin(app, dataset["id"])
-        form = response.forms["resource-edit"]
+        data = {
+            "url": "https://example.com/data.csv",
+            "id": "",
+            "save": "",
+            "upload": (io.BytesIO(bytes(VALID_CSV.encode("utf8"))), "valid.csv"),
+        }
 
-        upload = ("upload", "valid.csv", VALID_CSV)
+        user = Sysadmin()
+        env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
-
-        with mock.patch("io.open", return_value=valid_stream):
-            pass
-
-            #submit_and_follow(app, form, env, "save", upload_files=[upload])
+        app.post(
+            url=_new_resource_url(dataset['id']),
+            extra_environ=env,
+            data=data
+        )
 
         dataset = call_action("package_show", id=dataset["id"])
 
         assert dataset["resources"][0]["validation_status"] == "success"
         assert "validation_timestamp" in dataset["resources"][0]
 
-    @mock_uploads
-    def test_resource_form_create_invalid(self, mock_open, app):
+    def test_resource_form_create_invalid(self, app):
         dataset = Dataset()
 
-        env, response = _get_resource_new_page_as_sysadmin(app, dataset["id"])
-        form = response.forms["resource-edit"]
+        data = {
+            "url": "https://example.com/data.csv",
+            "id": "",
+            "save": "",
+            "upload": (io.BytesIO(bytes(INVALID_CSV.encode("utf8"))), "invalid.csv"),
+        }
 
-        upload = ("upload", "invalid.csv", INVALID_CSV)
+        user = Sysadmin()
+        env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
-
-        with mock.patch("io.open", return_value=invalid_stream):
-            pass
-
-            #response = webtest_submit(
-            #    form, "save", upload_files=[upload], extra_environ=env
-            #)
+        response = app.post(
+            url=_new_resource_url(dataset['id']),
+            extra_environ=env,
+            data=data
+        )
 
         assert "validation" in response.body
-        assert "missing-value" in response.body
-        assert "Row 2 has a missing value in column 4" in response.body
+        assert "missing-cell" in response.body
+        assert 'Row at position \\&#34;2\\&#34; has a missing cell in field \\&#34;d\\&#34; at position \\&#34;4\\&#34;' in response.body
+        assert "This row has less values compared to the header row" in response.body
 
 
-@pytest.mark.usefixtures("clean_db", "validation_setup")
-@pytest.mark.skip(reason="Need to update this for py3")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "mock_uploads")
+@pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", True)
 class TestResourceValidationOnUpdateForm(object):
-    @classmethod
-    def setup_class(cls):
-        # Needed to apply the config changes at the right time so they can be picked up
-        # during startup
-        cls._original_config = dict(t.config)
-        t.config["ckanext.validation.run_on_update_sync"] = True
 
-    @classmethod
-    def teardown_class(cls):
-
-        t.config.clear()
-        t.config.update(cls._original_config)
-
-    @mock_uploads
-    def test_resource_form_update_valid(self, mock_open, app):
+    def test_resource_form_update_valid(self, app):
 
         dataset = Dataset(resources=[{"url": "https://example.com/data.csv"}])
+        data = {
+            "url": "https://example.com/data.csv",
+            "id": "",
+            "save": "",
+            "upload": (io.BytesIO(bytes(VALID_CSV.encode("utf8"))), "valid.csv"),
+        }
 
-        env, response = _get_resource_update_page_as_sysadmin(
-            app, dataset["id"], dataset["resources"][0]["id"]
+        user = Sysadmin()
+        env = {"REMOTE_USER": user["name"].encode("ascii")}
+
+        app.post(
+            url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
+            extra_environ=env,
+            data=data
         )
-        form = response.forms["resource-edit"]
-
-        upload = ("upload", "valid.csv", VALID_CSV)
-
-        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV))
-
-        with mock.patch("io.open", return_value=valid_stream):
-            pass
-            #submit_and_follow(app, form, env, "save", upload_files=[upload])
-
         dataset = call_action("package_show", id=dataset["id"])
 
         assert dataset["resources"][0]["validation_status"] == "success"
         assert "validation_timestamp" in dataset["resources"][0]
 
-    @mock_uploads
-    def test_resource_form_update_invalid(self, mock_open, app):
+    def test_resource_form_update_invalid(self, app):
 
         dataset = Dataset(resources=[{"url": "https://example.com/data.csv"}])
 
-        env, response = _get_resource_update_page_as_sysadmin(
-            app, dataset["id"], dataset["resources"][0]["id"]
+        data = {
+            "url": "https://example.com/data.csv",
+            "id": "",
+            "save": "",
+            "upload": (io.BytesIO(bytes(INVALID_CSV.encode("utf8"))), "invalid.csv"),
+        }
+
+        user = Sysadmin()
+        env = {"REMOTE_USER": user["name"].encode("ascii")}
+
+        dataset2 = call_action("package_show", id=dataset["id"])
+        response = app.post(
+            url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
+            extra_environ=env,
+            data=data
         )
-        form = response.forms["resource-edit"]
-
-        upload = ("upload", "invalid.csv", INVALID_CSV)
-
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV))
-
-        with mock.patch("io.open", return_value=invalid_stream):
-            pass
-            #response = webtest_submit(
-            #    form, "save", upload_files=[upload], extra_environ=env
-            #)
 
         assert "validation" in response.body
-        assert "missing-value" in response.body
-        assert "Row 2 has a missing value in column 4" in response.body
+        assert "missing-cell" in response.body
+        assert "This row has less values compared to the header row" in response.body
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup")

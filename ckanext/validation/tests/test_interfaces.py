@@ -1,4 +1,4 @@
-import mock
+from unittest import mock
 import pytest
 
 from ckan import plugins as p
@@ -40,26 +40,21 @@ class BaseTestInterfaces(object):
         for plugin in p.PluginImplementations(IDataValidation):
             return plugin.reset_counter()
 
+@pytest.fixture
+def reset_counter():
+    for plugin in p.PluginImplementations(IDataValidation):
+        return plugin.reset_counter()
 
-@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+
+
+
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins", "reset_counter")
 @pytest.mark.ckan_config("ckan.plugins", "validation test_validation_plugin scheming_datasets")
-class TestInterfaceSync(BaseTestInterfaces):
-    @classmethod
-    def setup_class(cls):
-        # Needed to apply the config changes at the right time so they can be picked up
-        # during startup
-        cls._original_config = dict(t.config)
-        t.config["ckanext.validation.run_on_create_sync"] = True
-        t.config["ckanext.validation.run_on_update_sync"] = True
-
-    @classmethod
-    def teardown_class(cls):
-
-        t.config.clear()
-        t.config.update(cls._original_config)
+class TestInterfaceSync():
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
+    @pytest.mark.ckan_config('ckanext.validation.run_on_create_sync', True)
     @mock.patch('ckanext.validation.jobs.validate',
                 return_value=VALID_REPORT)
     def test_can_validate_called_on_create_sync(self, mock_validation):
@@ -77,6 +72,7 @@ class TestInterfaceSync(BaseTestInterfaces):
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
+    @pytest.mark.ckan_config('ckanext.validation.run_on_create_sync', True)
     @mock.patch('ckanext.validation.jobs.validate')
     def test_can_validate_called_on_create_sync_no_validation(self, mock_validation):
 
@@ -94,6 +90,7 @@ class TestInterfaceSync(BaseTestInterfaces):
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
+    @pytest.mark.ckan_config('ckanext.validation.run_on_update_sync', True)
     @mock.patch('ckanext.validation.jobs.validate',
                 return_value=VALID_REPORT)
     def test_can_validate_called_on_update_sync(self, mock_validation):
@@ -107,12 +104,15 @@ class TestInterfaceSync(BaseTestInterfaces):
             format='CSV',
             package_id=dataset['id']
         )
-        assert _get_plugin_calls() == 2  # One for create and one for update
+        # One for the resource_update, one for the resource_patch one
+        # to store the result, which does not trigger another job
+        assert _get_plugin_calls() == 2
 
         assert mock_validation.called
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
+    @pytest.mark.ckan_config('ckanext.validation.run_on_update_sync', True)
     @mock.patch('ckanext.validation.jobs.validate')
     def test_can_validate_called_on_update_sync_no_validation(self, mock_validation):
 
@@ -126,18 +126,15 @@ class TestInterfaceSync(BaseTestInterfaces):
             package_id=dataset['id'],
             my_custom_field='xx',
         )
-        assert _get_plugin_calls() == 2  # One for create and one for update
+        assert _get_plugin_calls() == 1
 
         assert not mock_validation.called
 
-@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins", "reset_counter")
 @pytest.mark.ckan_config("ckan.plugins", "validation test_validation_plugin scheming_datasets")
-class TestInterfaceAsync(BaseTestInterfaces):
-
-    @classmethod
-    def _apply_config_changes(cls, cfg):
-        cfg['ckanext.validation.run_on_create_sync'] = False
-        cfg['ckanext.validation.run_on_update_sync'] = False
+@pytest.mark.ckan_config('ckanext.validation.run_on_create_sync', False)
+@pytest.mark.ckan_config('ckanext.validation.run_on_update_sync', False)
+class TestInterfaceAsync():
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', True)
     @mock.patch('ckanext.validation.logic.enqueue_job')

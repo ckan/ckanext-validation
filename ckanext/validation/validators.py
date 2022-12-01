@@ -1,8 +1,6 @@
 # encoding: utf-8
 import json
 
-import six
-
 import tableschema
 
 from ckantoolkit import Invalid, config
@@ -20,7 +18,7 @@ def resource_schema_validator(value, context):
     if isinstance(value, dict):
         descriptor = value
     else:
-        value = six.ensure_text(value)
+        value = str(value)
 
         if value.lower().startswith('http'):
             return value
