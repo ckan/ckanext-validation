@@ -60,7 +60,7 @@ validation and how the extension works, read the next section.
 
 ## Versions supported and requirements
 
-This extension is currently tested in CKAN 2.9 (Python 3).
+This extension is currently tested in **CKAN 2.9 (Python 3)**. For previous CKAN versions and Python 2 you can use the 1.x versions, but those will not be supported going forward.
 
 It is strongly recommended to use it alongside
 [ckanext-scheming](https://github.com/ckan/ckanext-scheming) to define the
