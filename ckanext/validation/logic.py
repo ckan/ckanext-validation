@@ -182,8 +182,7 @@ def resource_table_schema_infer(context, data_dict):
 
     t.check_access('resource_create', context, data_dict)
 
-    if not data_dict.get(u'resource_id'):
-        raise t.ValidationError({u'resource_id': u'Missing value'})
+    toolkit.get_or_bust(data_dict, 'resource_id')
 
     store_schema = data_dict.get('store_schema', True)
 
