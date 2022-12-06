@@ -6,6 +6,7 @@ import json
 
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
+import ckan.lib.uploader as uploader
 import ckantoolkit as t
 
 from ckanext.validation import settings
@@ -17,6 +18,7 @@ from ckanext.validation.logic import (
     auth_resource_validation_delete, auth_resource_validation_run_batch,
     resource_create as custom_resource_create,
     resource_update as custom_resource_update,
+    resource_table_schema_infer
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
@@ -34,6 +36,7 @@ from ckanext.validation.utils import (
     get_create_mode_from_config,
     get_update_mode_from_config,
 )
+
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation import blueprints, cli
 
@@ -89,6 +92,7 @@ to create the database tables:
             u'resource_validation_run_batch': resource_validation_run_batch,
             u'resource_create': custom_resource_create,
             u'resource_update': custom_resource_update,
+            u'resource_table_schema_infer': resource_table_schema_infer
         }
 
         return new_actions
