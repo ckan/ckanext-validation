@@ -182,7 +182,7 @@ def resource_table_schema_infer(context, data_dict):
 
     t.check_access('resource_create', context, data_dict)
 
-    toolkit.get_or_bust(data_dict, 'resource_id')
+    t.get_or_bust(data_dict, 'resource_id')
 
     store_schema = data_dict.get('store_schema', True)
 
