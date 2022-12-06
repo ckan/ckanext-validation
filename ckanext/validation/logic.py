@@ -5,6 +5,7 @@ import logging
 import json
 
 from sqlalchemy.orm.exc import NoResultFound
+from frictionless import system, Resource
 
 import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
@@ -173,6 +174,43 @@ def resource_validation_show(context, data_dict):
             'No validation report exists for this resource')
 
     return _validation_dictize(validation)
+
+def resource_table_schema_infer(context, data_dict):
+    '''
+    Use frictionless framework to infer a resource schema
+    '''
+
+    t.check_access('resource_create', context, data_dict)
+
+    if not data_dict.get(u'resource_id'):
+        raise t.ValidationError({u'resource_id': u'Missing value'})
+
+    store_schema = data_dict.get('store_schema', True)
+
+    resource = t.get_action('resource_show')(
+        {}, {u'id': data_dict['resource_id']})
+
+    source = None
+    if resource.get('url_type') == 'upload':
+        upload = uploader.get_resource_uploader(resource)
+        if isinstance(upload, uploader.ResourceUpload):
+            source = upload.get_path(resource['id'])
+
+    if not source:
+        source = resource['url']
+
+    with system.use_context(trusted=True):
+        # TODO: check for valid formats
+        fric_resource = Resource({'path': source, 'format': resource.get('format', 'csv').lower()})
+        fric_resource.infer()
+        resource['schema'] = fric_resource.schema.to_json()
+
+        # TODO: check for exception
+        if store_schema:
+            t.get_action('resource_update')(
+                context, resource)
+
+        return {u'schema': fric_resource.schema.to_dict()}
 
 
 def resource_validation_delete(context, data_dict):
