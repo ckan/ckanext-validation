@@ -456,6 +456,84 @@ def _validation_dictize(validation):
 
     return out
 
+def resource_create_with_schema(context, data_dict):
+    '''Appends a new resource to a datasets list of resources.
+    '''
+
+    model = context['model']
+
+    package_id = t.get_or_bust(data_dict, 'package_id')
+    if not data_dict.get('url'):
+        data_dict['url'] = ''
+
+    pkg_dict = t.get_action('package_show')(
+        dict(context, return_type='dict'),
+        {'id': package_id})
+
+    t.check_access('resource_create', context, data_dict)
+
+    for plugin in plugins.PluginImplementations(plugins.IResourceController):
+        plugin.before_create(context, data_dict)
+
+    if 'resources' not in pkg_dict:
+        pkg_dict['resources'] = []
+
+    upload = uploader.get_resource_uploader(data_dict)
+
+    if 'mimetype' not in data_dict:
+        if hasattr(upload, 'mimetype'):
+            data_dict['mimetype'] = upload.mimetype
+
+    if 'size' not in data_dict:
+        if hasattr(upload, 'filesize'):
+            data_dict['size'] = upload.filesize
+
+    pkg_dict['resources'].append(data_dict)
+
+    try:
+        context['defer_commit'] = True
+        context['use_cache'] = False
+        t.get_action('package_update')(context, pkg_dict)
+        context.pop('defer_commit')
+    except t.ValidationError as e:
+        try:
+            raise t.ValidationError(e.error_dict['resources'][-1])
+        except (KeyError, IndexError):
+            raise t.ValidationError(e.error_dict)
+
+    # Get out resource_id resource from model as it will not appear in
+    # package_show until after commit
+    resource_id = context['package'].resources[-1].id
+    upload.upload(resource_id,
+                  uploader.get_max_resource_size())
+
+    model.repo.commit()
+
+    update_resource = t.get_action('resource_table_schema_infer')(
+        context, {'resource_id': resource_id, 'store_schema': True}
+    )
+
+    #  Run package show again to get out actual last_resource
+    updated_pkg_dict = t.get_action('package_show')(
+        context, {'id': package_id})
+    resource = updated_pkg_dict['resources'][-1]
+
+    #  Add the default views to the new resource
+    t.get_action('resource_create_default_resource_views')(
+        {'model': context['model'],
+         'user': context['user'],
+         'ignore_auth': True
+         },
+        {'resource': resource,
+         'package': updated_pkg_dict
+         })
+
+    for plugin in plugins.PluginImplementations(plugins.IResourceController):
+        plugin.after_create(context, resource)
+
+    return resource
+
+
 
 @t.chained_action
 def resource_create(up_func, context, data_dict):

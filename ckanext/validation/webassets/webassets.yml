@@ -44,4 +44,18 @@ report-css:
   contents:
     - vendor/frictionless-components/frictionless-components.min.css
 
+ckan-uploader-js:
+  output: ckanext-validation/ckan-uploader.js
+  contents:
+    - js/ckan-uploader.js
+    - js/module-ckan-uploader.js
+  extra:
+    preload:
+      - base/main
 
+
+
+ckan-uploader-css:
+  output: ckanext-validation/ckan-uploader.css
+  contents:
+    - css/ckan-uploader.css

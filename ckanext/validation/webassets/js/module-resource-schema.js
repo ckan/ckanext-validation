@@ -81,7 +81,7 @@ ckan.module('resource-schema', function($) {
       $('.controls', this.buttons_div).append(this.button_url);
 
       // Button to set the field to be a JSON text
-      this.button_json = $('<a href="javascript:;" class="btn btn-default">' +
+      this.button_json = $('<a id="open-json-button" href="javascript:;" class="btn btn-default">' +
                           '<i class="fa fa-code"></i>' +
                           this._('JSON') + '</a>')
         .prop('title', this._('Enter manually a Table Schema JSON object'))

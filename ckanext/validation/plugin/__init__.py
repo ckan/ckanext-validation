@@ -18,7 +18,8 @@ from ckanext.validation.logic import (
     auth_resource_validation_delete, auth_resource_validation_run_batch,
     resource_create as custom_resource_create,
     resource_update as custom_resource_update,
-    resource_table_schema_infer
+    resource_table_schema_infer,
+    resource_create_with_schema
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
@@ -92,7 +93,8 @@ to create the database tables:
             u'resource_validation_run_batch': resource_validation_run_batch,
             u'resource_create': custom_resource_create,
             u'resource_update': custom_resource_update,
-            u'resource_table_schema_infer': resource_table_schema_infer
+            u'resource_table_schema_infer': resource_table_schema_infer,
+            u'resource_create_with_schema': resource_create_with_schema
         }
 
         return new_actions
@@ -141,13 +143,12 @@ to create the database tables:
         schema_upload = data_dict.pop(u'schema_upload', None)
         schema_url = data_dict.pop(u'schema_url', None)
         schema_json = data_dict.pop(u'schema_json', None)
-        if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
+        if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES) and schema_upload.content_length > 0:
             uploaded_file = _get_underlying_file(schema_upload)
             data_dict[u'schema'] = uploaded_file.read()
             if isinstance(data_dict["schema"], (bytes, bytearray)):
                 data_dict["schema"] = data_dict["schema"].decode()
-        elif schema_url:
-
+        elif schema_url != '' and schema_url != None:
             if (not isinstance(schema_url, str) or
                     not schema_url.lower()[:4] == u'http'):
                 raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
