@@ -22,6 +22,7 @@
     <label class="control-label" for="ckan_uploader">{{ _('File') }}</label>
     <div id="ckan_uploader" data-module="ckan-uploader" data-module-dataset_id="{{ pkg_name }}" data-module-upload_url="{{ config.get('ckan.site_url', '') }}"></div>
   </div>
+  <input id="resource-url" type="hidden" name="url" value="{{ data.url if data.url else '' }}">
   {% block basic_fields %}
     {% block basic_fields_url %}
     {% endblock %}

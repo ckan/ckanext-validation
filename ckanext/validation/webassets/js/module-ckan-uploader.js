@@ -30,6 +30,10 @@ ckan.module('ckan-uploader', function (jQuery) {
       let current_action = resource_form.action
       let lastIndexNew = current_action.lastIndexOf('new')
 
+      // Set URL
+      let url_field = document.getElementById('resource-url')
+      url_field.value = resource.url
+
       resource_form.action = current_action.slice(0, lastIndexNew) + `${resource.id}/edit`
     },
     initialize: function() {
