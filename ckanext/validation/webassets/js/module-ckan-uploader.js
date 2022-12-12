@@ -4,9 +4,12 @@ ckan.module('ckan-uploader', function (jQuery) {
   return {
     options: {
       upload_url: '',
-      dataset_id: ''
+      dataset_id: '',
+      resource_id: '',
+      current_url: false,
+      update: false
     },
-    afterUpload: (evt) => {
+    afterUpload: (resource_id) => (evt) => {
       let resource = evt.detail
       // Set name
       let field_name = document.getElementById('field-name')
@@ -26,19 +29,16 @@ ckan.module('ckan-uploader', function (jQuery) {
       json_button.dispatchEvent(new Event('click'))
 
       // Set the form action to save the created resource
-      let resource_form = document.getElementById('resource-edit')
-      let current_action = resource_form.action
-      let lastIndexNew = current_action.lastIndexOf('new')
-
-      // Set URL
-      let url_field = document.getElementById('resource-url')
-      url_field.value = resource.url
-
-      resource_form.action = current_action.slice(0, lastIndexNew) + `${resource.id}/edit`
+      if (resource_id == '' && resource_id == true) {
+        let resource_form = document.getElementById('resource-edit')
+        let current_action = resource_form.action
+        let lastIndexNew = current_action.lastIndexOf('new')
+        resource_form.action = current_action.slice(0, lastIndexNew) + `${resource.id}/edit`
+      }
     },
     initialize: function() {
-      CkanUploader('ckan_uploader', this.options.upload_url, this.options.dataset_id)
-      document.getElementById('ckan_uploader').addEventListener('fileUploaded', this.afterUpload)
+      CkanUploader('ckan_uploader', this.options.upload_url, this.options.dataset_id, (this.options.resource_id != true)?this.options.resource_id:'', (this.options.current_url != true)?this.options.current_url:'', (this.options.update != true)?this.options.update:'')
+      document.getElementById('ckan_uploader').addEventListener('fileUploaded', this.afterUpload(this.options.resource_id))
     }
   }
 });
