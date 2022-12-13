@@ -84,6 +84,12 @@
   ],
   "resource_fields": [
     {
+      "field_name": "url",
+      "label": "URL",
+      "preset": "resource_url_upload",
+      "form_snippet": "ckan_uploader.html"
+    },
+    {
       "field_name": "name",
       "label": "Name",
       "form_placeholder": "eg. January 2011 Gold Prices"
