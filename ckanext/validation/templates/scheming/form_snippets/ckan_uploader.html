@@ -1,0 +1,6 @@
+  <input name="id" value="{{ data.id }}" type="hidden"/>
+  <div class="form-group control-full">
+    <label class="control-label" for="ckan_uploader">{{ _('File') }}</label>
+    <div id="ckan_uploader" data-module="ckan-uploader" data-module-upload_url="{{ config.get('ckan.site_url', '') }}"></div>
+  </div>
+
