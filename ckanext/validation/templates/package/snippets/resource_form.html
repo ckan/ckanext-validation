@@ -20,7 +20,7 @@
   <input name="id" value="{{ data.id }}" type="hidden"/>
   <div class="form-group control-full">
     <label class="control-label" for="ckan_uploader">{{ _('File') }}</label>
-    <div id="ckan_uploader" data-module="ckan-uploader" data-module-current_url="{{data.url}}" data-module-resource_id="{{data.id}}" data-module-update="{{ true if action.endswith('edit') else '' }}" data-module-dataset_id="{{ pkg_name }}" data-module-upload_url="{{ config.get('ckan.site_url', '') }}"></div>
+    <div id="ckan_uploader" data-module="ckan-uploader" data-module-current_url="{{data.url}}" data-module-url_type="{{ data.url_type }}" data-module-resource_id="{{data.id}}" data-module-update="{{ true if action.endswith('edit') else '' }}" data-module-dataset_id="{{ pkg_name }}" data-module-upload_url="{{ config.get('ckan.site_url', '') }}"></div>
   </div>
   {% block basic_fields %}
     {% block basic_fields_url %}
