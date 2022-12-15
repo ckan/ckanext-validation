@@ -5,7 +5,7 @@ import logging
 import json
 
 from sqlalchemy.orm.exc import NoResultFound
-from frictionless import system, Resource
+from frictionless import system, Resource, FrictionlessException
 
 import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
@@ -25,6 +25,23 @@ from ckanext.validation.utils import (
 
 log = logging.getLogger(__name__)
 
+ACCEPTED_TABULAR_FORMATS = set([
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+])
+
+ACCEPTED_TABULAR_EXTENSIONS = set([
+    'csv',
+    'tsv',
+    'xls',
+    'xlsx'
+])
+
+def is_tabular(filename = '', mimetype = ''):
+    uploaded_file_extension = filename.split('.')[-1].lower()
+    return mimetype in ACCEPTED_TABULAR_FORMATS or \
+        uploaded_file_extension in ACCEPTED_TABULAR_EXTENSIONS
 
 def enqueue_job(*args, **kwargs):
     try:
@@ -199,17 +216,25 @@ def resource_table_schema_infer(context, data_dict):
         source = resource['url']
 
     with system.use_context(trusted=True):
-        # TODO: check for valid formats
-        fric_resource = Resource({'path': source, 'format': resource.get('format', 'csv').lower()})
-        fric_resource.infer()
-        resource['schema'] = fric_resource.schema.to_json()
+        if is_tabular(filename=resource['url']):
+            try:
+                fric_resource = Resource({'path': source, 'format': resource['format'].lower()})
+                fric_resource.infer()
+                resource['schema'] = fric_resource.schema.to_json()
 
-        # TODO: check for exception
-        if store_schema:
-            t.get_action('resource_update')(
-                context, resource)
+                if store_schema:
+                    t.get_action('resource_update')(
+                        context, resource)
 
-        return {u'schema': fric_resource.schema.to_dict()}
+                return {u'schema': fric_resource.schema.to_dict()}
+            except FrictionlessException as e:
+                log.warning(
+                    u'Error trying to infer schema for resource %s: %s',
+                        resource['id'], e)
+
+                return {u'schema': ''}
+        else:
+            return {u'schema': ''}
 
 
 def resource_validation_delete(context, data_dict):
@@ -480,6 +505,7 @@ def resource_create_with_schema(context, data_dict):
 
     upload = uploader.get_resource_uploader(data_dict)
 
+
     if 'mimetype' not in data_dict:
         if hasattr(upload, 'mimetype'):
             data_dict['mimetype'] = upload.mimetype
@@ -494,7 +520,7 @@ def resource_create_with_schema(context, data_dict):
         context['defer_commit'] = True
         context['use_cache'] = False
         pkg_dict['state'] = 'active'
-        t.get_action('package_update')(context, pkg_dict)
+        package = t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
     except t.ValidationError as e:
         try:
@@ -510,9 +536,10 @@ def resource_create_with_schema(context, data_dict):
 
     model.repo.commit()
 
-    update_resource = t.get_action('resource_table_schema_infer')(
-        context, {'resource_id': resource_id, 'store_schema': True}
-    )
+    if is_tabular(filename=upload.filename):
+        update_resource = t.get_action('resource_table_schema_infer')(
+            context, {'resource_id': resource_id, 'store_schema': True}
+        )
 
     #  Run package show again to get out actual last_resource
     updated_pkg_dict = t.get_action('package_show')(
@@ -715,9 +742,10 @@ def resource_update_with_schema(context, data_dict):
 
     upload.upload(id, uploader.get_max_resource_size())
 
-    update_resource = t.get_action('resource_table_schema_infer')(
-        context, {'resource_id': resource.id, 'store_schema': True}
-    )
+    if is_tabular(upload):
+        update_resource = t.get_action('resource_table_schema_infer')(
+            context, {'resource_id': resource.id, 'store_schema': True}
+        )
 
     #  Run package show again to get out actual last_resource
     updated_pkg_dict = t.get_action('package_show')(

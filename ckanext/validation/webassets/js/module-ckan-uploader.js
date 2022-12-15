@@ -28,15 +28,22 @@ ckan.module('ckan-uploader', function (jQuery) {
       
       // Set `schema` ckanext-validation field
       let json_schema_field = document.getElementById('field-schema-json')
-      json_schema_field.value = JSON.stringify(resource.schema, null, 2)
-      let json_button = document.getElementById('open-json-button')
-      json_button.dispatchEvent(new Event('click'))
+      if ('schema' in resource) {
+        json_schema_field.value = JSON.stringify(resource.schema, null, 2)
+        let json_button = document.getElementById('open-json-button')
+        json_button.dispatchEvent(new Event('click'))
+      }
   
       // Set the form action to save the created resource
+      let hidden_resource_id = document.getElementById('resource_id').value
+
       let resource_form = document.getElementById('resource-edit')
       let current_action = resource_form.action
-      let lastIndexNew = current_action.lastIndexOf('new')
-      resource_form.action = current_action.slice(0, lastIndexNew) + `${resource.id}/edit`
+
+      if (hidden_resource_id == '') {
+        let lastIndexNew = current_action.lastIndexOf('new')
+        resource_form.action = current_action.slice(0, lastIndexNew) + `${resource.id}/edit`
+      }
 
       // Function to redirect the user to add another resource
       // if "Save & Add another" button is clicked
@@ -62,15 +69,16 @@ ckan.module('ckan-uploader', function (jQuery) {
           let lastIndexNew = new_action.lastIndexOf('new')
           // edit_action: the URL to update an already existing form
           let edit_action = new_action.slice(0, lastIndexNew) + `${resource_id}/edit`
+          console.log(new_action, edit_action)
 
           // Here we send the form using ajax and redirect the user again to 
           // a new resource create form
           $.ajax({
-            url: edit_action, 
+            url: new_action, 
             type: 'post',
             data: form_data.serialize(), 
             success: function(data) {
-              location.href = new_action 
+              location.href = current_action 
             }
           })
         }
