@@ -32,6 +32,10 @@ ckan.module('ckan-uploader', function (jQuery) {
         json_schema_field.value = JSON.stringify(resource.schema, null, 2)
         let json_button = document.getElementById('open-json-button')
         json_button.dispatchEvent(new Event('click'))
+      } else {
+        json_schema_field.value = '' 
+        let json_clear_button = document.querySelector('[title=Clear]')
+        json_clear_button.dispatchEvent(new Event('click'))
       }
   
       // Set the form action to save the created resource

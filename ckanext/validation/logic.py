@@ -577,9 +577,6 @@ def resource_create(up_func, context, data_dict):
 
     '''
 
-    if get_create_mode_from_config() != 'sync':
-        return up_func(context, data_dict)
-
     model = context['model']
 
     package_id = t.get_or_bust(data_dict, 'package_id')
@@ -613,6 +610,7 @@ def resource_create(up_func, context, data_dict):
     try:
         context['defer_commit'] = True
         context['use_cache'] = False
+        pkg_dict['state'] = 'active'
         t.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
     except t.ValidationError as e:
@@ -629,24 +627,31 @@ def resource_create(up_func, context, data_dict):
 
     # Custom code starts
 
-    run_validation = True
+    if get_create_mode_from_config() == 'sync':
 
-    for plugin in plugins.PluginImplementations(IDataValidation):
-        if not plugin.can_validate(context, data_dict):
-            log.debug('Skipping validation for resource {}'.format(resource_id))
-            run_validation = False
+        run_validation = True
 
-    if run_validation:
-        is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
-        _run_sync_validation(
-            resource_id, local_upload=is_local_upload, new_resource=True)
+        for plugin in plugins.PluginImplementations(IDataValidation):
+            if not plugin.can_validate(context, data_dict):
+                log.debug('Skipping validation for resource {}'.format(resource_id))
+                run_validation = False
+
+        if run_validation:
+            is_local_upload = (
+                hasattr(upload, 'filename') and
+                upload.filename is not None and
+                isinstance(upload, uploader.ResourceUpload))
+            _run_sync_validation(
+                resource_id, local_upload=is_local_upload, new_resource=True)
 
     # Custom code ends
 
     model.repo.commit()
+
+    if upload.filename and is_tabular(filename=upload.filename):
+        update_resource = t.get_action('resource_table_schema_infer')(
+            context, {'resource_id': resource_id, 'store_schema': True}
+        )
 
     #  Run package show again to get out actual last_resource
     updated_pkg_dict = t.get_action('package_show')(
@@ -805,9 +810,6 @@ def resource_update(up_func, context, data_dict):
 
     '''
 
-    if get_update_mode_from_config() != 'sync':
-        return up_func(context, data_dict)
-
     model = context['model']
     id = t.get_or_bust(data_dict, "id")
 
@@ -846,13 +848,13 @@ def resource_update(up_func, context, data_dict):
 
     upload = uploader.get_resource_uploader(data_dict)
 
-    if 'mimetype' not in data_dict:
-        if hasattr(upload, 'mimetype'):
-            data_dict['mimetype'] = upload.mimetype
+    if 'mimetype' not in data_dict or hasattr(upload, 'mimetype'):
+        data_dict['mimetype'] = upload.mimetype
+        if upload.filename:
+            data_dict['format'] = upload.filename.split('.')[-1]
 
-    if 'size' not in data_dict and 'url_type' in data_dict:
-        if hasattr(upload, 'filesize'):
-            data_dict['size'] = upload.filesize
+    if 'size' not in data_dict and 'url_type' in data_dict or hasattr(upload, 'filesize'):
+        data_dict['size'] = upload.filesize
 
     pkg_dict['resources'][n] = data_dict
 
@@ -867,26 +869,39 @@ def resource_update(up_func, context, data_dict):
         except (KeyError, IndexError):
             raise t.ValidationError(e.error_dict)
 
+    resource = updated_pkg_dict['resources'][-1]
     upload.upload(id, uploader.get_max_resource_size())
+
+    if upload.filename and is_tabular(filename=upload.filename):
+        update_resource = t.get_action('resource_table_schema_infer')(
+            context, {'resource_id': resource['id'], 'store_schema': True}
+        )
+
+    #  Run package show again to get out actual last_resource
+    updated_pkg_dict = t.get_action('package_show')(
+        context, {'id': package_id})
+    resource = updated_pkg_dict['resources'][-1]
+
 
     # Custom code starts
 
-    run_validation = True
-    for plugin in plugins.PluginImplementations(IDataValidation):
-        if not plugin.can_validate(context, data_dict):
-            log.debug('Skipping validation for resource {}'.format(id))
-            run_validation = False
+    if get_update_mode_from_config() == 'sync':
+        run_validation = True
+        for plugin in plugins.PluginImplementations(IDataValidation):
+            if not plugin.can_validate(context, data_dict):
+                log.debug('Skipping validation for resource {}'.format(id))
+                run_validation = False
 
-    if run_validation:
-        run_validation = not data_dict.pop('_skip_next_validation', None)
+        if run_validation:
+            run_validation = not data_dict.pop('_skip_next_validation', None)
 
-    if run_validation:
-        is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
-        _run_sync_validation(
-            id, local_upload=is_local_upload, new_resource=False)
+        if run_validation:
+            is_local_upload = (
+                hasattr(upload, 'filename') and
+                upload.filename is not None and
+                isinstance(upload, uploader.ResourceUpload))
+            _run_sync_validation(
+                id, local_upload=is_local_upload, new_resource=False)
 
     # Custom code ends
 
