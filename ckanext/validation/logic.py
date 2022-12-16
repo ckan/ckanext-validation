@@ -843,6 +843,7 @@ def resource_update(up_func, context, data_dict):
             'datastore_active' not in data_dict):
         data_dict['datastore_active'] = resource.extras['datastore_active']
 
+
     for plugin in plugins.PluginImplementations(plugins.IResourceController):
         plugin.before_update(context, pkg_dict['resources'][n], data_dict)
 
@@ -857,6 +858,8 @@ def resource_update(up_func, context, data_dict):
         data_dict['size'] = upload.filesize
 
     pkg_dict['resources'][n] = data_dict
+
+
 
     try:
         context['defer_commit'] = True

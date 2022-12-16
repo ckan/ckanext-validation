@@ -29,6 +29,7 @@ ckan.module('ckan-uploader', function (jQuery) {
       // Set `schema` ckanext-validation field
       let json_schema_field = document.getElementById('field-schema-json')
       if ('schema' in resource) {
+        // If there is a schema, we open the JSON
         json_schema_field.value = JSON.stringify(resource.schema, null, 2)
         let json_button = document.getElementById('open-json-button')
         json_button.dispatchEvent(new Event('click'))
