@@ -19,8 +19,6 @@ from ckanext.validation.logic import (
     resource_create as custom_resource_create,
     resource_update as custom_resource_update,
     resource_table_schema_infer,
-    resource_create_with_schema,
-    resource_update_with_schema,
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
@@ -95,8 +93,6 @@ to create the database tables:
             u'resource_create': custom_resource_create,
             u'resource_update': custom_resource_update,
             u'resource_table_schema_infer': resource_table_schema_infer,
-        #    u'resource_create_with_schema': resource_create_with_schema,
-        #    u'resource_update_with_schema': resource_update_with_schema
         }
 
         return new_actions
