@@ -1,5 +1,6 @@
 # encoding: utf-8
 from ckan.lib.helpers import url_for_static
+from ckan import model
 from ckantoolkit import url_for, _, config, asbool, literal, h, request
 
 import json
