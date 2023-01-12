@@ -4,6 +4,7 @@ from flask import Blueprint
 
 from ckan.lib.navl.dictization_functions import unflatten
 from ckan.logic import tuplize_dict, clean_dict, parse_params
+from ckanext.validation.logic import is_tabular
 
 from ckantoolkit import (
     c, g,
@@ -15,6 +16,7 @@ from ckantoolkit import (
     get_action,
     request,
 )
+import ckantoolkit as t
 
 validation = Blueprint("validation", __name__)
 
@@ -76,8 +78,8 @@ def resource_file_create(id):
 
     # If it's tabular (local OR remote), infer and store schema
     if is_tabular(resource):
-        update_resource = t.get_action('resource_table_schema_infer')(
-            context, {'resource_id': resource_id, 'store_schema': True}
+        update_resource = get_action('resource_table_schema_infer')(
+            context, {'resource_id': resource.id, 'store_schema': True}
         )
 
     # Return resource
