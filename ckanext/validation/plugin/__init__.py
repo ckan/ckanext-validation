@@ -27,6 +27,7 @@ from ckanext.validation.helpers import (
     bootstrap_version,
     validation_dict,
     use_webassets,
+    get_package_id_from_resource_url,
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
@@ -111,12 +112,13 @@ to create the database tables:
 
     def get_helpers(self):
         return {
-            u'get_validation_badge': get_validation_badge,
-            u'validation_extract_report_from_errors': validation_extract_report_from_errors,
-            u'dump_json_value': dump_json_value,
-            u'bootstrap_version': bootstrap_version,
-            u'validation_dict': validation_dict,
-            u'use_webassets': use_webassets,
+            'get_validation_badge': get_validation_badge,
+            'validation_extract_report_from_errors': validation_extract_report_from_errors,
+            'dump_json_value': dump_json_value,
+            'bootstrap_version': bootstrap_version,
+            'validation_dict': validation_dict,
+            'use_webassets': use_webassets,
+            'get_package_id_from_resource_url': get_package_id_from_resource_url,
         }
 
     # IResourceController

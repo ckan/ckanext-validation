@@ -1,9 +1,9 @@
 # encoding: utf-8
-import json
-
 from ckan.lib.helpers import url_for_static
-from ckantoolkit import url_for, _, config, asbool, literal, h
+from ckantoolkit import url_for, _, config, asbool, literal, h, request
 
+import json
+import re
 
 def get_validation_badge(resource, in_listing=False):
 
@@ -96,6 +96,10 @@ def bootstrap_version():
     else:
         return '2'
 
+def get_package_id_from_resource_url():
+    match = re.match("/dataset/(.*)/resource/", request.path)
+    if match:
+        return model.Package.get(match.group(1)).id
 
 def use_webassets():
     return int(h.ckan_version().split('.')[1]) >= 9

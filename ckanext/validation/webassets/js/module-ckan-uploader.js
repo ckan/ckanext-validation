@@ -3,6 +3,7 @@
 ckan.module('ckan-uploader', function (jQuery) {
   return {
     options: {
+      dataset_id: '',
       // The CKAN instance base URL
       upload_url: '',
     },
@@ -74,7 +75,6 @@ ckan.module('ckan-uploader', function (jQuery) {
           let lastIndexNew = new_action.lastIndexOf('new')
           // edit_action: the URL to update an already existing form
           let edit_action = new_action.slice(0, lastIndexNew) + `${resource_id}/edit`
-          console.log(new_action, edit_action)
 
           // Here we send the form using ajax and redirect the user again to 
           // a new resource create form
@@ -97,7 +97,7 @@ ckan.module('ckan-uploader', function (jQuery) {
       // Because we can't access some dataset/resource metadata from
       // the ckanext-schemming snippets, we need to add them somehow
       let resource_id = document.getElementById('resource_id').value
-      let dataset_id = document.getElementById('dataset_id').value
+      let dataset_id = this.options.dataset_id
       let current_url = document.getElementById('current_url').value
       let url_type = document.getElementById('url_type').value
       let update = document.getElementById('update').value
