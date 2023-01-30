@@ -102,5 +102,10 @@ def get_package_id_from_resource_url():
     if match:
         return model.Package.get(match.group(1)).id
 
+def get_resource_id_from_resource_url():
+    match = re.match("/dataset/(.*)/resource/(.*)/edit", request.path)
+    if match:
+        return model.Resource.get(match.group(2)).id
+
 def use_webassets():
     return int(h.ckan_version().split('.')[1]) >= 9

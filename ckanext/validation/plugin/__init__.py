@@ -28,6 +28,7 @@ from ckanext.validation.helpers import (
     validation_dict,
     use_webassets,
     get_package_id_from_resource_url,
+    get_resource_id_from_resource_url,
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
@@ -119,6 +120,7 @@ to create the database tables:
             'validation_dict': validation_dict,
             'use_webassets': use_webassets,
             'get_package_id_from_resource_url': get_package_id_from_resource_url,
+            'get_resource_id_from_resource_url': get_resource_id_from_resource_url,
         }
 
     # IResourceController

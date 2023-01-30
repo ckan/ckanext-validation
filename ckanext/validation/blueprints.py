@@ -56,10 +56,10 @@ def read(id, resource_id):
 
 def _get_data():
     data = clean_dict(
-	unflatten(tuplize_dict(parse_params(request.form)))
+	    unflatten(tuplize_dict(parse_params(request.form)))
     )
     data.update(clean_dict(
-	unflatten(tuplize_dict(parse_params(request.files)))
+	    unflatten(tuplize_dict(parse_params(request.files)))
     ))
 
 
@@ -69,7 +69,6 @@ def resource_file_create(id):
     data_dict = _get_data()
 
     # Call resource_create
-    # TODO: error handling
     context = {
         'user': g.user,
     }
@@ -83,13 +82,28 @@ def resource_file_create(id):
         )
 
     # Return resource
-    # TODO: set response format as JSON
     return resource
 
 
 def resource_file_update(id, resource_id):
-    # TODO: same as create, you can reuse as much code as needed
-    pass
+    # Get data from the request
+    data_dict = _get_data()
+
+    # Call resource_create
+    context = {
+        'user': g.user,
+    }
+    data_dict["package_id"] = id
+    resource = get_action("resource_update")(context, data_dict)
+
+    # If it's tabular (local OR remote), infer and store schema
+    if is_tabular(resource):
+        update_resource = get_action('resource_table_schema_infer')(
+            context, {'resource_id': resource.id, 'store_schema': True}
+        )
+
+    # Return resource
+    return resource
 
 
 validation.add_url_rule(

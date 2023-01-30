@@ -4,6 +4,7 @@ ckan.module('ckan-uploader', function (jQuery) {
   return {
     options: {
       dataset_id: '',
+      resource_id: '',
       // The CKAN instance base URL
       upload_url: '',
     },
@@ -94,13 +95,13 @@ ckan.module('ckan-uploader', function (jQuery) {
 
     },
     initialize: function() {
-      // Because we can't access some dataset/resource metadata from
-      // the ckanext-schemming snippets, we need to add them somehow
-      let resource_id = document.getElementById('resource_id').value
+      let resource_id = this.options.resource_id
       let dataset_id = this.options.dataset_id
       let current_url = document.getElementById('current_url').value
       let url_type = document.getElementById('url_type').value
       let update = document.getElementById('update').value
+
+      console.log(resource_id, dataset_id, update, 'DEBUG')
 
       // Add the upload widget
       CkanUploader('ckan_uploader', 
