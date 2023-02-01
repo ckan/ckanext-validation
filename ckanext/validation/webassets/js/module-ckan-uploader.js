@@ -7,6 +7,8 @@ ckan.module('ckan-uploader', function (jQuery) {
       resource_id: '',
       // The CKAN instance base URL
       upload_url: '',
+      url_type: '',
+      current_url: '',
     },
     afterUpload: (resource_id) => (evt) => {
       let resource = evt.detail
@@ -18,7 +20,7 @@ ckan.module('ckan-uploader', function (jQuery) {
 
       // Set `name` field
       let field_name = document.getElementById('field-name')
-      let url_parts = resource.url.split('/')
+      let url_parts = resource['url'].split('/')
       let resource_name = url_parts[url_parts.length - 1]
       field_name.value = resource_name
       
@@ -94,11 +96,13 @@ ckan.module('ckan-uploader', function (jQuery) {
 
     },
     initialize: function() {
+      let resource_form = document.getElementById("resource-edit")
+
       let resource_id = this.options.resource_id
       let dataset_id = this.options.dataset_id
-      let current_url = document.getElementById('current_url').value
-      let url_type = document.getElementById('url_type').value
-      let update = document.getElementById('update').value
+      let current_url = (typeof this.options.current_url == "boolean") ? '' : this.options.current_url 
+      let url_type = this.options.url_type
+      let update = (resource_form.action.endsWith('edit'))? true : '' 
 
       // Add the upload widget
       CkanUploader('ckan_uploader', 
