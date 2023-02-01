@@ -61,6 +61,7 @@ def _get_data():
     data.update(clean_dict(
 	    unflatten(tuplize_dict(parse_params(request.files)))
     ))
+    return data
 
 
 def resource_file_create(id):
@@ -72,13 +73,14 @@ def resource_file_create(id):
     context = {
         'user': g.user,
     }
+
     data_dict["package_id"] = id
     resource = get_action("resource_create")(context, data_dict)
 
     # If it's tabular (local OR remote), infer and store schema
-    if is_tabular(resource):
+    if is_tabular(filename=resource['url']):
         update_resource = get_action('resource_table_schema_infer')(
-            context, {'resource_id': resource.id, 'store_schema': True}
+            context, {'resource_id': resource['id'], 'store_schema': True}
         )
 
     # Return resource
@@ -97,20 +99,21 @@ def resource_file_update(id, resource_id):
     resource = get_action("resource_update")(context, data_dict)
 
     # If it's tabular (local OR remote), infer and store schema
-    if is_tabular(resource):
+    if is_tabular(resource['url']):
+        resource_id = resource['id']
         update_resource = get_action('resource_table_schema_infer')(
-            context, {'resource_id': resource.id, 'store_schema': True}
+            context, {'resource_id': resource_id, 'store_schema': True}
         )
 
     # Return resource
     return resource
 
+validation.add_url_rule(
+    "/dataset/<id>/resource/<resource_id>/file", view_func=resource_file_update, methods=["POST"]
+)
 
 validation.add_url_rule(
     "/dataset/<id>/resource/file", view_func=resource_file_create, methods=["POST"]
-)
-validation.add_url_rule(
-    "/dataset/<id>/resource/<resource_id>/file", view_func=resource_file_update, methods=["POST"]
 )
 
 validation.add_url_rule(

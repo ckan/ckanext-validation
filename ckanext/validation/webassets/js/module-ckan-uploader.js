@@ -10,7 +10,6 @@ ckan.module('ckan-uploader', function (jQuery) {
     },
     afterUpload: (resource_id) => (evt) => {
       let resource = evt.detail
-      let resource_id = resource.id
       
       // Next step set automatically some fields (name based on 
       // the filename, mime type and the ckanext-validation schema
@@ -100,8 +99,6 @@ ckan.module('ckan-uploader', function (jQuery) {
       let current_url = document.getElementById('current_url').value
       let url_type = document.getElementById('url_type').value
       let update = document.getElementById('update').value
-
-      console.log(resource_id, dataset_id, update, 'DEBUG')
 
       // Add the upload widget
       CkanUploader('ckan_uploader', 
