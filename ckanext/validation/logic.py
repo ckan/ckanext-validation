@@ -567,10 +567,10 @@ def resource_create(up_func, context, data_dict):
 
     model.repo.commit()
 
-    if upload.filename and is_tabular(filename=upload.filename):
-        update_resource = t.get_action('resource_table_schema_infer')(
-            context, {'resource_id': resource_id, 'store_schema': True}
-        )
+    #if upload.filename and is_tabular(filename=upload.filename):
+    #    update_resource = t.get_action('resource_table_schema_infer')(
+    #        context, {'resource_id': resource_id, 'store_schema': True}
+    #    )
 
     #  Run package show again to get out actual last_resource
     updated_pkg_dict = t.get_action('package_show')(
@@ -672,10 +672,10 @@ def resource_update(up_func, context, data_dict):
     resource = updated_pkg_dict['resources'][-1]
     upload.upload(id, uploader.get_max_resource_size())
 
-    if upload.filename and is_tabular(filename=upload.filename):
-        update_resource = t.get_action('resource_table_schema_infer')(
-            context, {'resource_id': resource['id'], 'store_schema': True}
-        )
+    #if upload.filename and is_tabular(filename=upload.filename):
+    #    update_resource = t.get_action('resource_table_schema_infer')(
+    #        context, {'resource_id': resource['id'], 'store_schema': True}
+    #    )
 
     #  Run package show again to get out actual last_resource
     updated_pkg_dict = t.get_action('package_show')(
