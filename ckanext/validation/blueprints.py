@@ -79,9 +79,10 @@ def resource_file_create(id):
 
     # If it's tabular (local OR remote), infer and store schema
     if is_tabular(filename=resource['url']):
-        update_resource = get_action('resource_table_schema_infer')(
+        update_resource_schema = get_action('resource_table_schema_infer')(
             context, {'resource_id': resource['id'], 'store_schema': True}
         )
+        resource['schema'] = update_resource_schema['schema']
 
     # Return resource
     return resource
@@ -101,9 +102,10 @@ def resource_file_update(id, resource_id):
     # If it's tabular (local OR remote), infer and store schema
     if is_tabular(resource['url']):
         resource_id = resource['id']
-        update_resource = get_action('resource_table_schema_infer')(
+        update_resource_schema = get_action('resource_table_schema_infer')(
             context, {'resource_id': resource_id, 'store_schema': True}
         )
+        resource['schema'] = update_resource_schema['schema']
 
     # Return resource
     return resource
