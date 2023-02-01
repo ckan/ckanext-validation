@@ -101,11 +101,28 @@ def get_package_id_from_resource_url():
     match = re.match("/dataset/(.*)/resource/", request.path)
     if match:
         return model.Package.get(match.group(1)).id
+    else:
+        return ''
 
 def get_resource_id_from_resource_url():
     match = re.match("/dataset/(.*)/resource/(.*)/edit", request.path)
     if match:
         return model.Resource.get(match.group(2)).id
+    else:
+        return ''
+
+def get_url_type():
+    match = re.match("/dataset/(.*)/resource/(.*)/edit", request.path)
+    if match:
+        return model.Resource.get(match.group(2)).url_type
+
+def get_current_url():
+    match = re.match("/dataset/(.*)/resource/(.*)/edit", request.path)
+    if match:
+        return model.Resource.get(match.group(2)).url
+    else:
+        return ''
+
 
 def use_webassets():
     return int(h.ckan_version().split('.')[1]) >= 9
