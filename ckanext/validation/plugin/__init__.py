@@ -156,7 +156,7 @@ to create the database tables:
 
             if isinstance(data_dict["schema"], (bytes, bytearray)):
                 data_dict["schema"] = data_dict["schema"].decode()
-        elif schema_url != '' and schema_url != None:
+        elif schema_url not in ('', None):
             if (not isinstance(schema_url, str) or
                     not schema_url.lower()[:4] == u'http'):
                 raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
