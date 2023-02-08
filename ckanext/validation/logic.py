@@ -651,12 +651,12 @@ def resource_update(up_func, context, data_dict):
         if upload.filename:
             data_dict['format'] = upload.filename.split('.')[-1]
 
-    if 'size' not in data_dict and 'url_type' in data_dict or hasattr(upload, 'filesize'):
+    #if 'size' not in data_dict and 'url_type' in data_dict:
+    #    data_dict['size'] = 0
+    if  hasattr(upload, 'filesize'):
         data_dict['size'] = upload.filesize
 
     pkg_dict['resources'][n] = data_dict
-
-
 
     try:
         context['defer_commit'] = True

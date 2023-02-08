@@ -104,6 +104,13 @@ def get_package_id_from_resource_url():
     else:
         return ''
 
+def get_resource_from_resource_url():
+    match = re.match("/dataset/(.*)/resource/(.*)/edit", request.path)
+    if match:
+        return model.Resource.get(match.group(2))
+    else:
+        return None
+
 def get_resource_id_from_resource_url():
     match = re.match("/dataset/(.*)/resource/(.*)/edit", request.path)
     if match:

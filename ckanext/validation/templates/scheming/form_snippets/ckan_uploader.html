@@ -1,5 +1,6 @@
 {% set package_id = data.package_id or h.get_package_id_from_resource_url() %}
 {% set resource_id = data.resource_id or h.get_resource_id_from_resource_url() %}
+{% set resource = data.resource or h.get_resource_from_resource_url() %}
 {% set url_type = h.get_url_type() %}
 {% set current_url = h.get_current_url() %}
 
@@ -7,9 +8,8 @@
 {% asset 'ckanext-validation/ckan-uploader-css' %}
 <input id="resource_id" type="hidden" value="{{ resource_id }}">
 <input id="url_type" type="hidden" name="current_url_type" value="{{ h.get_url_type() }}">
-<input name="id" value="{{ data.id }}" type="hidden"/>
 <div class="form-group control-medium">
-  <label class="control-label" for="ckan_uploader">{{ _('File') }}</label>
+  <label class="control-label" for="ckan_uploader">{{ _('Data') }}</label>
   <div id="ckan_uploader" data-module="ckan-uploader" data-module-url_type="{{ url_type }}" data-module-current_url="{{ current_url }}" data-module-resource_id="{{ resource_id }}" data-module-dataset_id="{{ package_id }}" data-module-upload_url="{{ config.get('ckan.site_url', '') }}"></div>
 </div>
 
