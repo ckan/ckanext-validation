@@ -96,6 +96,7 @@ def resource_file_update(id, resource_id):
     context = {
         'user': g.user,
     }
+    data_dict["id"] = resource_id
     data_dict["package_id"] = id
     resource = get_action("resource_update")(context, data_dict)
 
