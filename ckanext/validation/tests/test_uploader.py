@@ -1,4 +1,6 @@
 import io
+from unittest import mock
+
 import pytest
 import responses
 
@@ -345,3 +347,80 @@ def test_update_url_no_tabular_no_schema(app):
     assert resource["url_type"] is None
 
     assert "schema" not in resource
+
+
+# Jobs
+
+@pytest.mark.ckan_config("ckanext.validation.run_on_create_async", True)
+def test_create_upload_does_not_trigger_async_validations(app):
+
+    dataset = Dataset()
+
+    data = {
+        "upload": (io.BytesIO(bytes(VALID_CSV.encode("utf8"))), "valid.csv"),
+    }
+    with mock.patch("ckanext.validation.plugin._run_async_validation") as mock_validate:
+        app.post(
+            url=_new_resource_upload_url(dataset["id"]), extra_environ=_get_env(), data=data
+        )
+
+        assert not mock_validate.called
+
+
+@pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", True)
+def test_create_upload_does_not_trigger_sync_validations(app):
+
+    dataset = Dataset()
+
+    data = {
+        "upload": (io.BytesIO(bytes(VALID_CSV.encode("utf8"))), "valid.csv"),
+    }
+
+    with mock.patch("ckanext.validation.logic._run_sync_validation") as mock_validate:
+        app.post(
+            url=_new_resource_upload_url(dataset["id"]), extra_environ=_get_env(), data=data
+        )
+
+        assert not mock_validate.called
+
+
+@pytest.mark.ckan_config("ckanext.validation.run_on_update_async", True)
+def test_update_upload_does_not_trigger_async_validations(app):
+
+    resource = Resource()
+
+    data = {
+        "upload": (io.BytesIO(bytes(VALID_CSV.encode("utf8"))), "valid.csv"),
+        # CKAN does not refresh the format, see https://github.com/ckan/ckan/issues/7415
+        "format": "CSV",
+    }
+
+    with mock.patch("ckanext.validation.plugin._run_async_validation") as mock_validate:
+        app.post(
+            url=_edit_resource_upload_url(resource["package_id"], resource["id"]),
+            extra_environ=_get_env(),
+            data=data,
+        )
+
+        assert not mock_validate.called
+
+
+@pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", True)
+def test_update_upload_does_not_trigger_sync_validations(app):
+
+    resource = Resource()
+
+    data = {
+        "upload": (io.BytesIO(bytes(VALID_CSV.encode("utf8"))), "valid.csv"),
+        # CKAN does not refresh the format, see https://github.com/ckan/ckan/issues/7415
+        "format": "CSV",
+    }
+
+    with mock.patch("ckanext.validation.logic._run_sync_validation") as mock_validate:
+        app.post(
+            url=_edit_resource_upload_url(resource["package_id"], resource["id"]),
+            extra_environ=_get_env(),
+            data=data,
+        )
+
+        assert not mock_validate.called
