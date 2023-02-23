@@ -150,6 +150,7 @@ def test_update_upload_with_schema(app):
 
     data = {
         "upload": (io.BytesIO(bytes(VALID_CSV.encode("utf8"))), "valid.csv"),
+        "format": "CSV",
     }
 
     app.post(
@@ -179,6 +180,8 @@ def test_update_upload_no_tabular_no_schema(app):
 
     data = {
         "upload": (io.BytesIO(b"test file"), "some.txt"),
+        "format": "TXT",
+
     }
 
     app.post(
