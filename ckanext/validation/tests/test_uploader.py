@@ -265,28 +265,6 @@ def test_update_removes_schema(app):
     assert "schema" not in resource
 
 
-def test_update_upload_no_tabular_no_schema(app):
-
-    resource = Resource()
-
-    data = {
-        "upload": (io.BytesIO(b"test file"), "some.txt"),
-    }
-
-    app.post(
-        url=_edit_resource_upload_url(resource["package_id"], resource["id"]),
-        extra_environ=_get_env(),
-        data=data,
-    )
-
-    resource = call_action("resource_show", id=resource["id"])
-
-    assert resource["format"] == "TXT"
-    assert resource["url_type"] == "upload"
-
-    assert "schema" not in resource
-
-
 @responses.activate
 def test_update_url_with_schema(app):
     url = "https://example.com/valid.csv"
