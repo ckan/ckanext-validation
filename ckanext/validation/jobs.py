@@ -64,7 +64,7 @@ def run_validation_job(resource):
             # implementation)
             pass_auth_header = t.asbool(
                 t.config.get('ckanext.validation.pass_auth_header', True))
-            if dataset['private'] and pass_auth_header:
+            if pass_auth_header:
                 s = requests.Session()
                 s.headers.update({
                     'Authorization': t.config.get(
