@@ -168,7 +168,7 @@ to create the database tables:
                 schema = schema_url
             if schema_json:
                 schema = schema_json
-        import ipdb; ipdb.set_trace()
+
         if schema:
             data_dict["schema"] = schema
 
