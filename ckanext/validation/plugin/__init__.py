@@ -147,6 +147,7 @@ to create the database tables:
         All the 3 `schema_*` fields are removed from the data_dict.
         Note that the data_dict still needs to pass validation
         '''
+        schema = None
 
         schema_upload = data_dict.pop(u'schema_upload', None)
         schema_url = data_dict.pop(u'schema_url', None)
@@ -154,17 +155,22 @@ to create the database tables:
 
         if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
             uploaded_file = _get_underlying_file(schema_upload)
-            data_dict[u'schema'] = uploaded_file.read()
-
-            if isinstance(data_dict["schema"], (bytes, bytearray)):
-                data_dict["schema"] = data_dict["schema"].decode()
-        elif schema_url not in ('', None):
-            if (not isinstance(schema_url, str) or
-                    not schema_url.lower()[:4] == u'http'):
-                raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
-            data_dict[u'schema'] = schema_url
-        elif schema_json:
-            data_dict[u'schema'] = schema_json
+            file_contents = uploaded_file.read()
+            if len(file_contents):
+                schema = file_contents
+                if isinstance(schema, (bytes, bytearray)):
+                    schema = schema.decode()
+        if not schema:
+            if schema_url not in ('', None):
+                if (not isinstance(schema_url, str) or
+                        not schema_url.lower()[:4] == u'http'):
+                    raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
+                schema = schema_url
+            if schema_json:
+                schema = schema_json
+        import ipdb; ipdb.set_trace()
+        if schema:
+            data_dict["schema"] = schema
 
         return data_dict
 
