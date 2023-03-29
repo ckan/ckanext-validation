@@ -1,11 +1,41 @@
 import os
 import logging
 
+from contextlib import contextmanager
+
 from ckan.lib.uploader import ResourceUpload
 from ckantoolkit import config, asbool
 
 
 log = logging.getLogger(__name__)
+
+
+@contextmanager
+def turn_off_validation():
+
+    keys = (
+        'ckanext.validation.run_on_update_sync',
+        'ckanext.validation.run_on_update_async',
+        'ckanext.validation.run_on_create_sync',
+        'ckanext.validation.run_on_create_async',
+    )
+
+    # Store current state
+    current = {}
+    for key in keys:
+        current[key] = config.get(key)
+
+    # Turn off all validation
+    for key in keys:
+        config[key] = False
+
+    yield
+
+    # Restore state
+    for key in keys:
+        config.pop(key, None)
+        if current[key] is not None:
+            config[key] = current[key]
 
 
 def get_update_mode_from_config():

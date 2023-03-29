@@ -5,6 +5,7 @@ import logging
 import json
 
 from sqlalchemy.orm.exc import NoResultFound
+from frictionless import system, Resource, FrictionlessException
 
 import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
@@ -24,6 +25,23 @@ from ckanext.validation.utils import (
 
 log = logging.getLogger(__name__)
 
+ACCEPTED_TABULAR_FORMATS = set([
+    'text/csv',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+])
+
+ACCEPTED_TABULAR_EXTENSIONS = set([
+    'csv',
+    'tsv',
+    'xls',
+    'xlsx'
+])
+
+def is_tabular(filename = '', mimetype = ''):
+    uploaded_file_extension = filename.split('.')[-1].lower()
+    return mimetype in ACCEPTED_TABULAR_FORMATS or \
+        uploaded_file_extension in ACCEPTED_TABULAR_EXTENSIONS
 
 def enqueue_job(*args, **kwargs):
     try:
@@ -173,6 +191,50 @@ def resource_validation_show(context, data_dict):
             'No validation report exists for this resource')
 
     return _validation_dictize(validation)
+
+def resource_table_schema_infer(context, data_dict):
+    '''
+    Use frictionless framework to infer a resource schema
+    '''
+
+    t.check_access('resource_create', context, data_dict)
+
+    t.get_or_bust(data_dict, 'resource_id')
+
+    store_schema = data_dict.get('store_schema', True)
+
+    resource = t.get_action('resource_show')(
+        {}, {u'id': data_dict['resource_id']})
+
+    source = None
+    if resource.get('url_type') == 'upload':
+        upload = uploader.get_resource_uploader(resource)
+        if isinstance(upload, uploader.ResourceUpload):
+            source = upload.get_path(resource['id'])
+
+    if not source:
+        source = resource['url']
+
+    with system.use_context(trusted=True):
+        if is_tabular(filename=resource['url']):
+            try:
+                fric_resource = Resource({'path': source, 'format': resource['format'].lower()})
+                fric_resource.infer()
+                resource['schema'] = fric_resource.schema.to_json()
+
+                if store_schema:
+                    t.get_action('resource_update')(
+                        context, resource)
+
+                return {u'schema': fric_resource.schema.to_dict()}
+            except FrictionlessException as e:
+                log.warning(
+                    u'Error trying to infer schema for resource %s: %s',
+                        resource['id'], e)
+
+                return {u'schema': ''}
+        else:
+            return {u'schema': ''}
 
 
 def resource_validation_delete(context, data_dict):

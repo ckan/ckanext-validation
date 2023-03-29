@@ -6,6 +6,7 @@ import json
 
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
+import ckan.lib.uploader as uploader
 import ckantoolkit as t
 
 from ckanext.validation import settings
@@ -17,6 +18,7 @@ from ckanext.validation.logic import (
     auth_resource_validation_delete, auth_resource_validation_run_batch,
     resource_create as custom_resource_create,
     resource_update as custom_resource_update,
+    resource_table_schema_infer,
 )
 from ckanext.validation.helpers import (
     get_validation_badge,
@@ -25,6 +27,11 @@ from ckanext.validation.helpers import (
     bootstrap_version,
     validation_dict,
     use_webassets,
+    get_package_id_from_resource_url,
+    get_resource_id_from_resource_url,
+    get_resource_from_resource_url,
+    get_url_type,
+    get_current_url
 )
 from ckanext.validation.validators import (
     resource_schema_validator,
@@ -34,6 +41,7 @@ from ckanext.validation.utils import (
     get_create_mode_from_config,
     get_update_mode_from_config,
 )
+
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation import blueprints, cli
 
@@ -89,6 +97,7 @@ to create the database tables:
             u'resource_validation_run_batch': resource_validation_run_batch,
             u'resource_create': custom_resource_create,
             u'resource_update': custom_resource_update,
+            u'resource_table_schema_infer': resource_table_schema_infer,
         }
 
         return new_actions
@@ -107,12 +116,17 @@ to create the database tables:
 
     def get_helpers(self):
         return {
-            u'get_validation_badge': get_validation_badge,
-            u'validation_extract_report_from_errors': validation_extract_report_from_errors,
-            u'dump_json_value': dump_json_value,
-            u'bootstrap_version': bootstrap_version,
-            u'validation_dict': validation_dict,
-            u'use_webassets': use_webassets,
+            'get_validation_badge': get_validation_badge,
+            'validation_extract_report_from_errors': validation_extract_report_from_errors,
+            'dump_json_value': dump_json_value,
+            'bootstrap_version': bootstrap_version,
+            'validation_dict': validation_dict,
+            'use_webassets': use_webassets,
+            'get_package_id_from_resource_url': get_package_id_from_resource_url,
+            'get_resource_id_from_resource_url': get_resource_id_from_resource_url,
+            'get_resource_from_resource_url': get_resource_from_resource_url,
+            'get_url_type': get_url_type,
+            'get_current_url': get_current_url,
         }
 
     # IResourceController
@@ -133,23 +147,30 @@ to create the database tables:
         All the 3 `schema_*` fields are removed from the data_dict.
         Note that the data_dict still needs to pass validation
         '''
+        schema = None
 
         schema_upload = data_dict.pop(u'schema_upload', None)
         schema_url = data_dict.pop(u'schema_url', None)
         schema_json = data_dict.pop(u'schema_json', None)
+
         if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
             uploaded_file = _get_underlying_file(schema_upload)
-            data_dict[u'schema'] = uploaded_file.read()
-            if isinstance(data_dict["schema"], (bytes, bytearray)):
-                data_dict["schema"] = data_dict["schema"].decode()
-        elif schema_url:
+            file_contents = uploaded_file.read()
+            if len(file_contents):
+                schema = file_contents
+                if isinstance(schema, (bytes, bytearray)):
+                    schema = schema.decode()
+        if not schema:
+            if schema_url not in ('', None):
+                if (not isinstance(schema_url, str) or
+                        not schema_url.lower()[:4] == u'http'):
+                    raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
+                schema = schema_url
+            if schema_json:
+                schema = schema_json
 
-            if (not isinstance(schema_url, str) or
-                    not schema_url.lower()[:4] == u'http'):
-                raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
-            data_dict[u'schema'] = schema_url
-        elif schema_json:
-            data_dict[u'schema'] = schema_json
+        if schema:
+            data_dict["schema"] = schema
 
         return data_dict
 

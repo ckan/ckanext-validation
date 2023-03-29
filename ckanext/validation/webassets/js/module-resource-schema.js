@@ -59,10 +59,13 @@ ckan.module('resource-schema', function($) {
       this.label_url = $('label', this.field_url);
 
       this.field_upload_input.on('change', this._onInputChange);
-      this.field_url_input.focus()
-        .on('blur', this._onURLBlur);
-      this.field_json_input.focus()
-        .on('blur', this._onJSONBlur);
+      // With the follow lines the form is being scrolled down to the
+      // schema fields always when the user open the resource edit form
+      //
+      // this.field_url_input.focus()
+      //   .on('blur', this._onURLBlur);
+      // this.field_json_input.focus()
+      //   .on('blur', this._onJSONBlur);
 
       // Button to set upload a schema file
       this.button_upload = $('<a href="javascript:;" class="btn btn-default">' +
@@ -81,7 +84,7 @@ ckan.module('resource-schema', function($) {
       $('.controls', this.buttons_div).append(this.button_url);
 
       // Button to set the field to be a JSON text
-      this.button_json = $('<a href="javascript:;" class="btn btn-default">' +
+      this.button_json = $('<a id="open-json-button" href="javascript:;" class="btn btn-default">' +
                           '<i class="fa fa-code"></i>' +
                           this._('JSON') + '</a>')
         .prop('title', this._('Enter manually a Table Schema JSON object'))

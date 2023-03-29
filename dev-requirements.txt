@@ -1,3 +1,4 @@
 pyfakefs==4.6.*
 pytest-ckan
 pytest-cov
+responses>=0.22.0
