@@ -7,7 +7,7 @@ import re
 
 import requests
 from sqlalchemy.orm.exc import NoResultFound
-from frictionless import validate, system, Report, Schema, Dialect, Check
+from frictionless import validate, system, Resource, Package, Report, Schema, Dialect, Check
 
 from ckan.model import Session
 import ckan.lib.uploader as uploader
@@ -86,7 +86,13 @@ def run_validation_job(resource):
             schema = json.loads(schema)
 
     _format = resource['format'].lower()
-    report = _validate_table(source, _format=_format, schema=schema, **options)
+
+    if schema and "foreignKeys" in schema:
+        reference_resources = _prepare_foreign_keys(dataset, schema)
+    else:
+        reference_resources=[]
+
+    report = _validate_table(source, reference_resources=reference_resources, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
     if type(report) == Report:
@@ -136,7 +142,7 @@ def run_validation_job(resource):
 
 
 
-def _validate_table(source, _format='csv', schema=None, **options):
+def _validate_table(source, _format='csv', schema=None, reference_resources=[], **options):
 
     # This option is needed to allow Frictionless Framework to validate absolute paths
     frictionless_context = { 'trusted': True }
@@ -151,22 +157,91 @@ def _validate_table(source, _format='csv', schema=None, **options):
     frictionless_context['http_session'] = http_session
     resource_schema = Schema.from_descriptor(schema) if schema else None
 
+    if resource_schema is None:
+        log.warning('No schema provided for resource, skipping validation')
+        return None
+
     # Load the Resource Dialect as described in https://framework.frictionlessdata.io/docs/framework/dialect.html
-    if 'dialect' in options:
-        dialect = Dialect.from_descriptor(options['dialect'])
-        options['dialect'] = dialect
+    dialect = Dialect.from_descriptor(options['dialect']) if 'dialect' in options else None
+    if dialect:
+        del options['dialect']
 
     # Load the list of checks and its parameters declaratively as in https://framework.frictionlessdata.io/docs/checks/table.html
     if 'checks' in options:
         checklist = [Check.from_descriptor(c) for c in options['checks']]
         options['checks'] = checklist
 
+    # remove pick_errors and skip_errors options
+    pick_errors = options.pop('pick_errors', None)
+    skip_errors = options.pop('skip_errors', None)
+    limit_errors = options.pop('limit_errors', None)
+
     with system.use_context(**frictionless_context):
-        report = validate(source, format=_format, schema=resource_schema, **options)
-        log.debug('Validating source: %s', source)
+        # load source as frictionless Resource with the schema
+        resource = Resource(name="test", path=source, schema=resource_schema, dialect=dialect, format=_format, **options)
+
+        # load resource and schema as a frictionless Package
+        package = Package(resources=[resource])
+
+        # if foreign keys are defined, we need to add the referenced resource(s) to the package
+        for reference in reference_resources:
+            referenced_resource = Resource(**reference)
+            package.add_resource(referenced_resource)
+
+        report = validate(package, pick_errors=pick_errors, skip_errors=skip_errors, limit_errors=limit_errors)
+        log.debug('Validating package: %s', package)
 
     return report
 
+
+def _load_if_json(value):
+    try:
+        json_object = json.loads(value)
+    except ValueError as e:
+        return None
+    return json_object
+
+def _prepare_foreign_keys(dataset, schema):
+    referenced_resources = []
+
+    for foreign_key in schema.get('foreignKeys', {}):
+        log.debug(f"Prepping Foreign Key resources: {foreign_key}")
+
+        if foreign_key['reference']['resource'] == "":
+            continue
+
+        foreign_key_resource = None
+        if foreign_key['reference']['resource'].startswith('http'):
+            # foreign key reference resource is a url, so we can just use that
+            log.debug(f"Foreign Key resource is at url: {foreign_key['reference']['resource']}")
+            foreign_key_resource = foreign_key['reference']['resource']
+        if json_object := _load_if_json(foreign_key['reference']['resource']):
+            # foreign key reference resource is json, so we can just use that
+            log.debug(f"Foreign Key resource is a json object with keys: {json_object.keys()}")
+            foreign_key_resource = json_object
+        else:
+            log.debug("Foreign Key resource is (presumably) a resource in this dataset.")
+            # for fjelltopp we need to work out what file corresponds to the reference
+            # to do that we get the resource types of this dataset and then use fjelltopp/ckanext-scheming to get the schema name
+            # we will need to change this befor emerging upstream
+
+            # get the available resources in this dataset
+            dataset_resources = [{r.get("resource_type"): r.get("url")} for r in dataset['resources']]
+            dataset_resources = {k:v for list_item in dataset_resources for (k,v) in list_item.items()}
+
+            # check foreign key resource is in the dataset
+            # and if so get the url of the resource
+            if foreign_key['reference']['resource'] in dataset_resources.keys():
+                foreign_key_resource = dataset_resources[foreign_key['reference']['resource']]
+            else:
+                raise t.ValidationError(
+                    {'foreignKey': 'Foreign key reference does not exist.' +
+                    'Must be a url, json object or a resource in this dataset.'})
+        
+        referenced_resources.append({'name': foreign_key['reference']['resource'], 'path': foreign_key_resource})
+
+    log.debug("Foreign key resources required: " + str(referenced_resources))
+    return referenced_resources
 
 def _get_site_user_api_key():
 
