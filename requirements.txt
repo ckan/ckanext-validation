@@ -1,5 +1,5 @@
 ckantoolkit>=0.0.3
-frictionless==5.0.0b9
+frictionless==5.13.1
 markupsafe==2.0.1
 tableschema
 -e git+https://github.com/ckan/ckanext-scheming.git#egg=ckanext-scheming
