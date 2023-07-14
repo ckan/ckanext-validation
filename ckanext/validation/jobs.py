@@ -51,6 +51,10 @@ def run_validation_job(resource):
     if resource_options:
         options.update(resource_options)
 
+    options.update(json.loads(t.config.get(
+        'ckanext.validation.override_validation_options',
+        '{}')))
+
     dataset = t.get_action('package_show')(
         {'ignore_auth': True}, {'id': resource['package_id']})
 
