@@ -211,39 +211,41 @@ def _prepare_foreign_keys(dataset, schema):
     referenced_resources = []
 
     for foreign_key in schema.get('foreignKeys', {}):
-        log.debug(f"Prepping Foreign Key resources: {foreign_key}")
+        log.debug(f'Prepping Foreign Key resources: {foreign_key}')
 
-        if foreign_key['reference']['resource'] == "":
+        if foreign_key['reference']['resource'] == '':
             continue
 
         foreign_key_resource = None
+        foreign_key_format = 'json'
         if foreign_key['reference']['resource'].startswith('http'):
             log.debug(f"Foreign Key resource is at url: {foreign_key['reference']['resource']}")
 
             foreign_key_resource = foreign_key['reference']['resource']
         if json_object := _load_if_json(foreign_key['reference']['resource']):
-            log.debug(f"Foreign Key resource is a json object with keys: {json_object.keys()}")
+            log.debug(f'Foreign Key resource is a json object with keys: {json_object.keys()}')
 
             foreign_key_resource = json_object
         else:
-            log.debug("Foreign Key resource is (presumably) a resource in this dataset.")
+            log.debug('Foreign Key resource is (presumably) a resource in this dataset.')
 
             # get the available resources in this dataset
-            dataset_resources = [{r.get("resource_type"): r.get("url")} for r in dataset['resources']]
+            dataset_resources = [{r.get('resource_type'): {'url':r.get('url'), 'format': r.get('format')}} for r in dataset['resources']]
             dataset_resources = {k:v for list_item in dataset_resources for (k,v) in list_item.items()}
 
             # check foreign key resource is in the dataset and get the url
             # if it turns out it isn't we will raise an exception
             if foreign_key['reference']['resource'] in dataset_resources.keys():
-                foreign_key_resource = dataset_resources[foreign_key['reference']['resource']]
+                foreign_key_resource = dataset_resources[foreign_key['reference']['resource']]['url']
+                foreign_key_format = dataset_resources[foreign_key['reference']['resource']]['format'].lower()
             else:
                 raise t.ValidationError(
                     {'foreignKey': 'Foreign key reference does not exist.' +
                     'Must be a url, json object or a resource in this dataset.'})
         
-        referenced_resources.append({'name': foreign_key['reference']['resource'], 'path': foreign_key_resource})
+        referenced_resources.append({'name': foreign_key['reference']['resource'], 'path': foreign_key_resource, 'format': foreign_key_format})
 
-    log.debug("Foreign key resources required: " + str(referenced_resources))
+    log.debug('Foreign key resources required: ' + str(referenced_resources))
     return referenced_resources
 
 def _get_site_user_api_key():
