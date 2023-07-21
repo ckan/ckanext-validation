@@ -347,8 +347,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset['id'])
 
         context = {"user": user["name"], "model": model}
 
@@ -357,7 +358,7 @@ class TestAuth(object):
             call_auth,
             "resource_validation_run",
             context=context,
-            resource_id=dataset["resources"][0]["id"],
+            resource_id=resource["id"],
         )
 
     def test_run_auth_user(self):
@@ -367,8 +368,9 @@ class TestAuth(object):
             users=[{"name": user["name"], "capacity": "editor"}]
         )
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset['id'])
 
         context = {"user": user["name"], "model": model}
 
@@ -376,7 +378,7 @@ class TestAuth(object):
             call_auth(
                 "resource_validation_run",
                 context=context,
-                resource_id=dataset["resources"][0]["id"],
+                resource_id=resource["id"],
             )
             is True
         )
@@ -416,8 +418,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset['id'])
 
         context = {"user": user["name"], "model": model}
 
@@ -426,7 +429,7 @@ class TestAuth(object):
             call_auth,
             "resource_validation_delete",
             context=context,
-            resource_id=dataset["resources"][0]["id"],
+            resource_id=resource["id"],
         )
 
     def test_delete_auth_user(self):
@@ -436,8 +439,9 @@ class TestAuth(object):
             users=[{"name": user["name"], "capacity": "editor"}]
         )
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset['id'])
 
         context = {"user": user["name"], "model": model}
 
@@ -445,7 +449,7 @@ class TestAuth(object):
             call_auth(
                 "resource_validation_delete",
                 context=context,
-                resource_id=dataset["resources"][0]["id"],
+                resource_id=resource["id"],
             )
             is True
         )
@@ -468,8 +472,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()], private=False
+            owner_org=org["id"], private=False
         )
+        resource = factories.Resource(package_id=dataset['id'])
 
         context = {"user": user["name"], "model": model}
 
@@ -477,7 +482,7 @@ class TestAuth(object):
             call_auth(
                 "resource_validation_show",
                 context=context,
-                resource_id=dataset["resources"][0]["id"],
+                resource_id=resource["id"],
             )
             is True
         )
@@ -487,8 +492,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()], private=True
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset['id'])
 
         context = {"user": user["name"], "model": model}
 
@@ -497,7 +503,7 @@ class TestAuth(object):
             call_auth,
             "resource_validation_run",
             context=context,
-            resource_id=dataset["resources"][0]["id"],
+            resource_id=resource["id"],
         )
 
 
