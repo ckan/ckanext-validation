@@ -7,7 +7,7 @@ import re
 
 import requests
 from sqlalchemy.orm.exc import NoResultFound
-from frictionless import validate, system, Resource, Package, Report, Schema, Dialect, Check
+from frictionless import system, Resource, Package, Report, Schema, Dialect, Check, Checklist, Detector
 
 from ckan.model import Session
 import ckan.lib.uploader as uploader
@@ -87,7 +87,7 @@ def run_validation_job(resource):
 
     _format = resource['format'].lower()
 
-    if schema and "foreignKeys" in schema:
+    if schema and 'foreignKeys' in schema:
         reference_resources = _prepare_foreign_keys(dataset, schema)
     else:
         reference_resources=[]
@@ -158,28 +158,35 @@ def _validate_table(source, _format='csv', schema=None, reference_resources=[], 
     resource_schema = Schema.from_descriptor(schema) if schema else None
 
     # Load the Resource Dialect as described in https://framework.frictionlessdata.io/docs/framework/dialect.html
-    dialect = Dialect.from_descriptor(options['dialect']) if 'dialect' in options else None
-    if dialect:
-        del options['dialect']
+    if 'dialect' in options:
+        dialect = Dialect.from_descriptor(options['dialect'])
+        options['dialect'] = dialect
 
-    # Load the list of checks and its parameters declaratively as in https://framework.frictionlessdata.io/docs/checks/table.html
+    # Load the list of checks and parameters declaratively as in https://framework.frictionlessdata.io/docs/checks/table.html
     if 'checks' in options:
-        checklist = [Check.from_descriptor(c) for c in options['checks']]
-        options['checks'] = checklist
+        checklist = Checklist(checks = [Check.from_descriptor(c) for c in options.pop('checks')])
+    else:
+        # Note that it's very important to initialise Checklist with NOTHING and not None if there are no checks declared
+        checklist = Checklist()
+    if 'pick_errors' in options:
+        checklist.pick_errors = options.pop('pick_errors', None)
+    if 'skip_errors' in options:
+        checklist.skip_errors = options.pop('skip_errors', None)
 
-    # remove pick_errors and skip_errors options
-    pick_errors = options.pop('pick_errors', None)
-    skip_errors = options.pop('skip_errors', None)
+    # remove limit_errors and limit_rows
     limit_errors = options.pop('limit_errors', None)
+    limit_rows = options.pop('limit_rows', None)
 
     with system.use_context(**frictionless_context):
+        # load source as frictionless Resource
         if resource_schema:
-        # load source as frictionless Resource with the schema
-            resource = Resource(name="test", path=source, schema=resource_schema, dialect=dialect, format=_format, **options)
+            # with schema
+            resource = Resource(path=source, format=_format, schema=resource_schema, **options)
         else:
-            resource = Resource(name="test", path=source, dialect=dialect, format=_format, **options)
+            # without schema
+            resource = Resource(path=source, format=_format, **options)
 
-        # load resource and schema as a frictionless Package
+        # add resource to a frictionless Package
         package = Package(resources=[resource])
 
         # if foreign keys are defined, we need to add the referenced resource(s) to the package
@@ -187,8 +194,8 @@ def _validate_table(source, _format='csv', schema=None, reference_resources=[], 
             referenced_resource = Resource(**reference)
             package.add_resource(referenced_resource)
 
-        report = validate(package, pick_errors=pick_errors, skip_errors=skip_errors, limit_errors=limit_errors)
-        log.debug('Validating package: %s', package)
+        # report = validate(package, pick_errors=pick_errors, skip_errors=skip_errors, limit_errors=limit_errors)
+        report = package.validate(checklist=checklist, limit_errors=limit_errors, limit_rows=limit_rows)
 
     return report
 
