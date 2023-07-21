@@ -575,7 +575,7 @@ class TestResourceValidationOnCreate(object):
         assert resource["validation_status"] == "success"
         assert "validation_timestamp" in resource
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=VALID_REPORT)
     def test_validation_passes_with_url(self, mock_validate):
 
         url = "https://example.com/valid.csv"
@@ -672,7 +672,7 @@ class TestResourceValidationOnUpdate(object):
         assert resource["validation_status"] == "success"
         assert "validation_timestamp" in resource
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=VALID_REPORT)
     def test_validation_passes_with_url(self, mock_validate):
 
         dataset = factories.Dataset(resources=[{"url": "https://example.com/data.csv"}])
