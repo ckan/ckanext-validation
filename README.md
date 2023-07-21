@@ -262,6 +262,30 @@ With the extension enabled and configured, schemas can be attached to the
 `schema` field on resources via the UI form or the API. If present in a
 resource, they will be used when performing validation on the resource file.
 
+#### Foreign Keys
+
+As per the Frictionless Framework, ckanext-validation can also be used to
+validate foreign keys. This is done by adding a `foreignKeys` property to the
+schema, with the following format:
+
+```json
+{
+    "foreignKeys": [
+        {
+            "fields": "location",
+            "reference": {
+                "resource": "locations",
+                "fields": "code"
+            }
+        }
+    ]
+}
+```
+
+This will validate that the values in the `location` column are present in the
+`code` column of the `locations` resource. The `resource` property can be
+either the full url of a resource, a valid Frictionless Schema in JSON or the
+`resource_type` that matches another resource within the CKAN dataset.
 
 ### Validation Options
 

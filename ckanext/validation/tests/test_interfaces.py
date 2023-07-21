@@ -55,7 +55,7 @@ class TestInterfaceSync():
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_sync', True)
-    @mock.patch('ckanext.validation.jobs.validate',
+    @mock.patch('frictionless.Package.validate',
                 return_value=VALID_REPORT)
     def test_can_validate_called_on_create_sync(self, mock_validation):
 
@@ -73,7 +73,7 @@ class TestInterfaceSync():
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_sync', True)
-    @mock.patch('ckanext.validation.jobs.validate')
+    @mock.patch('frictionless.Package.validate')
     def test_can_validate_called_on_create_sync_no_validation(self, mock_validation):
 
         dataset = factories.Dataset()
@@ -91,7 +91,7 @@ class TestInterfaceSync():
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_sync', True)
-    @mock.patch('ckanext.validation.jobs.validate',
+    @mock.patch('frictionless.Package.validate',
                 return_value=VALID_REPORT)
     def test_can_validate_called_on_update_sync(self, mock_validation):
 
@@ -113,7 +113,7 @@ class TestInterfaceSync():
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_sync', True)
-    @mock.patch('ckanext.validation.jobs.validate')
+    @mock.patch('frictionless.Package.validate')
     def test_can_validate_called_on_update_sync_no_validation(self, mock_validation):
 
         dataset = factories.Dataset()

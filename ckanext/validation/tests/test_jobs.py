@@ -34,10 +34,11 @@ def mock_get_resource_uploader(data_dict):
 class TestValidationJob(object):
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
-    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Resource.__create__")
     @mock.patch.object(Session, "commit")
     @mock.patch.object(ckantoolkit, "get_action")
-    def test_job_run_no_schema(self, mock_get_action, mock_commit, mock_validate):
+    def test_job_run_no_schema(self, mock_get_action, mock_commit, mock_frictionless_resource, mock_validate):
 
         org = factories.Organization()
         dataset = factories.Dataset(private=True, owner_org=org["id"])
@@ -51,14 +52,21 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        assert mock_validate.call_args[0][0] == "http://example.com/file.csv"
-        assert mock_validate.call_args[1]["format"] == "csv"
-        assert mock_validate.call_args[1]["schema"] is None
+        assert mock_frictionless_resource.call_count == 1
+        assert mock_frictionless_resource.call_args[1]["path"] == "http://example.com/file.csv"
+        assert mock_frictionless_resource.call_args[1]["format"] == "csv"
+        assert "schema" not in mock_frictionless_resource.call_args[1]
+        
+        assert mock_validate.call_count == 1
+        # assert mock_validate.call_args[1]["checklist"] is {}
+        assert mock_validate.call_args[1]["limit_errors"] is None
+        assert mock_validate.call_args[1]["limit_rows"] is None
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Resource.__create__")
     @mock.patch.object(Session, "commit")
     @mock.patch.object(ckantoolkit, "get_action")
-    def test_job_run_schema(self, mock_get_action, mock_commit, mock_validate):
+    def test_job_run_schema(self, mock_get_action, mock_commit, mock_frictionless_resource, mock_validate):
 
         org = factories.Organization()
         dataset = factories.Dataset(private=True, owner_org=org["id"])
@@ -79,18 +87,25 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        assert mock_validate.call_args[0][0] == "http://example.com/file.csv"
-        assert mock_validate.call_args[1]["format"] == "csv"
-        assert mock_validate.call_args[1]["schema"].to_dict() == schema
+        assert mock_frictionless_resource.call_count == 1
+        assert mock_frictionless_resource.call_args[1]["path"] == "http://example.com/file.csv"
+        assert mock_frictionless_resource.call_args[1]["format"] == "csv"
+        assert mock_frictionless_resource.call_args[1]["schema"].to_dict() == schema
+        
+        assert mock_validate.call_count == 1
+        # assert mock_validate.call_args[1]["checklist"] is {}
+        assert mock_validate.call_args[1]["limit_errors"] is None
+        assert mock_validate.call_args[1]["limit_rows"] is None
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Resource.__create__")
     @mock.patch.object(
         uploader, "get_resource_uploader", return_value=mock_get_resource_uploader({})
     )
     @mock.patch.object(Session, "commit")
     @mock.patch.object(ckantoolkit, "get_action")
     def test_job_run_uploaded_file(
-        self, mock_get_action, mock_commit, mock_uploader, mock_validate
+        self, mock_get_action, mock_commit, mock_uploader, mock_frictionless_resource, mock_validate
     ):
 
         org = factories.Organization()
@@ -106,11 +121,17 @@ class TestValidationJob(object):
 
         run_validation_job(resource)
 
-        assert mock_validate.call_args[0][0] == "/tmp/example/{}".format(resource["id"])
-        assert mock_validate.call_args[1]["format"] == "csv"
-        assert mock_validate.call_args[1]["schema"] is None
+        assert mock_frictionless_resource.call_count == 1
+        assert mock_frictionless_resource.call_args[1]["path"] == "/tmp/example/{}".format(resource["id"])
+        assert mock_frictionless_resource.call_args[1]["format"] == "csv"
+        assert "schema" not in mock_frictionless_resource.call_args[1]
+        
+        assert mock_validate.call_count == 1
+        # assert mock_validate.call_args[1]["checklist"] is {}
+        assert mock_validate.call_args[1]["limit_errors"] is None
+        assert mock_validate.call_args[1]["limit_rows"] is None
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=VALID_REPORT)
     def test_job_run_valid_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(url="http://example.com/file.csv", format="csv")
@@ -127,7 +148,7 @@ class TestValidationJob(object):
         assert json.loads(validation.report) == VALID_REPORT
         assert validation.finished
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=INVALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=INVALID_REPORT)
     def test_job_run_invalid_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(url="http://example.com/file.csv", format="csv")
@@ -144,7 +165,7 @@ class TestValidationJob(object):
         assert json.loads(validation.report) == INVALID_REPORT
         assert validation.finished
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=ERROR_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=ERROR_REPORT)
     def test_job_run_error_stores_validation_object(self, mock_validate):
 
         resource = factories.Resource(url="http://example.com/file.csv", format="csv")
@@ -162,7 +183,7 @@ class TestValidationJob(object):
         assert validation.finished
 
     @mock.patch(
-        "ckanext.validation.jobs.validate", return_value=VALID_REPORT_LOCAL_FILE
+        "frictionless.Package.validate", return_value=VALID_REPORT_LOCAL_FILE
     )
     @mock.patch.object(
         uploader, "get_resource_uploader", return_value=mock_get_resource_uploader({})
@@ -182,7 +203,7 @@ class TestValidationJob(object):
         report = json.loads(validation.report)
         assert report["tasks"][0]["place"].startswith("http")
 
-    @mock.patch("ckanext.validation.jobs.validate", return_value=VALID_REPORT)
+    @mock.patch("frictionless.Package.validate", return_value=VALID_REPORT)
     def test_job_run_valid_stores_status_in_resource(self, mock_validate):
 
         resource = factories.Resource(url="http://example.com/file.csv", format="csv")
