@@ -139,6 +139,13 @@ resources use the following option:
 
     ckanext.validation.show_badges_in_listings = False
 
+### Clean validation reports
+
+To prevent the extension from keeping validation reports for unsupported Resource formats. Defaults to False:
+
+    ckanext.validation.clean_validation_reports = True
+
+Once a Resource is updated and its format is not supported in ckanext.validation.formats, a job will be enqueued to remove the validation reports from the Resource.
 
 ## How it works
 
@@ -154,13 +161,13 @@ hosted in CKAN itself or elsewhere. Whenever a resource of the appropriate
 format is created or updated, the extension will validate the data against a
 collection of checks. This validation is powered by
 [Frictionless Framework](https://github.com/frictionlessdata/framework), a very
-powerful data validation library developed by the [Open Knowledge Foundation](https://okfn.org) 
+powerful data validation library developed by the [Open Knowledge Foundation](https://okfn.org)
 as part of the [Frictionless Data](https://frictionlessdata.io) project.
 Frictionless Framework provides an extensive suite of [checks](https://framework.frictionlessdata.io/docs/checks/baseline.html)
 that cover common issues with tabular data files.
 
 These checks include structural problems like missing headers or values, blank
-rows, etc., but also can validate the data contents themselves (see 
+rows, etc., but also can validate the data contents themselves (see
 [Data Schemas](#data-schemas)) or even run [custom checks](https://framework.frictionlessdata.io/docs/guides/validating-data.html#custom-checks).
 
 The result of this validation is a JSON report. This report contains all the
@@ -427,7 +434,7 @@ to get up and running just by adding the following fields to the
 
 Here's more detail on the fields added:
 
-* `schema`: This can be a [Table Schema](http://frictionlessdata.io/specs/table-schema/) 
+* `schema`: This can be a [Table Schema](http://frictionlessdata.io/specs/table-schema/)
 JSON object or an URL pointing to one. In the UI form you can upload a JSON file, link to one
 providing a URL or enter it directly. If uploaded, the file contents will be
 read and stored in the `schema` field. In all three cases the contents will be
