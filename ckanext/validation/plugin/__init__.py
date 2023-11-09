@@ -354,8 +354,8 @@ def _should_remove_unsupported_resource_validation_reports(res_dict):
     return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
             and (res_dict.get('url_type') == 'upload'
                 or res_dict.get('url_type') == '')
-            and (res_dict.get('validation_status', False)
-                or res_dict.get('extras', {}).get('validation_status', False)))
+            and (t.h.asbool(res_dict.get('validation_status', False))
+                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
 
 
 def _remove_unsupported_resource_validation_reports(resource_id):
@@ -369,15 +369,15 @@ def _remove_unsupported_resource_validation_reports(resource_id):
     try:
         res = p.toolkit.get_action('resource_show')(context, {"id": resource_id})
     except t.ObjectNotFound:
-        log.error('Resource %s does not exist.' % res['id'])
+        log.error('Resource %s does not exist.', res['id'])
         return
 
     if _should_remove_unsupported_resource_validation_reports(res):
-        log.info('Unsupported resource format "%s". Deleting validation reports for resource %s'
-            % (res.get(u'format', u'').lower(), res['id']))
+        log.info('Unsupported resource format "%s". Deleting validation reports for resource %s',
+            res.get(u'format', u'').lower(), res['id'])
         try:
             p.toolkit.get_action('resource_validation_delete')(context, {
                 "resource_id": res['id']})
-            log.info('Validation reports deleted for resource %s' % res['id'])
+            log.info('Validation reports deleted for resource %s', res['id'])
         except t.ObjectNotFound:
-            log.error('Validation reports for resource %s do not exist' % res['id'])
+            log.error('Validation reports for resource %s do not exist', res['id'])
