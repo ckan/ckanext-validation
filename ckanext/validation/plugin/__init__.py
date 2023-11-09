@@ -8,8 +8,6 @@ from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
 import ckantoolkit as t
 
-import ckanapi
-
 from ckanext.validation import settings
 from ckanext.validation.model import tables_exist
 from ckanext.validation.logic import (
@@ -368,8 +366,7 @@ def _get_underlying_file(wrapper):
 def _should_remove_unsupported_resource_validation_reports(res_dict):
     if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
         return False
-    return ((not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
-                or res_dict.get('url_changed', False))
+    return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
             and (res_dict.get('url_type') == 'upload'
                 or res_dict.get('url_type') == '')
             and (res_dict.get('validation_status', False)
@@ -383,18 +380,19 @@ def _remove_unsupported_resource_validation_reports(resource_id):
     Double check the resource format. Only supported Validation formats should have validation reports.
     If the resource format is not supported, we should delete the validation reports.
     """
-    lc = ckanapi.LocalCKAN()
+    context = {"ignore_auth": True}
     try:
-        res = lc.action.resource_show(id=resource_id)
+        res = p.toolkit.get_action('resource_show')(context, {"id": resource_id})
     except t.ObjectNotFound:
         log.error('Resource %s does not exist.' % res['id'])
         return
 
     if _should_remove_unsupported_resource_validation_reports(res):
-        log.info('Unsupported resource format "{}". Deleting validation reports for resource {}'
-            .format(res.get(u'format', u'').lower(), res['id']))
+        log.info('Unsupported resource format "%s". Deleting validation reports for resource %s'
+            % (res.get(u'format', u'').lower(), res['id']))
         try:
-            lc.action.resource_validation_delete(resource_id=res['id'])
+            p.toolkit.get_action('resource_validation_delete')(context, {
+                "resource_id": res['id']})
             log.info('Validation reports deleted for resource %s' % res['id'])
         except t.ObjectNotFound:
             log.error('Validation reports for resource %s do not exist' % res['id'])
