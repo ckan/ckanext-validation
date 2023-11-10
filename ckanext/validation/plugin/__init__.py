@@ -351,9 +351,14 @@ def _get_underlying_file(wrapper):
 def _should_remove_unsupported_resource_validation_reports(res_dict):
     if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
         return False
+    has_url_type = True
+    try:
+        has_url_type = t.h.asbool(res_dict.get('url_type'))
+    except ValueError:
+        pass
     return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
             and (res_dict.get('url_type') == 'upload'
-                or res_dict.get('url_type') == '')
+                or not has_url_type)
             and (t.h.asbool(res_dict.get('validation_status', False))
                 or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
 
