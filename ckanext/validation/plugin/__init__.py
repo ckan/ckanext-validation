@@ -351,14 +351,9 @@ def _get_underlying_file(wrapper):
 def _should_remove_unsupported_resource_validation_reports(res_dict):
     if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
         return False
-    has_url_type = True
-    try:
-        has_url_type = t.h.asbool(res_dict.get('url_type'))
-    except ValueError:
-        pass
     return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
             and (res_dict.get('url_type') == 'upload'
-                or not has_url_type)
+                or not res_dict.get('url_type'))
             and (t.h.asbool(res_dict.get('validation_status', False))
                 or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
 
@@ -374,12 +369,12 @@ def _remove_unsupported_resource_validation_reports(resource_id):
     try:
         res = p.toolkit.get_action('resource_show')(context, {"id": resource_id})
     except t.ObjectNotFound:
-        log.error('Resource %s does not exist.', res['id'])
+        log.error('Resource %s does not exist.', resource_id)
         return
 
     if _should_remove_unsupported_resource_validation_reports(res):
         log.info('Unsupported resource format "%s". Deleting validation reports for resource %s',
-            res.get(u'format', u'').lower(), res['id'])
+            res.get(u'format', u''), res['id'])
         try:
             p.toolkit.get_action('resource_validation_delete')(context, {
                 "resource_id": res['id']})
