@@ -226,7 +226,8 @@ to create the database tables:
         if ((
             # New file uploaded
             (updated_resource.get(u'upload') or
-             getattr(updated_resource.get(u'upload'), 'file', False)) or
+             getattr(updated_resource.get(u'upload'), 'file', False) or
+             getattr(updated_resource.get(u'upload'), 'filename', False)) or
             # External URL changed
             updated_resource.get(u'url') != current_resource.get(u'url') or
             # Schema changed
