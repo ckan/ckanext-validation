@@ -4,4 +4,4 @@ markupsafe==2.0.1
 #jinja2==2.10.1
 
 tableschema
--e git+https://github.com/ckan/ckanext-scheming.git#egg=ckanext-scheming
+Jinja2==3.0.3
