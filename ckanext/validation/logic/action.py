@@ -19,6 +19,8 @@ from ckanext.validation import settings, utils
 
 log = logging.getLogger(__name__)
 
+ckan_2_10 = t.check_ckan_version(min_version="2.10")
+
 
 def get_actions():
     validators = (
@@ -408,9 +410,14 @@ def resource_create(up_func, context, data_dict):
         {'id': package_id})
 
     t.check_access('resource_create', context, data_dict)
-
-    for plugin in plugins.PluginImplementations(plugins.IResourceController):
-        plugin.before_create(context, data_dict)
+    
+    # Check if CKAN version is min 2.10
+    if ckan_2_10:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.before_resource_create(context, data_dict)
+    else:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.before_create(context, data_dict)
 
     if 'resources' not in pkg_dict:
         pkg_dict['resources'] = []
@@ -479,9 +486,13 @@ def resource_create(up_func, context, data_dict):
         {'resource': resource,
          'package': updated_pkg_dict
          })
-
-    for plugin in plugins.PluginImplementations(plugins.IResourceController):
-        plugin.after_create(context, resource)
+    
+    if ckan_2_10:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.after_resource_create(context, resource)
+    else:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.after_create(context, resource)
 
     return resource
 
@@ -535,9 +546,13 @@ def resource_update(up_func, context, data_dict):
     if ('datastore_active' in resource.extras
             and 'datastore_active' not in data_dict):
         data_dict['datastore_active'] = resource.extras['datastore_active']
-
-    for plugin in plugins.PluginImplementations(plugins.IResourceController):
-        plugin.before_update(context, pkg_dict['resources'][n], data_dict)
+    
+    if ckan_2_10:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.before_resource_update(context, pkg_dict['resources'][n], data_dict)
+    else:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.before_update(context, pkg_dict['resources'][n], data_dict)
 
     upload = uploader.get_resource_uploader(data_dict)
 
@@ -596,8 +611,12 @@ def resource_update(up_func, context, data_dict):
             {'package': updated_pkg_dict,
              'resource': resource})
 
-    for plugin in plugins.PluginImplementations(plugins.IResourceController):
-        plugin.after_update(context, resource)
+    if ckan_2_10:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.after_resource_update(context, resource)
+    else:
+        for plugin in plugins.PluginImplementations(plugins.IResourceController):
+            plugin.after_update(context, resource)
 
     return resource
 
