@@ -85,13 +85,16 @@ Please run the following to create the database tables:
 
     # CKAN < 2.10
     def before_create(self, context, data_dict):
-        return self.before_resource_create(context, data_dict)
+
+        is_dataset = self._data_dict_is_dataset(data_dict)
+        if not is_dataset:
+            context["_resource_create_call"] = True
+            return utils.process_schema_fields(data_dict)
+
 
     # CKAN >= 2.10
     def before_resource_create(self, context, data_dict):
 
-        is_dataset = self._data_dict_is_dataset(data_dict)
-        if not is_dataset:
             context["_resource_create_call"] = True
             return utils.process_schema_fields(data_dict)
 
@@ -100,7 +103,8 @@ Please run the following to create the database tables:
         # if (self._data_dict_is_dataset(data_dict)):
         #     return self.after_dataset_create(context, data_dict)
         # else:
-        return self.after_resource_create(context, data_dict)
+         if (self._data_dict_is_dataset(data_dict) is False):
+            return self.after_resource_create(context, data_dict)
 
     # CKAN >= 2.10
     def after_resource_create(self, context, data_dict):
@@ -262,6 +266,15 @@ Please run the following to create the database tables:
             if utils.should_remove_unsupported_resource_validation_reports(data_dict):
                 p.toolkit.enqueue_job(fn=utils.remove_unsupported_resource_validation_reports, args=[resource_id])
 
+
+    def after_dataset_create(self, context, data_dict):
+        self.after_create(context, data_dict)
+
+
+    def after_dataset_update(self, context, data_dict):
+        self.after_update(context, data_dict)
+
+
     # IPackageController
 
     # CKAN < 2.10
@@ -271,7 +284,6 @@ Please run the following to create the database tables:
 
     # CKAN >= 2.10
     def before_dataset_index(self, index_dict):
-
         res_status = []
         dataset_dict = json.loads(index_dict['validated_data_dict'])
         for resource in dataset_dict.get('resources', []):
