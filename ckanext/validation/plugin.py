@@ -103,7 +103,7 @@ Please run the following to create the database tables:
         # if (self._data_dict_is_dataset(data_dict)):
         #     return self.after_dataset_create(context, data_dict)
         # else:
-         if (self._data_dict_is_dataset(data_dict) is False):
+        if (self._data_dict_is_dataset(data_dict) is False):
             return self.after_resource_create(context, data_dict)
 
     # CKAN >= 2.10
@@ -266,10 +266,8 @@ Please run the following to create the database tables:
             if utils.should_remove_unsupported_resource_validation_reports(data_dict):
                 p.toolkit.enqueue_job(fn=utils.remove_unsupported_resource_validation_reports, args=[resource_id])
 
-
     def after_dataset_create(self, context, data_dict):
         self.after_create(context, data_dict)
-
 
     def after_dataset_update(self, context, data_dict):
         self.after_update(context, data_dict)
