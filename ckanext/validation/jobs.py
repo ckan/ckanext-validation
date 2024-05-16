@@ -15,7 +15,11 @@ import ckan.lib.uploader as uploader
 import ckantoolkit as t
 
 from ckanext.validation.model import Validation
-from ckanext.validation.utils import get_update_mode_from_config
+from ckanext.validation.utils import (
+    get_update_mode_from_config,
+    send_validation_report,
+    validation_dictize,
+)
 
 
 log = logging.getLogger(__name__)
@@ -132,6 +136,7 @@ def run_validation_job(resource):
         '_validation_performed': True
     }
     t.get_action('resource_patch')(patch_context, data_dict)
+    send_validation_report(validation_dictize(validation))
 
 
 

@@ -19,6 +19,7 @@ from ckanext.validation.utils import (
     get_create_mode_from_config,
     get_update_mode_from_config,
     delete_local_uploaded_file,
+    validation_dictize,
 )
 
 
@@ -172,7 +173,7 @@ def resource_validation_show(context, data_dict):
         raise t.ObjectNotFound(
             'No validation report exists for this resource')
 
-    return _validation_dictize(validation)
+    return validation_dictize(validation)
 
 
 def resource_validation_delete(context, data_dict):
@@ -402,22 +403,6 @@ def _add_default_formats(search_data_dict):
     filter_formats_query = ['+res_format:"{0}"'.format(_format)
                             for _format in filter_formats]
     search_data_dict['fq_list'].append(' OR '.join(filter_formats_query))
-
-
-def _validation_dictize(validation):
-    out = {
-        'id': validation.id,
-        'resource_id': validation.resource_id,
-        'status': validation.status,
-        'report': validation.report,
-        'error': validation.error,
-    }
-    out['created'] = (
-        validation.created.isoformat() if validation.created else None)
-    out['finished'] = (
-        validation.finished.isoformat() if validation.finished else None)
-
-    return out
 
 
 @t.chained_action
