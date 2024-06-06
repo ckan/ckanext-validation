@@ -1,4 +1,4 @@
 include README.rst
 include LICENSE
 include requirements.txt
-recursive-include ckanext/validation *.html *.json *.js *.less *.css *.mo *.yml *.config *.png *.jpeg *.svg *.po *.pot *.jpg *.map *.eot *.svg *.ttf *.woff *.woff2 *.yaml
+recursive-include ckanext/validation *.html *.json *.js *.less *.css *.mo
