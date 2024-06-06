@@ -3,4 +3,4 @@ frictionless==5.18.0
 markupsafe
 jinja2<3.1
 tableschema
-Jinja2==3.0.3
+-e git+https://github.com/ckan/ckanext-scheming.git#egg=ckanext-scheming
