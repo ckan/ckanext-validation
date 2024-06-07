@@ -86,11 +86,8 @@ Please run the following to create the database tables:
     # CKAN < 2.10
     def before_create(self, context, data_dict):
 
-        is_dataset = self._data_dict_is_dataset(data_dict)
-        if not is_dataset:
-            context["_resource_create_call"] = True
-            return utils.process_schema_fields(data_dict)
-
+            if not self._data_dict_is_dataset(data_dict):
+                return self.before_resource_create(context, data_dict)
 
     # CKAN >= 2.10
     def before_resource_create(self, context, data_dict):
