@@ -263,8 +263,12 @@ Please run the following to create the database tables:
             if utils.should_remove_unsupported_resource_validation_reports(data_dict):
                 p.toolkit.enqueue_job(fn=utils.remove_unsupported_resource_validation_reports, args=[resource_id])
 
+
     def after_dataset_create(self, context, data_dict):
         self.after_create(context, data_dict)
+
+    def before_resource_update(self, context, current_resource, updated_resource):
+        self.before_update(context, current_resource, updated_resource)
 
     def after_dataset_update(self, context, data_dict):
         self.after_update(context, data_dict)
