@@ -307,17 +307,15 @@ to create the database tables:
                 del self.resources_to_validate[resource_id]
 
                 _run_async_validation(resource_id)
+         
+    def after_dataset_create(self, context, data_dict):
+        self.after_create(context, data_dict)
     
-    if ckan_2_10:
-        
-        def after_dataset_create(self, context, data_dict):
-            self.after_create(context, data_dict)
-        
-        def before_resource_update(self, context, current_resource, updated_resource):
-            self.before_update(context, current_resource, updated_resource)
+    def before_resource_update(self, context, current_resource, updated_resource):
+        self.before_update(context, current_resource, updated_resource)
 
-        def after_dataset_update(self, context, data_dict):
-            self.after_update(context, data_dict)
+    def after_dataset_update(self, context, data_dict):
+        self.after_update(context, data_dict)
         
 
             if _should_remove_unsupported_resource_validation_reports(data_dict):
