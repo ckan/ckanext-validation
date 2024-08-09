@@ -1,8 +1,11 @@
 import os
 import logging
 
+from ckan.plugins import PluginImplementations
 from ckan.lib.uploader import ResourceUpload
 from ckantoolkit import config, asbool
+
+from ckanext.validation.interfaces import IPipeValidation
 
 
 log = logging.getLogger(__name__)
@@ -71,3 +74,30 @@ def delete_local_uploaded_file(resource_id):
 
     except OSError as e:
         log.warning(u'Error deleting uploaded file: %s', e)
+
+
+def validation_dictize(validation):
+    out = {
+        'id': validation.id,
+        'resource_id': validation.resource_id,
+        'status': validation.status,
+        'report': validation.report,
+        'error': validation.error,
+    }
+    out['created'] = (
+        validation.created.isoformat() if validation.created else None)
+    out['finished'] = (
+        validation.finished.isoformat() if validation.finished else None)
+
+    return out
+
+
+def send_validation_report(validation_report):
+    for observer in PluginImplementations(IPipeValidation):
+        try:
+            observer.receive_validation_report(validation_report)
+        except Exception as ex:
+            log.exception(ex)
+            # We reraise all exceptions so they are obvious there
+            # is something wrong
+            raise

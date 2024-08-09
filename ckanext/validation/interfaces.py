@@ -39,3 +39,21 @@ class IDataValidation(Interface):
 
         '''
         return True
+
+
+class IPipeValidation(Interface):
+    """
+    Process data in a Data Pipeline.
+
+    Inherit this to subscribe to events in the Data Pipeline and be able to
+    broadcast the results for others to process next. In this way, a number of
+    IPipes can be linked up in sequence to build up a data processing pipeline.
+
+    When a resource is validated, it broadcasts its validation_report,
+    perhaps triggering a process which transforms the data to another format,
+    or loads it into a datastore. These processes can in turn put the resulting
+    validation reports into the pipeline
+    """
+
+    def receive_validation_report(self, validation_report):
+        pass
