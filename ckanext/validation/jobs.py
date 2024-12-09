@@ -93,7 +93,7 @@ def run_validation_job(resource):
     report = _validate_table(source, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
-    if type(report) == Report:
+    if isinstance(report, Report):
         report = report.to_dict()
 
     if 'tasks' in report:
@@ -109,7 +109,7 @@ def run_validation_job(resource):
         validation.report = json.dumps(report)
     else:
         validation.report = json.dumps(report)
-        if 'errors' in report and report['errors']: 
+        if 'errors' in report and report['errors']:
             validation.status = 'error'
             validation.error = {
                 'message': [str(err) for err in report['errors']]}
@@ -139,12 +139,10 @@ def run_validation_job(resource):
     send_validation_report(validation_dictize(validation))
 
 
-
-
 def _validate_table(source, _format='csv', schema=None, **options):
 
     # This option is needed to allow Frictionless Framework to validate absolute paths
-    frictionless_context = { 'trusted': True }
+    frictionless_context = {'trusted': True}
     http_session = options.pop('http_session', None) or requests.Session()
     use_proxy = 'ckan.download_proxy' in t.config
 

@@ -199,7 +199,6 @@ class TestResourceValidationRun(object):
         assert mock_enqueue_job.call_args[0][1][0]["id"] == resource_1_id
 
 
-
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
 class TestResourceValidationShow(object):
     def test_resource_validation_show_param_missing(self):
@@ -542,7 +541,7 @@ class TestResourceValidationOnCreate(object):
 
         dataset = factories.Dataset()
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
+        io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
 
         validation_count_before = model.Session.query(Validation).count()
 

@@ -72,8 +72,10 @@ click the button below to replace the file.''')
 
     return report, errors
 
+
 def validation_dict(validation_json):
     return json.loads(validation_json)
+
 
 def dump_json_value(value, indent=None):
     """
