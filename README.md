@@ -501,6 +501,21 @@ class IDataValidation(Interface):
         return True
 ```
 
+The plugin also provides the `IPipeValidation` interface so other plugins can receive the dictized validation reports in a Data Pipeline way. This would allow plugins to perform actions once a validation job is finished.
+
+Example:
+```
+import ckan.plugins as plugins
+from ckanext.validation.interfaces import IPipeValidation
+
+class MyPlugin(plugins.SingletonPlugin):
+  plugins.implements(IPipeValidation)
+
+  def receive_validation_report(self, validation_report):
+    if validation_report.get('status') == 'success':
+      # Do something when the resource successfully passes validation
+```
+
 ## Action functions
 
 The `validation` plugin adds new API actions to create and display validation
