@@ -74,10 +74,10 @@ jobs:
     strategy:
       matrix:
         include: #ckan-image see https://github.com/ckan/ckan-docker-base, ckan-version controls other image tags
-#          - ckan-version: "2.11"
-#            ckan-image: "2.11-py3.10"
-#          - ckan-version: "2.10"
-#            ckan-image: "2.10-py3.10"
+          - ckan-version: "2.11"
+            ckan-image: "2.11-py3.10"
+          - ckan-version: "2.10"
+            ckan-image: "2.10-py3.10"
           - ckan-version: "2.9"
             ckan-image: "2.9-py3.9"
           #- ckan-version: "master" Publish does not care about master
@@ -87,7 +87,7 @@ jobs:
     name: CKAN ${{ matrix.ckan-version }}
     runs-on: ubuntu-latest
     container:
-      image: openknowledge/ckan-dev:${{ matrix.ckan-version }}
+      image: ckan/ckan-dev:${{ matrix.ckan-image }}
       options: --user root
     services:
       solr:
@@ -188,6 +188,16 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Validate tag version
+        if: ${{ startsWith(github.ref, 'refs/tags') }}
+        run: |
+          PYTHON_VERSION=$(grep -E "\bversion='[^']+'" setup.py | awk -F "'" '{print $2}')
+          echo "Tag version is [${{ steps.version.outputs.version }}], Python version is [$PYTHON_VERSION]"
+          if [ "${{ steps.version.outputs.version }}" != "$PYTHON_VERSION" ]; then
+            echo "Version mismatch; tag version is [${{ steps.version.outputs.version }}] but Python version is [$PYTHON_VERSION]" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
 
       - name: Build package ${{ steps.version.outputs.reponame }} @ ${{ steps.version.outputs.version }}
         run: |
