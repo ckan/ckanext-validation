@@ -303,6 +303,9 @@ to create the database tables:
 
                 _run_async_validation(resource_id)
 
+            if _should_remove_unsupported_resource_validation_reports(data_dict):
+                p.toolkit.enqueue_job(fn=_remove_unsupported_resource_validation_reports, args=[resource_id])
+
     # IPackageController
 
     def before_index(self, index_dict):
@@ -344,3 +347,37 @@ def _get_underlying_file(wrapper):
         return wrapper.stream
     return wrapper.file
 
+
+def _should_remove_unsupported_resource_validation_reports(res_dict):
+    if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
+        return False
+    return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
+            and (res_dict.get('url_type') == 'upload'
+                or not res_dict.get('url_type'))
+            and (t.h.asbool(res_dict.get('validation_status', False))
+                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
+
+
+def _remove_unsupported_resource_validation_reports(resource_id):
+    """
+    Callback to remove unsupported validation reports.
+    Controlled by config value: ckanext.validation.clean_validation_reports.
+    Double check the resource format. Only supported Validation formats should have validation reports.
+    If the resource format is not supported, we should delete the validation reports.
+    """
+    context = {"ignore_auth": True}
+    try:
+        res = p.toolkit.get_action('resource_show')(context, {"id": resource_id})
+    except t.ObjectNotFound:
+        log.error('Resource %s does not exist.', resource_id)
+        return
+
+    if _should_remove_unsupported_resource_validation_reports(res):
+        log.info('Unsupported resource format "%s". Deleting validation reports for resource %s',
+            res.get(u'format', u''), res['id'])
+        try:
+            p.toolkit.get_action('resource_validation_delete')(context, {
+                "resource_id": res['id']})
+            log.info('Validation reports deleted for resource %s', res['id'])
+        except t.ObjectNotFound:
+            log.error('Validation reports for resource %s do not exist', res['id'])
