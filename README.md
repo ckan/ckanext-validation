@@ -10,7 +10,7 @@ Data description and validation for CKAN with [Frictionless Data](https://fricti
 ## Table of Contents
 
   * [Overview](#overview)
-  * [Versions supported and requirements](#versions-supported-and-requirements)
+  * [Versions supported and Requirements](#versions-supported-and-requirements)
   * [Installation](#installation)
   * [Configuration](#configuration)
   * [How it works](#how-it-works)
@@ -58,9 +58,18 @@ If you are eager to get started, jump to the [Installation](#installation) and
 [Configuration](#configuration) instructions. To learn more about data
 validation and how the extension works, read the next section.
 
-## Versions supported and requirements
+## Versions supported and Requirements
 
-This extension is currently tested in **CKAN 2.9 (Python 3)**. For previous CKAN versions and Python 2 you can use the 1.x versions, but those will not be supported going forward.
+Compatibility with core CKAN versions:
+
+  | CKAN version   | Compatibility                                              |
+  | -------------- |------------------------------------------------------------|
+  | 2.7            | no longer supported                                        |
+  | 2.8            | no longer supported (last supported 1.x)                   | 
+  | 2.9            | yes (Python3) Must: `pip install "setuptools>=44.1.0,<71"` |
+  | 2.10           | no                                                         |
+  | 2.11           | no                                                         |
+
 
 It is strongly recommended to use it alongside
 [ckanext-scheming](https://github.com/ckan/ckanext-scheming) to define the
@@ -71,7 +80,7 @@ necessary extra fields in the default CKAN schema.
 
 To install ckanext-validation, activate your CKAN virtualenv and run:
 
-    git clone https://github.com/frictionlessdata/ckanext-validation.git
+    git clone https://github.com/ckan/ckanext-validation.git
     cd ckanext-validation
     pip install -r requirements.txt
     python setup.py develop
