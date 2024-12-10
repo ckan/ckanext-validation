@@ -1,38 +1,56 @@
 name: Tests
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.10'
       - name: Install requirements
         run: pip install flake8 pycodestyle
       - name: Check syntax
-        run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics --exclude ckan
+        run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics --extend-exclude ckan
 
   test:
     needs: lint
     strategy:
       matrix:
-        ckan-version: [2.9]
+        include: #ckan-image see https://github.com/ckan/ckan-docker-base, ckan-version controls other image tags
+#          - ckan-version: "2.11"
+#            ckan-image: "2.11-py3.10"
+#            experimental: false
+#          - ckan-version: "2.10"
+#            ckan-image: "2.10-py3.10"
+#            experimental: false
+          - ckan-version: "2.9"
+            ckan-image: "2.9-py3.9"
+            experimental: false
+#          - ckan-version: "master"
+#            ckan-image: "master"
+#            experimental: true  # master is unstable, good to know if we are compatible or not
       fail-fast: false
 
     name: CKAN ${{ matrix.ckan-version }}
     runs-on: ubuntu-latest
     container:
       image: openknowledge/ckan-dev:${{ matrix.ckan-version }}
+      options: --user root
     services:
       solr:
-        image: ckan/ckan-solr:${{ matrix.ckan-version }}
+        image: ckan/ckan-solr:${{ matrix.ckan-version }}-solr9
       postgres:
         image: ckan/ckan-postgres-dev:${{ matrix.ckan-version }}
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
           image: redis:3
@@ -44,23 +62,44 @@ jobs:
       CKAN_REDIS_URL: redis://redis:6379/1
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+      continue-on-error: ${{ matrix.experimental }}
+
+    - name: Pin setuptools for ckan 2.9 only
+      if: ${{ matrix.ckan-version == 2.9 }}
+      run: pip install "setuptools>=44.1.0,<71"
+      continue-on-error: ${{ matrix.experimental }}
+
     - name: Install requirements
+      continue-on-error: ${{ matrix.experimental }}
       run: |
         pip install -r dev-requirements.txt
         pip install -r requirements.txt
+        echo "no-warn-conflicts install of jinja2 and markupsafe"
         pip install --no-warn-conflicts jinja2==2.10.1
         pip install --no-warn-conflicts markupsafe==2.0.1
         pip install -e .
         # Replace default path to CKAN core config file with the one on the container
         sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
+
     - name: Setup extension
+      continue-on-error: ${{ matrix.experimental }}
       run: |
         ckan -c test.ini db init
+
     - name: Run tests
-      run: pytest --ckan-ini=test.ini --cov=ckanext.validation --cov-report=xml --cov-append --disable-warnings ckanext/validation/tests -vv
+      continue-on-error: ${{ matrix.experimental }}
+      run: pytest --ckan-ini=test.ini --cov=ckanext.validation --cov-report=xml --cov-append --disable-warnings ckanext/validation/tests -vv  --junit-xml=/tmp/artifacts/junit/results.xml
+
+    - name: Test Summary
+      uses: test-summary/action@v2
+      continue-on-error: ${{ matrix.experimental }}
+      with:
+        paths: "/tmp/artifacts/junit/*.xml"
+      if: always()
 
     - name: Upload coverage report to codecov
       uses: codecov/codecov-action@v1
+      continue-on-error: ${{ matrix.experimental }}
       with:
         file: ./coverage.xml
