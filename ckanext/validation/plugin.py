@@ -1,14 +1,16 @@
 # encoding: utf-8
 
+import json
 import logging
 import cgi
-import json
+
 
 from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as p
 import ckantoolkit as t
 
-from ckanext.validation import settings
+from . import settings, validators
+from .helpers import _get_helpers
 from ckanext.validation.model import tables_exist
 from .logic import action, auth
 from ckanext.validation.helpers import (
@@ -28,8 +30,7 @@ from ckanext.validation.utils import (
     get_update_mode_from_config,
 )
 from ckanext.validation.interfaces import IDataValidation
-from ckanext.validation import blueprints, cli
-
+from ckanext.validation import views, cli
 
 ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 log = logging.getLogger(__name__)
@@ -49,22 +50,23 @@ class ValidationPlugin(p.SingletonPlugin):
     # IBlueprint
 
     def get_blueprint(self):
-        return [blueprints.validation]
+        return views.get_blueprints()
 
     # IClick
 
     def get_commands(self):
-        return [cli.validation]
+        return cli.get_commands()
 
     # IConfigurer
 
     def update_config(self, config_):
         if not tables_exist():
+            init_command = 'ckan validation init-db'
             log.critical(u'''
-The validation extension requires a database setup. Please run the following
-to create the database tables:
-    paster --plugin=ckanext-validation validation init-db
-''')
+The validation extension requires a database setup.
+Validation pages will not be enabled.
+Please run the following to create the database tables:
+    %s''', init_command)
         else:
             log.debug(u'Validation tables exist')
 
@@ -85,14 +87,12 @@ to create the database tables:
     # ITemplateHelpers
 
     def get_helpers(self):
-        return {
-            u'get_validation_badge': get_validation_badge,
-            u'validation_extract_report_from_errors': validation_extract_report_from_errors,
-            u'dump_json_value': dump_json_value,
-            u'bootstrap_version': bootstrap_version,
-            u'validation_dict': validation_dict,
-            u'use_webassets': use_webassets,
-        }
+        return _get_helpers()
+
+    # IValidators
+
+    def get_validators(self):
+        return validators.get_validators()
 
     # IResourceController
 
@@ -132,14 +132,27 @@ to create the database tables:
 
         return data_dict
 
+    # CKAN < 2.10
     def before_create(self, context, data_dict):
+        return self.before_resource_create(context, data_dict)
+
+    # CKAN >= 2.10
+    def before_resource_create(self, context, data_dict):
 
         is_dataset = self._data_dict_is_dataset(data_dict)
         if not is_dataset:
             context["_resource_create_call"] = True
             return self._process_schema_fields(data_dict)
 
+    # CKAN < 2.10
     def after_create(self, context, data_dict):
+        # if (self._data_dict_is_dataset(data_dict)):
+        #     return self.after_dataset_create(context, data_dict)
+        # else:
+        return self.after_resource_create(context, data_dict)
+
+    # CKAN >= 2.10
+    def after_resource_create(self, context, data_dict):
 
         is_dataset = self._data_dict_is_dataset(data_dict)
 
@@ -185,7 +198,12 @@ to create the database tables:
 
             _run_async_validation(resource[u'id'])
 
+    # CKAN < 2.10
     def before_update(self, context, current_resource, updated_resource):
+        return self.before_resource_update(context, current_resource, updated_resource)
+
+    # CKAN >= 2.10
+    def before_resource_update(self, context, current_resource, updated_resource):
 
         updated_resource = self._process_schema_fields(updated_resource)
 
@@ -225,7 +243,15 @@ to create the database tables:
 
         return updated_resource
 
+    # CKAN < 2.10
     def after_update(self, context, data_dict):
+        # if (self._data_dict_is_dataset(data_dict)):
+        #     return self.after_dataset_update(context, data_dict)
+        # else:
+        return self.after_resource_update(context, data_dict)
+
+    # CKAN >= 2.10
+    def after_resource_update(self, context, data_dict):
 
         is_dataset = self._data_dict_is_dataset(data_dict)
 
@@ -287,7 +313,13 @@ to create the database tables:
 
     # IPackageController
 
+    # CKAN < 2.10
     def before_index(self, index_dict):
+        if (self._data_dict_is_dataset(index_dict)):
+            return self.before_dataset_index(index_dict)
+
+    # CKAN >= 2.10
+    def before_dataset_index(self, index_dict):
 
         res_status = []
         dataset_dict = json.loads(index_dict['validated_data_dict'])
@@ -299,14 +331,6 @@ to create the database tables:
             index_dict['vocab_validation_status'] = res_status
 
         return index_dict
-
-    # IValidators
-
-    def get_validators(self):
-        return {
-            'resource_schema_validator': resource_schema_validator,
-            'validation_options_validator': validation_options_validator,
-        }
 
 
 def _run_async_validation(resource_id):

@@ -6,6 +6,15 @@ import tableschema
 from ckantoolkit import Invalid, config
 
 
+def get_validators():
+    validators = (
+        resource_schema_validator,
+        validation_options_validator,
+    )
+
+    return {"{}".format(func.__name__): func for func in validators}
+
+
 # Input validators
 
 def resource_schema_validator(value, context):

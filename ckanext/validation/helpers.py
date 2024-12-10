@@ -4,6 +4,18 @@ import json
 from ckan.lib.helpers import url_for_static
 from ckantoolkit import url_for, _, config, asbool, literal, h
 
+def _get_helpers():
+    validators = (
+        get_validation_badge,
+        validation_extract_report_from_errors,
+        dump_json_value,
+        bootstrap_version,
+        validation_dict,
+        use_webassets
+    )
+
+    return {"{}".format(func.__name__): func for func in validators}
+
 
 def get_validation_badge(resource, in_listing=False):
 
