@@ -28,41 +28,25 @@ log = logging.getLogger(__name__)
 ckan_2_10 = t.check_ckan_version(min_version="2.10")
 
 
+def get_actions():
+    validators = (
+        resource_validation_run,
+        resource_validation_show,
+        resource_validation_delete,
+        resource_validation_run_batch,
+        resource_create,
+        resource_update,
+    )
+
+    return {"{}".format(func.__name__): func for func in validators}
+
+
 def enqueue_job(*args, **kwargs):
     try:
         return t.enqueue_job(*args, **kwargs)
     except AttributeError:
         from ckanext.rq.jobs import enqueue as enqueue_job_legacy
         return enqueue_job_legacy(*args, **kwargs)
-
-
-# Auth
-
-def auth_resource_validation_run(context, data_dict):
-    if t.check_access(
-            u'resource_update', context, {u'id': data_dict[u'resource_id']}):
-        return {u'success': True}
-    return {u'success': False}
-
-
-def auth_resource_validation_delete(context, data_dict):
-    if t.check_access(
-            u'resource_update', context, {u'id': data_dict[u'resource_id']}):
-        return {u'success': True}
-    return {u'success': False}
-
-
-@t.auth_allow_anonymous_access
-def auth_resource_validation_show(context, data_dict):
-    if t.check_access(
-            u'resource_show', context, {u'id': data_dict[u'resource_id']}):
-        return {u'success': True}
-    return {u'success': False}
-
-
-def auth_resource_validation_run_batch(context, data_dict):
-    '''u Sysadmins only'''
-    return {u'success': False}
 
 
 # Actions

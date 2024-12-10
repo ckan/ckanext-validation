@@ -10,14 +10,7 @@ import ckantoolkit as t
 
 from ckanext.validation import settings
 from ckanext.validation.model import tables_exist
-from ckanext.validation.logic import (
-    resource_validation_run, resource_validation_show,
-    resource_validation_delete, resource_validation_run_batch,
-    auth_resource_validation_run, auth_resource_validation_show,
-    auth_resource_validation_delete, auth_resource_validation_run_batch,
-    resource_create as custom_resource_create,
-    resource_update as custom_resource_update,
-)
+from .logic import action, auth
 from ckanext.validation.helpers import (
     get_validation_badge,
     validation_extract_report_from_errors,
@@ -77,33 +70,19 @@ to create the database tables:
         else:
             log.debug(u'Validation tables exist')
 
-        t.add_template_directory(config_, u'../templates')
-        t.add_public_directory(config_, u'../public')
-        t.add_resource(u'../webassets', 'ckanext-validation')
+        t.add_template_directory(config_, u'templates')
+        t.add_public_directory(config_, u'public')
+        t.add_resource(u'webassets', 'ckanext-validation')
 
     # IActions
 
     def get_actions(self):
-        new_actions = {
-            u'resource_validation_run': resource_validation_run,
-            u'resource_validation_show': resource_validation_show,
-            u'resource_validation_delete': resource_validation_delete,
-            u'resource_validation_run_batch': resource_validation_run_batch,
-            u'resource_create': custom_resource_create,
-            u'resource_update': custom_resource_update,
-        }
-
-        return new_actions
+        return action.get_actions()
 
     # IAuthFunctions
 
     def get_auth_functions(self):
-        return {
-            u'resource_validation_run': auth_resource_validation_run,
-            u'resource_validation_show': auth_resource_validation_show,
-            u'resource_validation_delete': auth_resource_validation_delete,
-            u'resource_validation_run_batch': auth_resource_validation_run_batch,
-        }
+        return auth.get_auth_functions()
 
     # ITemplateHelpers
 
