@@ -104,12 +104,12 @@ jobs:
       with:
         file: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
-        flags: "unittests,${{ matrix.ckan-version }}"
+        flags: "${{ matrix.ckan-version }}"
 
     - name: Upload test results to Codecov
       if: ${{ !cancelled() }}
       uses: codecov/test-results-action@v1
       with:
-        flags: "unittests,${{ matrix.ckan-version }}"
+        flags: "${{ matrix.ckan-version }}"
         files: "/tmp/artifacts/junit/results.xml"
         token: ${{ secrets.CODECOV_TOKEN }}
