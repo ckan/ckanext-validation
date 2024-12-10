@@ -53,6 +53,7 @@ jobs:
           fi
 
   lint:
+    needs: validateVersion
     if: github.repository == 'ckan/ckanext-validation'
     runs-on: ubuntu-latest
     steps:
