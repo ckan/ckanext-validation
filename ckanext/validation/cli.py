@@ -5,6 +5,10 @@ import click
 from ckanext.validation.model import create_tables, tables_exist
 
 
+def get_commands():
+    return [validation]
+
+
 @click.group()
 def validation():
     """Harvests remotely mastered metadata."""
