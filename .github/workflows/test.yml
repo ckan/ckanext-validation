@@ -75,9 +75,6 @@ jobs:
       run: |
         pip install -r dev-requirements.txt
         pip install -r requirements.txt
-        echo "no-warn-conflicts install of jinja2 and markupsafe"
-        pip install --no-warn-conflicts jinja2==2.10.1
-        pip install --no-warn-conflicts markupsafe==2.0.1
         pip install -e .
         # Replace default path to CKAN core config file with the one on the container
         sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
