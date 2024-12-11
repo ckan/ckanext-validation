@@ -1,4 +1,4 @@
-import sys
+# encoding: utf-8
 
 import click
 
@@ -11,11 +11,12 @@ def get_commands():
 
 @click.group()
 def validation():
-    """Harvests remotely mastered metadata."""
+    """Validation management commands.
+    """
     pass
 
 
-@validation.command()
+@validation.command(name='init-db')
 def init_db():
     """ Initialize database tables.
     """
