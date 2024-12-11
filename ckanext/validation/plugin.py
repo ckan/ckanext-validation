@@ -6,12 +6,12 @@ import logging
 
 
 import ckan.plugins as p
-import ckantoolkit as t
+import ckantoolkit as tk
 
-from . import settings, utils, validators
+from . import settings as s, utils, validators
 from .helpers import _get_helpers
-from ckanext.validation.model import tables_exist
 from .logic import action, auth
+from .model import tables_exist
 
 from ckanext.validation.utils import (
     get_create_mode_from_config,
@@ -58,9 +58,9 @@ Please run the following to create the database tables:
         else:
             log.debug(u'Validation tables exist')
 
-        t.add_template_directory(config_, u'templates')
-        t.add_public_directory(config_, u'public')
-        t.add_resource(u'webassets', 'ckanext-validation')
+        tk.add_template_directory(config_, u'templates')
+        tk.add_public_directory(config_, u'public')
+        tk.add_resource(u'webassets', 'ckanext-validation')
 
     # IActions
 
@@ -141,7 +141,7 @@ Please run the following to create the database tables:
             ) and (
             # Make sure format is supported
             resource.get(u'format', u'').lower() in
-                settings.SUPPORTED_FORMATS
+                s.SUPPORTED_FORMATS
                 )):
             needs_validation = True
 
@@ -166,7 +166,7 @@ Please run the following to create the database tables:
         # the call originates from a resource API, so don't validate the entire package
         package_id = updated_resource.get('package_id')
         if not package_id:
-            existing_resource = t.get_action('resource_show')(
+            existing_resource = tk.get_action('resource_show')(
                 context={'ignore_auth': True}, data_dict={'id': updated_resource['id']})
             if existing_resource:
                 package_id = existing_resource['package_id']
@@ -190,7 +190,7 @@ Please run the following to create the database tables:
             ) and (
             # Make sure format is supported
             updated_resource.get(u'format', u'').lower() in
-                settings.SUPPORTED_FORMATS
+                s.SUPPORTED_FORMATS
                 )):
             needs_validation = True
 
@@ -287,4 +287,3 @@ Please run the following to create the database tables:
             index_dict['vocab_validation_status'] = res_status
 
         return index_dict
-
