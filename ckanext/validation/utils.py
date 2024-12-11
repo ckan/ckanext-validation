@@ -1,5 +1,6 @@
 import os
 import logging
+import cgi
 
 from ckan.plugins import PluginImplementations
 from ckan.lib.uploader import ResourceUpload
@@ -7,8 +8,111 @@ from ckantoolkit import config, asbool
 
 from ckanext.validation.interfaces import IPipeValidation
 
-
 log = logging.getLogger(__name__)
+
+from . import settings
+import ckan.plugins as p
+import ckantoolkit as t
+
+from werkzeug.datastructures import FileStorage as FlaskFileStorage
+ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
+
+def process_schema_fields(data_dict):
+    u'''
+     Normalize the different ways of providing the `schema` field
+
+     1. If `schema_upload` is provided and it's a valid file, the contents
+         are read into `schema`.
+     2. If `schema_url` is provided and looks like a valid URL, it's copied
+         to `schema`
+     3. If `schema_json` is provided, it's copied to `schema`.
+
+     All the 3 `schema_*` fields are removed from the data_dict.
+     Note that the data_dict still needs to pass validation
+     '''
+
+    schema_upload = data_dict.pop(u'schema_upload', None)
+    schema_url = data_dict.pop(u'schema_url', None)
+    schema_json = data_dict.pop(u'schema_json', None)
+
+    if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
+        uploaded_file = _get_underlying_file(schema_upload)
+        data_dict[u'schema'] = uploaded_file.read()
+        if isinstance(data_dict["schema"], (bytes, bytearray)):
+            data_dict["schema"] = data_dict["schema"].decode()
+    elif schema_url:
+
+        if (not isinstance(schema_url, str) or
+                not schema_url.lower()[:4] == u'http'):
+            raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
+        data_dict[u'schema'] = schema_url
+    elif schema_json:
+        data_dict[u'schema'] = schema_json
+
+    return data_dict
+
+def _get_underlying_file(wrapper):
+    if isinstance(wrapper, FlaskFileStorage):
+        return wrapper.stream
+    return wrapper.file
+
+
+def _should_remove_unsupported_resource_validation_reports(res_dict):
+    if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
+        return False
+    return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
+            and (res_dict.get('url_type') == 'upload'
+                or not res_dict.get('url_type'))
+            and (t.h.asbool(res_dict.get('validation_status', False))
+                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
+
+
+def _run_async_validation(resource_id):
+
+    try:
+        t.get_action(u'resource_validation_run')(
+            {u'ignore_auth': True},
+            {u'resource_id': resource_id,
+             u'async': True})
+    except t.ValidationError as e:
+        log.warning(
+            u'Could not run validation for resource %s: %s',
+                resource_id, e)
+
+
+def _should_remove_unsupported_resource_validation_reports(res_dict):
+    if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
+        return False
+    return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
+            and (res_dict.get('url_type') == 'upload'
+                or not res_dict.get('url_type'))
+            and (t.h.asbool(res_dict.get('validation_status', False))
+                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
+
+
+def _remove_unsupported_resource_validation_reports(resource_id):
+    """
+    Callback to remove unsupported validation reports.
+    Controlled by config value: ckanext.validation.clean_validation_reports.
+    Double check the resource format. Only supported Validation formats should have validation reports.
+    If the resource format is not supported, we should delete the validation reports.
+    """
+    context = {"ignore_auth": True}
+    try:
+        res = p.toolkit.get_action('resource_show')(context, {"id": resource_id})
+    except t.ObjectNotFound:
+        log.error('Resource %s does not exist.', resource_id)
+        return
+
+    if _should_remove_unsupported_resource_validation_reports(res):
+        log.info('Unsupported resource format "%s". Deleting validation reports for resource %s',
+            res.get(u'format', u''), res['id'])
+        try:
+            p.toolkit.get_action('resource_validation_delete')(context, {
+                "resource_id": res['id']})
+            log.info('Validation reports deleted for resource %s', res['id'])
+        except t.ObjectNotFound:
+            log.error('Validation reports for resource %s do not exist', res['id'])
 
 
 def get_update_mode_from_config():
