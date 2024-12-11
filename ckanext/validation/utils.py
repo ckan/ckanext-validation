@@ -80,16 +80,6 @@ def _run_async_validation(resource_id):
                 resource_id, e)
 
 
-def _should_remove_unsupported_resource_validation_reports(res_dict):
-    if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
-        return False
-    return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
-            and (res_dict.get('url_type') == 'upload'
-                or not res_dict.get('url_type'))
-            and (t.h.asbool(res_dict.get('validation_status', False))
-                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
-
-
 def _remove_unsupported_resource_validation_reports(resource_id):
     """
     Callback to remove unsupported validation reports.
