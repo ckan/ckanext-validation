@@ -79,6 +79,11 @@ jobs:
         # Replace default path to CKAN core config file with the one on the container
         sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
 
+    - name: Pin jinja2 for ckan 2.9 only (last jinja version that had escape class)
+      if: ${{ matrix.ckan-version == 2.9 }}
+      run: pip install "jinja2<3.1"
+      continue-on-error: ${{ matrix.experimental }}
+
     - name: Setup extension
       continue-on-error: ${{ matrix.experimental }}
       run: |
