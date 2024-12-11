@@ -1,44 +1,26 @@
 # encoding: utf-8
 
-import logging
-import cgi
 import json
+import logging
 
-from werkzeug.datastructures import FileStorage as FlaskFileStorage
+
+
 import ckan.plugins as p
-import ckantoolkit as t
+import ckantoolkit as tk
 
-from ckanext.validation import settings
-from ckanext.validation.model import tables_exist
-from ckanext.validation.logic import (
-    resource_validation_run, resource_validation_show,
-    resource_validation_delete, resource_validation_run_batch,
-    auth_resource_validation_run, auth_resource_validation_show,
-    auth_resource_validation_delete, auth_resource_validation_run_batch,
-    resource_create as custom_resource_create,
-    resource_update as custom_resource_update,
-)
-from ckanext.validation.helpers import (
-    get_validation_badge,
-    validation_extract_report_from_errors,
-    dump_json_value,
-    bootstrap_version,
-    validation_dict,
-    use_webassets,
-)
-from ckanext.validation.validators import (
-    resource_schema_validator,
-    validation_options_validator,
-)
+from . import settings as s, utils, validators
+from .helpers import get_helpers
+from .logic import action, auth
+from .model import tables_exist
+
 from ckanext.validation.utils import (
     get_create_mode_from_config,
     get_update_mode_from_config,
 )
 from ckanext.validation.interfaces import IDataValidation
-from ckanext.validation import blueprints, cli
+from ckanext.validation import views, cli
 
 
-ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 log = logging.getLogger(__name__)
 
 
@@ -56,111 +38,77 @@ class ValidationPlugin(p.SingletonPlugin):
     # IBlueprint
 
     def get_blueprint(self):
-        return [blueprints.validation]
+        return views.get_blueprints()
 
     # IClick
 
     def get_commands(self):
-        return [cli.validation]
+        return cli.get_commands()
 
     # IConfigurer
 
     def update_config(self, config_):
         if not tables_exist():
+            init_command = 'ckan validation init-db'
             log.critical(u'''
-The validation extension requires a database setup. Please run the following
-to create the database tables:
-    paster --plugin=ckanext-validation validation init-db
-''')
+The validation extension requires a database setup.
+Validation pages will not be enabled.
+Please run the following to create the database tables:
+    %s''', init_command)
         else:
             log.debug(u'Validation tables exist')
 
-        t.add_template_directory(config_, u'../templates')
-        t.add_public_directory(config_, u'../public')
-        t.add_resource(u'../webassets', 'ckanext-validation')
+        tk.add_template_directory(config_, u'templates')
+        tk.add_public_directory(config_, u'public')
+        tk.add_resource(u'webassets', 'ckanext-validation')
 
     # IActions
 
     def get_actions(self):
-        new_actions = {
-            u'resource_validation_run': resource_validation_run,
-            u'resource_validation_show': resource_validation_show,
-            u'resource_validation_delete': resource_validation_delete,
-            u'resource_validation_run_batch': resource_validation_run_batch,
-            u'resource_create': custom_resource_create,
-            u'resource_update': custom_resource_update,
-        }
-
-        return new_actions
+        return action.get_actions()
 
     # IAuthFunctions
 
     def get_auth_functions(self):
-        return {
-            u'resource_validation_run': auth_resource_validation_run,
-            u'resource_validation_show': auth_resource_validation_show,
-            u'resource_validation_delete': auth_resource_validation_delete,
-            u'resource_validation_run_batch': auth_resource_validation_run_batch,
-        }
+        return auth.get_auth_functions()
 
     # ITemplateHelpers
 
     def get_helpers(self):
-        return {
-            u'get_validation_badge': get_validation_badge,
-            u'validation_extract_report_from_errors': validation_extract_report_from_errors,
-            u'dump_json_value': dump_json_value,
-            u'bootstrap_version': bootstrap_version,
-            u'validation_dict': validation_dict,
-            u'use_webassets': use_webassets,
-        }
+        return get_helpers()
+
+    # IValidators
+
+    def get_validators(self):
+        return validators.get_validators()
 
     # IResourceController
 
     resources_to_validate = {}
     packages_to_skip = {}
 
-    def _process_schema_fields(self, data_dict):
-        u'''
-        Normalize the different ways of providing the `schema` field
 
-        1. If `schema_upload` is provided and it's a valid file, the contents
-           are read into `schema`.
-        2. If `schema_url` is provided and looks like a valid URL, it's copied
-           to `schema`
-        3. If `schema_json` is provided, it's copied to `schema`.
-
-        All the 3 `schema_*` fields are removed from the data_dict.
-        Note that the data_dict still needs to pass validation
-        '''
-
-        schema_upload = data_dict.pop(u'schema_upload', None)
-        schema_url = data_dict.pop(u'schema_url', None)
-        schema_json = data_dict.pop(u'schema_json', None)
-        if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
-            uploaded_file = _get_underlying_file(schema_upload)
-            data_dict[u'schema'] = uploaded_file.read()
-            if isinstance(data_dict["schema"], (bytes, bytearray)):
-                data_dict["schema"] = data_dict["schema"].decode()
-        elif schema_url:
-
-            if (not isinstance(schema_url, str) or
-                    not schema_url.lower()[:4] == u'http'):
-                raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
-            data_dict[u'schema'] = schema_url
-        elif schema_json:
-            data_dict[u'schema'] = schema_json
-
-        return data_dict
-
+    # CKAN < 2.10
     def before_create(self, context, data_dict):
+        return self.before_resource_create(context, data_dict)
+
+    # CKAN >= 2.10
+    def before_resource_create(self, context, data_dict):
 
         is_dataset = self._data_dict_is_dataset(data_dict)
         if not is_dataset:
             context["_resource_create_call"] = True
-            return self._process_schema_fields(data_dict)
+            return utils.process_schema_fields(data_dict)
 
+    # CKAN < 2.10
     def after_create(self, context, data_dict):
+        # if (self._data_dict_is_dataset(data_dict)):
+        #     return self.after_dataset_create(context, data_dict)
+        # else:
+        return self.after_resource_create(context, data_dict)
+
+    # CKAN >= 2.10
+    def after_resource_create(self, context, data_dict):
 
         is_dataset = self._data_dict_is_dataset(data_dict)
 
@@ -193,7 +141,7 @@ to create the database tables:
             ) and (
             # Make sure format is supported
             resource.get(u'format', u'').lower() in
-                settings.SUPPORTED_FORMATS
+                s.SUPPORTED_FORMATS
                 )):
             needs_validation = True
 
@@ -204,16 +152,21 @@ to create the database tables:
                     log.debug('Skipping validation for resource %s', resource['id'])
                     return
 
-            _run_async_validation(resource[u'id'])
+            utils._run_async_validation(resource[u'id'])
 
+    # CKAN < 2.10
     def before_update(self, context, current_resource, updated_resource):
+        return self.before_resource_update(context, current_resource, updated_resource)
 
-        updated_resource = self._process_schema_fields(updated_resource)
+    # CKAN >= 2.10
+    def before_resource_update(self, context, current_resource, updated_resource):
+
+        updated_resource = utils.process_schema_fields(updated_resource)
 
         # the call originates from a resource API, so don't validate the entire package
         package_id = updated_resource.get('package_id')
         if not package_id:
-            existing_resource = t.get_action('resource_show')(
+            existing_resource = tk.get_action('resource_show')(
                 context={'ignore_auth': True}, data_dict={'id': updated_resource['id']})
             if existing_resource:
                 package_id = existing_resource['package_id']
@@ -237,7 +190,7 @@ to create the database tables:
             ) and (
             # Make sure format is supported
             updated_resource.get(u'format', u'').lower() in
-                settings.SUPPORTED_FORMATS
+                s.SUPPORTED_FORMATS
                 )):
             needs_validation = True
 
@@ -246,7 +199,15 @@ to create the database tables:
 
         return updated_resource
 
+    # CKAN < 2.10
     def after_update(self, context, data_dict):
+        # if (self._data_dict_is_dataset(data_dict)):
+        #     return self.after_dataset_update(context, data_dict)
+        # else:
+        return self.after_resource_update(context, data_dict)
+
+    # CKAN >= 2.10
+    def after_resource_update(self, context, data_dict):
 
         is_dataset = self._data_dict_is_dataset(data_dict)
 
@@ -301,14 +262,20 @@ to create the database tables:
 
                 del self.resources_to_validate[resource_id]
 
-                _run_async_validation(resource_id)
+                utils._run_async_validation(resource_id)
 
-            if _should_remove_unsupported_resource_validation_reports(data_dict):
-                p.toolkit.enqueue_job(fn=_remove_unsupported_resource_validation_reports, args=[resource_id])
+            if utils._should_remove_unsupported_resource_validation_reports(data_dict):
+                p.toolkit.enqueue_job(fn=utils._remove_unsupported_resource_validation_reports, args=[resource_id])
 
     # IPackageController
 
+    # CKAN < 2.10
     def before_index(self, index_dict):
+        if (self._data_dict_is_dataset(index_dict)):
+            return self.before_dataset_index(index_dict)
+
+    # CKAN >= 2.10
+    def before_dataset_index(self, index_dict):
 
         res_status = []
         dataset_dict = json.loads(index_dict['validated_data_dict'])
@@ -320,64 +287,3 @@ to create the database tables:
             index_dict['vocab_validation_status'] = res_status
 
         return index_dict
-
-    # IValidators
-
-    def get_validators(self):
-        return {
-            'resource_schema_validator': resource_schema_validator,
-            'validation_options_validator': validation_options_validator,
-        }
-
-
-def _run_async_validation(resource_id):
-
-    try:
-        t.get_action(u'resource_validation_run')(
-            {u'ignore_auth': True},
-            {u'resource_id': resource_id,
-             u'async': True})
-    except t.ValidationError as e:
-        log.warning(
-            u'Could not run validation for resource %s: %s',
-                resource_id, e)
-
-def _get_underlying_file(wrapper):
-    if isinstance(wrapper, FlaskFileStorage):
-        return wrapper.stream
-    return wrapper.file
-
-
-def _should_remove_unsupported_resource_validation_reports(res_dict):
-    if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
-        return False
-    return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
-            and (res_dict.get('url_type') == 'upload'
-                or not res_dict.get('url_type'))
-            and (t.h.asbool(res_dict.get('validation_status', False))
-                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
-
-
-def _remove_unsupported_resource_validation_reports(resource_id):
-    """
-    Callback to remove unsupported validation reports.
-    Controlled by config value: ckanext.validation.clean_validation_reports.
-    Double check the resource format. Only supported Validation formats should have validation reports.
-    If the resource format is not supported, we should delete the validation reports.
-    """
-    context = {"ignore_auth": True}
-    try:
-        res = p.toolkit.get_action('resource_show')(context, {"id": resource_id})
-    except t.ObjectNotFound:
-        log.error('Resource %s does not exist.', resource_id)
-        return
-
-    if _should_remove_unsupported_resource_validation_reports(res):
-        log.info('Unsupported resource format "%s". Deleting validation reports for resource %s',
-            res.get(u'format', u''), res['id'])
-        try:
-            p.toolkit.get_action('resource_validation_delete')(context, {
-                "resource_id": res['id']})
-            log.info('Validation reports deleted for resource %s', res['id'])
-        except t.ObjectNotFound:
-            log.error('Validation reports for resource %s do not exist', res['id'])
