@@ -4,7 +4,7 @@ import json
 from ckan.lib.helpers import url_for_static
 from ckantoolkit import url_for, _, config, asbool, literal, h
 
-def _get_helpers():
+def get_helpers():
     validators = (
         get_validation_badge,
         validation_extract_report_from_errors,

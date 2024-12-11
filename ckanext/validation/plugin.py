@@ -9,7 +9,7 @@ import ckan.plugins as p
 import ckantoolkit as tk
 
 from . import settings as s, utils, validators
-from .helpers import _get_helpers
+from .helpers import get_helpers
 from .logic import action, auth
 from .model import tables_exist
 
@@ -75,7 +75,7 @@ Please run the following to create the database tables:
     # ITemplateHelpers
 
     def get_helpers(self):
-        return _get_helpers()
+        return get_helpers()
 
     # IValidators
 
