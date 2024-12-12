@@ -59,14 +59,14 @@ class TestResourceValidationRun(object):
 
         assert "Resource must have a valid URL" in str(e)
 
-    @mock.patch("ckanext.validation.logic.action.enqueue_job")
+    @mock.patch("ckantoolkit.enqueue_job")
     def test_resource_validation_with_url(self, mock_enqueue_job):
 
         resource = factories.Resource(url="http://example.com", format="csv")
 
         call_action("resource_validation_run", resource_id=resource["id"])
 
-    @mock.patch("ckanext.validation.logic.action.enqueue_job")
+    @mock.patch("ckantoolkit.enqueue_job")
     def test_resource_validation_with_upload(self, mock_enqueue_job):
 
         resource = factories.Resource(url="", url_type="upload", format="csv")
@@ -85,7 +85,7 @@ class TestResourceValidationRun(object):
 
         assert len(jobs_after) == len(jobs) + 1
 
-    @mock.patch("ckanext.validation.logic.action.enqueue_job")
+    @mock.patch("ckantoolkit.enqueue_job")
     def test_resource_validation_creates_validation_object(self, mock_enqueue_job):
 
         resource = factories.Resource(format="csv")
@@ -106,7 +106,7 @@ class TestResourceValidationRun(object):
         assert validation.error is None
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
-    @mock.patch("ckanext.validation.logic.action.enqueue_job")
+    @mock.patch("ckantoolkit.enqueue_job")
     def test_resource_validation_resets_existing_validation_object(
         self, mock_enqueue_job
     ):
@@ -145,7 +145,7 @@ class TestResourceValidationRun(object):
         assert validation.report is None
         assert validation.error is None
 
-    @mock.patch("ckanext.validation.logic.action.enqueue_job")
+    @mock.patch("ckantoolkit.enqueue_job")
     def test_resource_validation_only_called_on_resource_created(
         self, mock_enqueue_job
     ):
@@ -170,7 +170,7 @@ class TestResourceValidationRun(object):
         assert mock_enqueue_job.call_count == 1
         assert mock_enqueue_job.call_args[0][1][0]["id"] == resource2["id"]
 
-    @mock.patch("ckanext.validation.logic.action.enqueue_job")
+    @mock.patch("ckantoolkit.enqueue_job")
     def test_resource_validation_only_called_on_resource_updated(
         self, mock_enqueue_job
     ):

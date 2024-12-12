@@ -9,13 +9,14 @@ from sqlalchemy.orm.exc import NoResultFound
 import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
 
-import ckantoolkit as t
+import ckantoolkit as tk
 
 from ckanext.validation.model import Validation
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings, utils
-
+from ckanext.validation.validation_status_helper import (
+    ValidationStatusHelper, ValidationJobAlreadyEnqueued)
 
 log = logging.getLogger(__name__)
 
@@ -33,11 +34,6 @@ def get_actions():
     return {"{}".format(func.__name__): func for func in validators}
 
 
-
-
-# Actions
-
-
 def resource_validation_run(context, data_dict):
     u'''
     Start a validation job against a resource.
@@ -53,62 +49,81 @@ def resource_validation_run(context, data_dict):
 
     '''
 
-    t.check_access(u'resource_validation_run', context, data_dict)
+    tk.check_access(u'resource_validation_run', context, data_dict)
 
-    if not data_dict.get(u'resource_id'):
-        raise t.ValidationError({u'resource_id': u'Missing value'})
+    resource_id = data_dict.get(u'resource_id')
+    if not resource_id:
+        raise tk.ValidationError({u'resource_id': u'Missing value'})
 
-    resource = t.get_action(u'resource_show')(
-        {}, {u'id': data_dict[u'resource_id']})
+    resource = tk.get_action(u'resource_show')(context, {u'id': resource_id})
 
     # TODO: limit to sysadmins
     async_job = data_dict.get(u'async', True)
 
+    supported_formats = settings.get_supported_formats()
+
     # Ensure format is supported
-    if not resource.get(u'format', u'').lower() in settings.get_supported_formats():
-        raise t.ValidationError(
-            {u'format': u'Unsupported resource format.' +
-             u'Must be one of {}'.format(
-                 u','.join(settings.get_supported_formats()))})
+    if not resource.get(u'format', u'').lower() in supported_formats:
+        raise tk.ValidationError({
+            u'format':
+            u'Unsupported resource format.'
+            u'Must be one of {}'.format(u','.join(supported_formats))
+        })
 
     # Ensure there is a URL or file upload
     if not resource.get(u'url') and not resource.get(u'url_type') == u'upload':
-        raise t.ValidationError(
+        raise tk.ValidationError(
             {u'url': u'Resource must have a valid URL or an uploaded file'})
 
     # Check if there was an existing validation for the resource
-
-    Session = context['model'].Session
-
     try:
-        validation = Session.query(Validation).filter(
-            Validation.resource_id == data_dict['resource_id']).one()
-    except NoResultFound:
-        validation = None
-
-    if validation:
-        # Reset values
-        validation.finished = None
-        validation.report = None
-        validation.error = None
-        validation.created = datetime.datetime.utcnow()
-        validation.status = u'created'
-    else:
-        validation = Validation(resource_id=resource['id'])
-
-    Session.add(validation)
-    Session.commit()
+        session = context['model'].Session
+        ValidationStatusHelper().createValidationJob(session, resource_id)
+    except ValidationJobAlreadyEnqueued:
+        if async_job:
+            log.error(
+                "resource_validation_run: ValidationJobAlreadyEnqueued %s",
+                data_dict['resource_id'])
+            return
 
     if async_job:
-        enqueue_job(run_validation_job, [resource])
+        package_id = resource['package_id']
+        enqueue_validation_job(package_id, resource_id)
     else:
         run_validation_job(resource)
 
 
-def enqueue_job(*args, **kwargs):
-    return t.enqueue_job(*args, **kwargs)
+def enqueue_validation_job(package_id, resource_id):
+    job_title = "run_validation_job: package_id: {} resource: {}".format(
+        package_id, resource_id),
 
-@t.side_effect_free
+    enqueue_args = {
+        'fn': run_validation_job,
+        'title': job_title,
+        'kwargs': {
+            'resource': resource_id,
+        }
+    }
+
+    ttl = 24 * 60 * 60  # 24 hour ttl.
+    rq_kwargs = {
+        'ttl': ttl, 'failure_ttl': ttl
+    }
+    enqueue_args['rq_kwargs'] = rq_kwargs
+
+    # Optional variable, if not set, default queue is used
+    queue = tk.config.get('ckanext.validation.queue', None)
+
+    if queue:
+        enqueue_args['queue'] = queue
+
+    tk.enqueue_job(**enqueue_args)
+
+
+def enqueue_job(*args, **kwargs):
+    return tk.enqueue_job(*args, **kwargs)
+
+@tk.side_effect_free
 def resource_validation_show(context, data_dict):
     u'''
     Display the validation job result for a particular resource.
@@ -131,10 +146,10 @@ def resource_validation_show(context, data_dict):
 
     '''
 
-    t.check_access(u'resource_validation_show', context, data_dict)
+    tk.check_access(u'resource_validation_show', context, data_dict)
 
     if not data_dict.get(u'resource_id'):
-        raise t.ValidationError({u'resource_id': u'Missing value'})
+        raise tk.ValidationError({u'resource_id': u'Missing value'})
 
     Session = context['model'].Session
 
@@ -145,7 +160,7 @@ def resource_validation_show(context, data_dict):
         validation = None
 
     if not validation:
-        raise t.ObjectNotFound(
+        raise tk.ObjectNotFound(
             'No validation report exists for this resource')
 
     return utils.validation_dictize(validation)
@@ -163,10 +178,10 @@ def resource_validation_delete(context, data_dict):
 
     '''
 
-    t.check_access(u'resource_validation_delete', context, data_dict)
+    tk.check_access(u'resource_validation_delete', context, data_dict)
 
     if not data_dict.get(u'resource_id'):
-        raise t.ValidationError({u'resource_id': u'Missing value'})
+        raise tk.ValidationError({u'resource_id': u'Missing value'})
 
     Session = context['model'].Session
 
@@ -177,7 +192,7 @@ def resource_validation_delete(context, data_dict):
         validation = None
 
     if not validation:
-        raise t.ObjectNotFound(
+        raise tk.ObjectNotFound(
             'No validation report exists for this resource')
 
     Session.delete(validation)
@@ -231,7 +246,7 @@ def resource_validation_run_batch(context, data_dict):
 
     '''
 
-    t.check_access(u'resource_validation_run_batch', context, data_dict)
+    tk.check_access(u'resource_validation_run_batch', context, data_dict)
 
     page = 1
     page_size = 100
@@ -276,14 +291,14 @@ def resource_validation_run_batch(context, data_dict):
                         continue
 
                     try:
-                        t.get_action(u'resource_validation_run')(
+                        tk.get_action(u'resource_validation_run')(
                             {u'ignore_auth': True},
                             {u'resource_id': resource['id'],
                              u'async': True})
 
                         count_resources += 1
 
-                    except t.ValidationError as e:
+                    except tk.ValidationError as e:
                         log.warning(
                             u'Could not run validation for resource %s ' +
                             u'from dataset %s: %s',
@@ -334,7 +349,7 @@ def _search_datasets(
     if not search_data_dict.get('q'):
         search_data_dict['q'] = '*:*'
 
-    query = t.get_action('package_search')({}, search_data_dict)
+    query = tk.get_action('package_search')({}, search_data_dict)
 
     return query
 
@@ -380,7 +395,7 @@ def _add_default_formats(search_data_dict):
     search_data_dict['fq_list'].append(' OR '.join(filter_formats_query))
 
 
-@t.chained_action
+@tk.chained_action
 def resource_create(up_func, context, data_dict):
     '''Appends a new resource to a datasets list of resources.
 
@@ -399,15 +414,15 @@ def resource_create(up_func, context, data_dict):
 
     model = context['model']
 
-    package_id = t.get_or_bust(data_dict, 'package_id')
+    package_id = tk.get_or_bust(data_dict, 'package_id')
     if not data_dict.get('url'):
         data_dict['url'] = ''
 
-    pkg_dict = t.get_action('package_show')(
+    pkg_dict = tk.get_action('package_show')(
         dict(context, return_type='dict'),
         {'id': package_id})
 
-    t.check_access('resource_create', context, data_dict)
+    tk.check_access('resource_create', context, data_dict)
 
     for plugin in plugins.PluginImplementations(plugins.IResourceController):
         plugin.before_create(context, data_dict)
@@ -430,13 +445,13 @@ def resource_create(up_func, context, data_dict):
     try:
         context['defer_commit'] = True
         context['use_cache'] = False
-        t.get_action('package_update')(context, pkg_dict)
+        tk.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError as e:
+    except tk.ValidationError as e:
         try:
-            raise t.ValidationError(e.error_dict['resources'][-1])
+            raise tk.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
-            raise t.ValidationError(e.error_dict)
+            raise tk.ValidationError(e.error_dict)
 
     # Get out resource_id resource from model as it will not appear in
     # package_show until after commit
@@ -466,12 +481,12 @@ def resource_create(up_func, context, data_dict):
     model.repo.commit()
 
     #  Run package show again to get out actual last_resource
-    updated_pkg_dict = t.get_action('package_show')(
+    updated_pkg_dict = tk.get_action('package_show')(
         context, {'id': package_id})
     resource = updated_pkg_dict['resources'][-1]
 
     #  Add the default views to the new resource
-    t.get_action('resource_create_default_resource_views')(
+    tk.get_action('resource_create_default_resource_views')(
         {'model': context['model'],
          'user': context['user'],
          'ignore_auth': True
@@ -486,7 +501,7 @@ def resource_create(up_func, context, data_dict):
     return resource
 
 
-@t.chained_action
+@tk.chained_action
 def resource_update(up_func, context, data_dict):
     '''Update a resource.
 
@@ -504,7 +519,7 @@ def resource_update(up_func, context, data_dict):
         return up_func(context, data_dict)
 
     model = context['model']
-    id = t.get_or_bust(data_dict, "id")
+    id = tk.get_or_bust(data_dict, "id")
 
     if not data_dict.get('url'):
         data_dict['url'] = ''
@@ -515,13 +530,13 @@ def resource_update(up_func, context, data_dict):
 
     if not resource:
         log.debug('Could not find resource %s', id)
-        raise t.ObjectNotFound(t._('Resource was not found.'))
+        raise tk.ObjectNotFound(tk._('Resource was not found.'))
 
-    t.check_access('resource_update', context, data_dict)
+    tk.check_access('resource_update', context, data_dict)
     del context["resource"]
 
     package_id = resource.package.id
-    pkg_dict = t.get_action('package_show')(dict(context, return_type='dict'),
+    pkg_dict = tk.get_action('package_show')(dict(context, return_type='dict'),
                                             {'id': package_id})
 
     for n, p in enumerate(pkg_dict['resources']):
@@ -529,7 +544,7 @@ def resource_update(up_func, context, data_dict):
             break
     else:
         log.error('Could not find resource %s after all', id)
-        raise t.ObjectNotFound(t._('Resource was not found.'))
+        raise tk.ObjectNotFound(tk._('Resource was not found.'))
 
     # Persist the datastore_active extra if already present and not provided
     if ('datastore_active' in resource.extras and
@@ -554,13 +569,13 @@ def resource_update(up_func, context, data_dict):
     try:
         context['defer_commit'] = True
         context['use_cache'] = False
-        updated_pkg_dict = t.get_action('package_update')(context, pkg_dict)
+        updated_pkg_dict = tk.get_action('package_update')(context, pkg_dict)
         context.pop('defer_commit')
-    except t.ValidationError as e:
+    except tk.ValidationError as e:
         try:
-            raise t.ValidationError(e.error_dict['resources'][-1])
+            raise tk.ValidationError(e.error_dict['resources'][-1])
         except (KeyError, IndexError):
-            raise t.ValidationError(e.error_dict)
+            raise tk.ValidationError(e.error_dict)
 
     upload.upload(id, uploader.get_max_resource_size())
 
@@ -587,10 +602,10 @@ def resource_update(up_func, context, data_dict):
 
     model.repo.commit()
 
-    resource = t.get_action('resource_show')(context, {'id': id})
+    resource = tk.get_action('resource_show')(context, {'id': id})
 
     if old_resource_format != resource['format']:
-        t.get_action('resource_create_default_resource_views')(
+        tk.get_action('resource_create_default_resource_views')(
             {'model': context['model'], 'user': context['user'],
              'ignore_auth': True},
             {'package': updated_pkg_dict,
@@ -605,17 +620,17 @@ def resource_update(up_func, context, data_dict):
 def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
 
     try:
-        t.get_action(u'resource_validation_run')(
+        tk.get_action(u'resource_validation_run')(
             {u'ignore_auth': True},
             {u'resource_id': resource_id,
              u'async': False})
-    except t.ValidationError as e:
+    except tk.ValidationError as e:
         log.info(
             u'Could not run validation for resource %s: %s',
                 resource_id, e)
         return
 
-    validation = t.get_action(u'resource_validation_show')(
+    validation = tk.get_action(u'resource_validation_show')(
         {u'ignore_auth': True},
         {u'resource_id': resource_id})
 
@@ -625,7 +640,7 @@ def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
         if not report['valid']:
 
             # Delete validation object
-            t.get_action(u'resource_validation_delete')(
+            tk.get_action(u'resource_validation_delete')(
                 {u'ignore_auth': True},
                 {u'resource_id': resource_id}
             )
@@ -636,14 +651,14 @@ def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
 
             if new_resource:
                 # Delete resource
-                t.get_action(u'resource_delete')(
+                tk.get_action(u'resource_delete')(
                     {u'ignore_auth': True, 'user': None},
                     {u'id': resource_id}
                 )
 
-            raise t.ValidationError({
+            raise tk.ValidationError({
                 u'validation': [report]})
     else:
-        raise t.ValidationError({
+        raise tk.ValidationError({
             'validation': []
         })
