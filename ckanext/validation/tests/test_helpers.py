@@ -54,9 +54,8 @@ class TestBadges(object):
             )
             in out
         )
-        assert 'src="/images/badges/data-success-flat.svg"' in out
-        assert 'alt="Valid data"' in out
-        assert 'title="{}"'.format(resource["validation_timestamp"]) in out
+        assert '<span class="prefix">data</span><span class="status success">valid</span>' in out
+        assert 'title="Valid data {}"'.format(resource["validation_timestamp"]) in out
 
     def test_get_validation_badge_failure(self):
 
@@ -74,9 +73,8 @@ class TestBadges(object):
             )
             in out
         )
-        assert 'src="/images/badges/data-failure-flat.svg"' in out
-        assert 'alt="Invalid data"' in out
-        assert 'title="{}"'.format(resource["validation_timestamp"]) in out
+        assert '<span class="prefix">data</span><span class="status failure">invalid</span>' in out
+        assert 'title="Invalid data {}"'.format(resource["validation_timestamp"]) in out
 
     def test_get_validation_badge_error(self):
 
@@ -94,9 +92,10 @@ class TestBadges(object):
             )
             in out
         )
-        assert 'src="/images/badges/data-error-flat.svg"' in out
-        assert 'alt="Error during validation"' in out
-        assert 'title="{}"'.format(resource["validation_timestamp"]) in out
+
+        assert '<span class="prefix">data</span><span class="status error">error</span>' in out
+        assert 'title="Error during validation {}"'.format(resource["validation_timestamp"]) in out
+
 
     def test_get_validation_badge_other(self):
 
@@ -113,9 +112,8 @@ class TestBadges(object):
             )
             in out
         )
-        assert 'src="/images/badges/data-unknown-flat.svg"' in out
-        assert 'alt="Data validation unknown"' in out
-        assert 'title=""' in out
+        assert '<span class="prefix">data</span><span class="status unknown">unknown</span>' in out
+        assert 'title="Data validation unknown "' in out
 
 
 class TestExtractReportFromErrors(object):

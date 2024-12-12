@@ -14,55 +14,25 @@ import ckantoolkit as t
 from ckanext.validation.model import Validation
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation.jobs import run_validation_job
-from ckanext.validation import settings
-from ckanext.validation.utils import (
-    get_create_mode_from_config,
-    get_update_mode_from_config,
-    delete_local_uploaded_file,
-    validation_dictize,
-)
+from ckanext.validation import settings, utils
 
 
 log = logging.getLogger(__name__)
 
-ckan_2_10 = t.check_ckan_version(min_version="2.10")
+
+def get_actions():
+    validators = (
+        resource_validation_run,
+        resource_validation_show,
+        resource_validation_delete,
+        resource_validation_run_batch,
+        resource_create,
+        resource_update,
+    )
+
+    return {"{}".format(func.__name__): func for func in validators}
 
 
-def enqueue_job(*args, **kwargs):
-    try:
-        return t.enqueue_job(*args, **kwargs)
-    except AttributeError:
-        from ckanext.rq.jobs import enqueue as enqueue_job_legacy
-        return enqueue_job_legacy(*args, **kwargs)
-
-
-# Auth
-
-def auth_resource_validation_run(context, data_dict):
-    if t.check_access(
-            u'resource_update', context, {u'id': data_dict[u'resource_id']}):
-        return {u'success': True}
-    return {u'success': False}
-
-
-def auth_resource_validation_delete(context, data_dict):
-    if t.check_access(
-            u'resource_update', context, {u'id': data_dict[u'resource_id']}):
-        return {u'success': True}
-    return {u'success': False}
-
-
-@t.auth_allow_anonymous_access
-def auth_resource_validation_show(context, data_dict):
-    if t.check_access(
-            u'resource_show', context, {u'id': data_dict[u'resource_id']}):
-        return {u'success': True}
-    return {u'success': False}
-
-
-def auth_resource_validation_run_batch(context, data_dict):
-    '''u Sysadmins only'''
-    return {u'success': False}
 
 
 # Actions
@@ -95,10 +65,11 @@ def resource_validation_run(context, data_dict):
     async_job = data_dict.get(u'async', True)
 
     # Ensure format is supported
-    if not resource.get(u'format', u'').lower() in settings.SUPPORTED_FORMATS:
+    if not resource.get(u'format', u'').lower() in settings.get_supported_formats():
         raise t.ValidationError(
-            {u'format': u'Unsupported resource format.'
-                        + u'Must be one of {}'.format(u','.join(settings.SUPPORTED_FORMATS))})
+            {u'format': u'Unsupported resource format.' +
+             u'Must be one of {}'.format(
+                 u','.join(settings.get_supported_formats()))})
 
     # Ensure there is a URL or file upload
     if not resource.get(u'url') and not resource.get(u'url_type') == u'upload':
@@ -133,6 +104,9 @@ def resource_validation_run(context, data_dict):
     else:
         run_validation_job(resource)
 
+
+def enqueue_job(*args, **kwargs):
+    return t.enqueue_job(*args, **kwargs)
 
 @t.side_effect_free
 def resource_validation_show(context, data_dict):
@@ -174,7 +148,7 @@ def resource_validation_show(context, data_dict):
         raise t.ObjectNotFound(
             'No validation report exists for this resource')
 
-    return validation_dictize(validation)
+    return utils.validation_dictize(validation)
 
 
 def resource_validation_delete(context, data_dict):
@@ -298,7 +272,7 @@ def resource_validation_run_batch(context, data_dict):
                 for resource in dataset['resources']:
 
                     if (not resource.get(u'format', u'').lower()
-                            in settings.SUPPORTED_FORMATS):
+                            in settings.get_supported_formats()):
                         continue
 
                     try:
@@ -311,9 +285,9 @@ def resource_validation_run_batch(context, data_dict):
 
                     except t.ValidationError as e:
                         log.warning(
-                            u'Could not run validation for resource %s '
-                            + u'from dataset %s: %s',
-                            resource['id'], dataset['name'], e)
+                            u'Could not run validation for resource %s ' +
+                            u'from dataset %s: %s',
+                                resource['id'], dataset['name'], e)
 
             if len(query['results']) < page_size:
                 break
@@ -389,8 +363,8 @@ def _update_search_params(search_data_dict, user_search_params=None):
         else:
             search_data_dict['fq'] = user_search_params['fq']
 
-    if (user_search_params.get('fq_list')
-            and isinstance(user_search_params['fq_list'], list)):
+    if (user_search_params.get('fq_list') and
+            isinstance(user_search_params['fq_list'], list)):
         search_data_dict['fq_list'].extend(user_search_params['fq_list'])
 
 
@@ -398,7 +372,7 @@ def _add_default_formats(search_data_dict):
 
     filter_formats = []
 
-    for _format in settings.DEFAULT_SUPPORTED_FORMATS:
+    for _format in settings.get_supported_formats():
         filter_formats.extend([_format, _format.upper()])
 
     filter_formats_query = ['+res_format:"{0}"'.format(_format)
@@ -420,7 +394,7 @@ def resource_create(up_func, context, data_dict):
 
     '''
 
-    if get_create_mode_from_config() != 'sync':
+    if settings.get_create_mode_from_config() != 'sync':
         return up_func(context, data_dict)
 
     model = context['model']
@@ -435,13 +409,8 @@ def resource_create(up_func, context, data_dict):
 
     t.check_access('resource_create', context, data_dict)
 
-    # Check if CKAN version is min 2.10
-    if ckan_2_10:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.before_resource_create(context, data_dict)
-    else:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.before_create(context, data_dict)
+    for plugin in plugins.PluginImplementations(plugins.IResourceController):
+        plugin.before_create(context, data_dict)
 
     if 'resources' not in pkg_dict:
         pkg_dict['resources'] = []
@@ -511,12 +480,8 @@ def resource_create(up_func, context, data_dict):
          'package': updated_pkg_dict
          })
 
-    if ckan_2_10:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.after_resource_create(context, resource)
-    else:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.after_create(context, resource)
+    for plugin in plugins.PluginImplementations(plugins.IResourceController):
+        plugin.after_create(context, resource)
 
     return resource
 
@@ -535,7 +500,7 @@ def resource_update(up_func, context, data_dict):
 
     '''
 
-    if get_update_mode_from_config() != 'sync':
+    if settings.get_update_mode_from_config() != 'sync':
         return up_func(context, data_dict)
 
     model = context['model']
@@ -571,12 +536,8 @@ def resource_update(up_func, context, data_dict):
             and 'datastore_active' not in data_dict):
         data_dict['datastore_active'] = resource.extras['datastore_active']
 
-    if ckan_2_10:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.before_resource_update(context, pkg_dict['resources'][n], data_dict)
-    else:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.before_update(context, pkg_dict['resources'][n], data_dict)
+    for plugin in plugins.PluginImplementations(plugins.IResourceController):
+        plugin.before_update(context, pkg_dict['resources'][n], data_dict)
 
     upload = uploader.get_resource_uploader(data_dict)
 
@@ -635,12 +596,8 @@ def resource_update(up_func, context, data_dict):
             {'package': updated_pkg_dict,
              'resource': resource})
 
-    if ckan_2_10:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.after_resource_update(context, resource)
-    else:
-        for plugin in plugins.PluginImplementations(plugins.IResourceController):
-            plugin.after_update(context, resource)
+    for plugin in plugins.PluginImplementations(plugins.IResourceController):
+        plugin.after_update(context, resource)
 
     return resource
 
@@ -675,7 +632,7 @@ def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
 
             # Delete uploaded file
             if local_upload:
-                delete_local_uploaded_file(resource_id)
+                utils.delete_local_uploaded_file(resource_id)
 
             if new_resource:
                 # Delete resource

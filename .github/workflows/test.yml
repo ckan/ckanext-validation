@@ -100,9 +100,10 @@ jobs:
         paths: "/tmp/artifacts/junit/*.xml"
       if: always()
 
-    - name: Upload coverage report to codecov
+    - name: "Upload coverage report to codecov flag: ${{ matrix.ckan-version }}"
       uses: codecov/codecov-action@v5
       continue-on-error: ${{ matrix.experimental }}
       with:
         file: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
+        flags: "${{ matrix.ckan-version }}"

@@ -135,7 +135,7 @@ class TestInterfaceSync():
 class TestInterfaceAsync():
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', True)
-    @mock.patch('ckanext.validation.logic.enqueue_job')
+    @mock.patch('ckanext.validation.logic.action.enqueue_job')
     def test_can_validate_called_on_create_async(self, mock_validation):
 
         dataset = factories.Dataset()
@@ -150,7 +150,7 @@ class TestInterfaceAsync():
         assert mock_validation.called
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', True)
-    @mock.patch('ckanext.validation.logic.enqueue_job')
+    @mock.patch('ckanext.validation.logic.action.enqueue_job')
     def test_can_validate_called_on_create_async_no_validation(self, mock_validation):
 
         dataset = factories.Dataset()
@@ -167,7 +167,7 @@ class TestInterfaceAsync():
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', True)
-    @mock.patch('ckanext.validation.logic.enqueue_job')
+    @mock.patch('ckanext.validation.logic.action.enqueue_job')
     def test_can_validate_called_on_update_async(self, mock_validation):
 
         dataset = factories.Dataset()
@@ -185,7 +185,7 @@ class TestInterfaceAsync():
 
     @pytest.mark.ckan_config('ckanext.validation.run_on_create_async', False)
     @pytest.mark.ckan_config('ckanext.validation.run_on_update_async', True)
-    @mock.patch('ckanext.validation.logic.enqueue_job')
+    @mock.patch('ckanext.validation.logic.action.enqueue_job')
     def test_can_validate_called_on_update_async_no_validation(self, mock_validation):
 
         dataset = factories.Dataset()
