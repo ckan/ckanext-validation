@@ -1,6 +1,5 @@
 import json
 import io
-from unittest import mock
 import datetime
 
 import pytest
@@ -8,7 +7,7 @@ import pytest
 import ckantoolkit as t
 from ckantoolkit.tests.factories import Sysadmin, Dataset
 from ckantoolkit.tests.helpers import (
-    call_action, _get_test_app
+    call_action
 )
 
 from ckanext.validation.tests.helpers import VALID_CSV, INVALID_CSV
@@ -255,8 +254,6 @@ class TestResourceSchemaForm(object):
         value = {"fields": [{"name": "code"}, {"name": "department"}, {"name": "date"}]}
         json_value = bytes(json.dumps(value).encode('utf8'))
 
-        upload = ('schema_upload', 'schema.json', json_value)
-
         data = {
             "url": "https://example.com/data.csv",
             "id": "",
@@ -451,7 +448,7 @@ class TestResourceValidationOnUpdateForm(object):
         user = Sysadmin()
         env = {"REMOTE_USER": user["name"].encode("ascii")}
 
-        dataset2 = call_action("package_show", id=dataset["id"])
+        call_action("package_show", id=dataset["id"])
         response = app.post(
             url=_edit_resource_url(dataset['id'], dataset['resources'][0]['id']),
             extra_environ=env,

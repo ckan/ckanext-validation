@@ -1,10 +1,9 @@
 import pytest
 from unittest import mock
 
-from ckan.tests.helpers import call_action, reset_db
+from ckan.tests.helpers import call_action
 from ckan.tests import factories
 
-from ckanext.validation.model import create_tables, tables_exist
 from ckanext.validation.jobs import run_validation_job
 
 
