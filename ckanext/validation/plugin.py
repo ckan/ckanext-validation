@@ -8,15 +8,11 @@ import logging
 import ckan.plugins as p
 import ckantoolkit as tk
 
-from . import settings as s, utils, validators
+from . import settings as s, utils, validators, utils
 from .helpers import get_helpers
 from .logic import action, auth
 from .model import tables_exist
 
-from ckanext.validation.utils import (
-    get_create_mode_from_config,
-    get_update_mode_from_config,
-)
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation import views, cli
 
@@ -59,7 +55,6 @@ Please run the following to create the database tables:
             log.debug(u'Validation tables exist')
 
         tk.add_template_directory(config_, u'templates')
-        tk.add_public_directory(config_, u'public')
         tk.add_resource(u'webassets', 'ckanext-validation')
 
     # IActions
@@ -112,7 +107,7 @@ Please run the following to create the database tables:
 
         is_dataset = self._data_dict_is_dataset(data_dict)
 
-        if not get_create_mode_from_config() == u'async':
+        if not s.get_create_mode_from_config() == u'async':
             return
 
         if is_dataset:
@@ -141,7 +136,7 @@ Please run the following to create the database tables:
             ) and (
             # Make sure format is supported
             resource.get(u'format', u'').lower() in
-                s.SUPPORTED_FORMATS
+                s.get_supported_formats()
                 )):
             needs_validation = True
 
@@ -152,7 +147,7 @@ Please run the following to create the database tables:
                     log.debug('Skipping validation for resource %s', resource['id'])
                     return
 
-            utils._run_async_validation(resource[u'id'])
+            utils.run_async_validation(resource[u'id'])
 
     # CKAN < 2.10
     def before_update(self, context, current_resource, updated_resource):
@@ -172,7 +167,7 @@ Please run the following to create the database tables:
                 package_id = existing_resource['package_id']
         self.packages_to_skip[package_id] = True
 
-        if not get_update_mode_from_config() == u'async':
+        if not s.get_update_mode_from_config() == u'async':
             return updated_resource
 
         needs_validation = False
@@ -190,7 +185,7 @@ Please run the following to create the database tables:
             ) and (
             # Make sure format is supported
             updated_resource.get(u'format', u'').lower() in
-                s.SUPPORTED_FORMATS
+                s.get_supported_formats()
                 )):
             needs_validation = True
 
@@ -213,8 +208,8 @@ Please run the following to create the database tables:
 
         # Need to allow create as well because resource_create calls
         # package_update
-        if (not get_update_mode_from_config() == u'async'
-                and not get_create_mode_from_config() == u'async'):
+        if (not s.get_update_mode_from_config() == u'async'
+                and not s.get_create_mode_from_config() == u'async'):
             return
 
         if context.get('_validation_performed'):
@@ -262,10 +257,10 @@ Please run the following to create the database tables:
 
                 del self.resources_to_validate[resource_id]
 
-                utils._run_async_validation(resource_id)
+                utils.run_async_validation(resource_id)
 
-            if utils._should_remove_unsupported_resource_validation_reports(data_dict):
-                p.toolkit.enqueue_job(fn=utils._remove_unsupported_resource_validation_reports, args=[resource_id])
+            if utils.should_remove_unsupported_resource_validation_reports(data_dict):
+                p.toolkit.enqueue_job(fn=utils.remove_unsupported_resource_validation_reports, args=[resource_id])
 
     # IPackageController
 

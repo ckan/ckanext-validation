@@ -1,7 +1,7 @@
 {% import 'macros/form.html' as form %}
 
   {% set value = data[field.field_name] %}
-  {% set is_url = value and value[4:]|lower == 'http' %}
+  {% set is_url = h.is_url_valid(value) %}
   {% set is_json = not is_url and value %}
 
   <div class="image-upload"
@@ -11,6 +11,10 @@
        data-module-is_json="{{ 'true' if is_json else 'false' }}"
        data-module-field_url="schema_url"
        data-module-field_json="schema_json"
+       data-module-hide_upload="{{ h.dump_json(h.validation_hide_source("upload")) }}"
+       data-module-hide_url="{{ h.dump_json(h.validation_hide_source("url")) }}"
+       data-module-hide_json="{{ h.dump_json(h.validation_hide_source("json")) }}"
+       data-module-align_id="field-align_default_schema"
        >
     <div id="resource-schema-buttons">
       <label class="control-label">{{ _('Data Schema') }}</label>
@@ -60,10 +64,6 @@
     {% set existing_value = h.scheming_display_json_value(value, indent=None) if is_json else value %}
     <input type="hidden" id="field-schema" name="schema" value="{{ existing_value }}" />
 
-    {% if h.use_webassets() %}
-        {% snippet 'validation/snippets/validation_asset.html', name='ckanext-validation/resource-schema-form' %}
-    {% else %}
-        {% snippet 'validation/snippets/validation_resource.html', name='ckanext-validation/resource-schema-form' %}
-    {% endif %}
+    {% asset 'ckanext-validation/resource-schema-form' %}
 
   </div>
