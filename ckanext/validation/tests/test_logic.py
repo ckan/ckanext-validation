@@ -47,7 +47,7 @@ class TestResourceValidationRun(object):
 
             call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert "Unsupported resource format" in str(e)
+        assert "Unsupported resource format" in str(e.value)
 
     def test_resource_validation_no_url_or_upload(self):
 
@@ -57,7 +57,7 @@ class TestResourceValidationRun(object):
 
             call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert "Resource must have a valid URL" in str(e)
+        assert "Resource must have a valid URL" in str(e.value)
 
     @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_resource_validation_with_url(self, mock_enqueue_job):
@@ -529,8 +529,8 @@ class TestResourceValidationOnCreate(object):
             )
 
         assert "validation" in e.value.error_dict
-        assert "missing-cell" in str(e)
-        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
+        assert "missing-cell" in str(e.value)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e.value)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
@@ -625,8 +625,8 @@ class TestResourceValidationOnUpdate(object):
                 )
 
         assert "validation" in e.value.error_dict
-        assert "missing-cell" in str(e)
-        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
+        assert "missing-cell" in str(e.value)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e.value)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
