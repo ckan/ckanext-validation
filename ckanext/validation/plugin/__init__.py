@@ -41,6 +41,8 @@ from ckanext.validation import blueprints, cli
 ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 log = logging.getLogger(__name__)
 
+ckan_2_10 = t.check_ckan_version(min_version="2.10")
+
 
 class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
@@ -153,12 +155,15 @@ to create the database tables:
 
         return data_dict
 
+    def before_resource_create(self, context, data_dict):
+
+        context["_resource_create_call"] = True
+        return self._process_schema_fields(data_dict)
+            
     def before_create(self, context, data_dict):
 
-        is_dataset = self._data_dict_is_dataset(data_dict)
-        if not is_dataset:
-            context["_resource_create_call"] = True
-            return self._process_schema_fields(data_dict)
+        if not self._data_dict_is_dataset(data_dict):
+            return self.before_resource_create(context, data_dict)
 
     def after_create(self, context, data_dict):
 
@@ -302,6 +307,16 @@ to create the database tables:
                 del self.resources_to_validate[resource_id]
 
                 _run_async_validation(resource_id)
+         
+    def after_dataset_create(self, context, data_dict):
+        self.after_create(context, data_dict)
+    
+    def before_resource_update(self, context, current_resource, updated_resource):
+        self.before_update(context, current_resource, updated_resource)
+
+    def after_dataset_update(self, context, data_dict):
+        self.after_update(context, data_dict)
+        
 
             if _should_remove_unsupported_resource_validation_reports(data_dict):
                 p.toolkit.enqueue_job(fn=_remove_unsupported_resource_validation_reports, args=[resource_id])
