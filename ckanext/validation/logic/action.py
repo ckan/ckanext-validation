@@ -243,15 +243,15 @@ def resource_validation_run_batch(context, data_dict):
     if isinstance(dataset_ids, str):
         try:
             dataset_ids = json.loads(dataset_ids)
-        except ValueError as e:
+        except ValueError:
             dataset_ids = [dataset_ids]
 
     search_params = data_dict.get('query')
     if isinstance(search_params, str):
         try:
             search_params = json.loads(search_params)
-        except ValueError as e:
-            msg = 'Error parsing search parameters'.format(search_params)
+        except ValueError:
+            msg = 'Error parsing search parameters {0}'.format(search_params)
             return {'output': msg}
 
     while True:
@@ -462,9 +462,9 @@ def resource_create(up_func, context, data_dict):
 
     if run_validation:
         is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
+            hasattr(upload, 'filename')
+            and upload.filename is not None
+            and isinstance(upload, uploader.ResourceUpload))
         _run_sync_validation(
             resource_id, local_upload=is_local_upload, new_resource=True)
 
@@ -543,8 +543,8 @@ def resource_update(up_func, context, data_dict):
         raise t.ObjectNotFound(t._('Resource was not found.'))
 
     # Persist the datastore_active extra if already present and not provided
-    if ('datastore_active' in resource.extras and
-            'datastore_active' not in data_dict):
+    if ('datastore_active' in resource.extras
+            and 'datastore_active' not in data_dict):
         data_dict['datastore_active'] = resource.extras['datastore_active']
     
     if ckan_2_10:
@@ -592,9 +592,9 @@ def resource_update(up_func, context, data_dict):
 
     if run_validation:
         is_local_upload = (
-            hasattr(upload, 'filename') and
-            upload.filename is not None and
-            isinstance(upload, uploader.ResourceUpload))
+            hasattr(upload, 'filename')
+            and upload.filename is not None
+            and isinstance(upload, uploader.ResourceUpload))
         _run_sync_validation(
             id, local_upload=is_local_upload, new_resource=False)
 
@@ -631,7 +631,7 @@ def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
     except t.ValidationError as e:
         log.info(
             u'Could not run validation for resource %s: %s',
-                resource_id, e)
+            resource_id, e)
         return
 
     validation = t.get_action(u'resource_validation_show')(

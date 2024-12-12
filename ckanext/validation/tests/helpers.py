@@ -1,5 +1,4 @@
 import builtins
-import cgi
 import functools
 from unittest import mock
 from io import BytesIO
@@ -8,7 +7,6 @@ from werkzeug.datastructures import FileStorage
 from pyfakefs import fake_filesystem
 
 import ckan.lib.uploader
-from ckan.plugins import toolkit
 from ckan.tests.helpers import change_config
 
 
@@ -145,6 +143,7 @@ def mock_uploads_fake_fs(func):
 
 class MockFieldStorage(FileStorage):
     pass
+
 
 def get_mock_file(contents):
     mock_file = BytesIO()

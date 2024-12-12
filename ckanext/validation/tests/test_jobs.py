@@ -9,7 +9,7 @@ from ckan.lib.uploader import ResourceUpload
 from ckan.tests.helpers import call_action
 from ckan.tests import factories
 
-from ckanext.validation.model import create_tables, tables_exist, Validation
+from ckanext.validation.model import Validation
 from ckanext.validation.jobs import run_validation_job, uploader, Session
 from ckanext.validation.tests.helpers import (
     VALID_REPORT,
