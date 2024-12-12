@@ -2,8 +2,11 @@
 import json
 
 import tableschema
+from six import string_types, binary_type
 
-from ckantoolkit import Invalid, config
+from ckantoolkit import Invalid
+
+from ckanext.validation.settings import get_default_validation_options
 
 
 def get_validators():
@@ -26,7 +29,8 @@ def resource_schema_validator(value, context):
 
     if isinstance(value, dict):
         descriptor = value
-    else:
+
+    elif isinstance(value, string_types):
         value = str(value)
 
         if value.lower().startswith('http'):
@@ -41,6 +45,22 @@ def resource_schema_validator(value, context):
         except ValueError as e:
             msg = u'JSON error in Table Schema descriptor: {}'.format(e)
             raise Invalid(msg)
+
+    elif isinstance(value, binary_type):
+        try:
+            # Decode UTF-8 bytes to Unicode, and convert single quotes
+            # to double quotes to make it valid JSON
+            decoded_value = value.decode('utf8').replace("'", '"')
+
+            descriptor = json.loads(decoded_value)
+            if not isinstance(descriptor, dict):
+                msg = u'Invalid Table Schema descriptor: {}'.format(value)
+                raise Invalid(msg)
+        except ValueError as e:
+            msg = u'JSON error in Table Schema descriptor: {}'.format(e)
+            raise Invalid(msg)
+    else:
+        descriptor = value
 
     try:
         tableschema.validate(descriptor)
@@ -63,12 +83,9 @@ def validation_options_validator(value, context):
     `scheming_valid_json_object` has been run).
     '''
 
-    default_options = config.get(
-        'ckanext.validation.default_validation_options')
+    default_options = get_default_validation_options()
 
     if default_options:
-        default_options = json.loads(default_options)
-
         provided_options = json.loads(value)
 
         default_options.update(provided_options)

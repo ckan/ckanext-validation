@@ -6,9 +6,8 @@ import pytest
 from pyfakefs import fake_filesystem_unittest
 
 from ckanext.validation.tests.helpers import mock_uploads_fake_fs
+from ckanext.validation import settings as s
 from ckanext.validation.utils import (
-    get_create_mode_from_config,
-    get_update_mode_from_config,
     get_local_upload_path,
     delete_local_uploaded_file,
 )
@@ -17,55 +16,55 @@ from ckanext.validation.utils import (
 class TestConfig(object):
     def test_config_defaults(self):
 
-        assert get_update_mode_from_config() == "async"
-        assert get_create_mode_from_config() == "async"
+        assert s.get_update_mode_from_config() == "async"
+        assert s.get_create_mode_from_config() == "async"
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", True)
     def test_config_update_true_sync(self):
 
-        assert get_update_mode_from_config() == "sync"
+        assert s.get_update_mode_from_config() == "sync"
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", False)
     def test_config_update_false_sync(self):
 
-        assert get_update_mode_from_config() == "async"
+        assert s.get_update_mode_from_config() == "async"
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", True)
     def test_config_create_true_sync(self):
 
-        assert get_create_mode_from_config() == "sync"
+        assert s.get_create_mode_from_config() == "sync"
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", False)
     def test_config_create_false_sync(self):
 
-        assert get_create_mode_from_config() == "async"
+        assert s.get_create_mode_from_config() == "async"
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_update_async", True)
     def test_config_update_true_async(self):
 
-        assert get_update_mode_from_config() == "async"
+        assert s.get_update_mode_from_config() == "async"
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_update_async", False)
     def test_config_update_false_async(self):
 
-        assert get_update_mode_from_config() is None
+        assert s.get_update_mode_from_config() is None
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", True)
     def test_config_create_true_async(self):
 
-        assert get_create_mode_from_config() == "async"
+        assert s.get_create_mode_from_config() == "async"
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
     def test_config_create_false_async(self):
 
-        assert get_create_mode_from_config() is None
+        assert s.get_create_mode_from_config() is None
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_update_async", False)
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
     def test_config_both_false(self):
 
-        assert get_update_mode_from_config() is None
-        assert get_create_mode_from_config() is None
+        assert s.get_update_mode_from_config() is None
+        assert s.get_create_mode_from_config() is None
 
 
 class TestFiles(object):
