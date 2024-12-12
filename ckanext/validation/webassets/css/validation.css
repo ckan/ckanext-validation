@@ -1,3 +1,41 @@
 .validation-badge {
   margin-left: 10px;
+  background: #555;
+  color: #fff;
+  border-radius: 3px;
+  display: inline-block;
+  font-size: 14px;
+  vertical-align: middle;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.validation-badge:hover,
+.validation-badge:focus {
+  color: #fff;
+}
+
+.prefix,
+.status {
+  display: inline-block;
+  padding: 2px 6px;
+}
+
+.status {
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+
+.status.failure,
+.status.invalid {
+  background: #e05d44;
+}
+
+.status.error,
+.status.unknown {
+  background: #9f9f9f;
+}
+
+.status.success {
+  background: #97CA00;
 }
