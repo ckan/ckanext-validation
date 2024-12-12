@@ -6,11 +6,11 @@ validation-css:
 resource-schema-form:
   filter: rjsmin
   output: ckanext-validation/%(version)s_resource_schema_form.js
+  contents:
+    - js/module-resource-schema.js
   extra:
       preload:
          - base/main
-  contents:
-    - js/module-resource-schema.js
 
 report-form-js:
   filter: rjsmin
