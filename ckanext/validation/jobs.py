@@ -16,7 +16,7 @@ import ckan.lib.uploader as uploader
 import ckantoolkit as t
 
 from .model import Validation
-from . import utils
+from . import utils, settings
 
 
 log = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ def run_validation_job(resource):
     report = _validate_table(source, _format=_format, schema=schema, **options)
 
     # Hide uploaded files
-    if type(report) == Report:
+    if isinstance(report, Report):
         report = report.to_dict()
 
     if 'tasks' in report:
@@ -135,7 +135,7 @@ def run_validation_job(resource):
         'validation_timestamp': validation.finished.isoformat(),
     }
 
-    if utils.get_update_mode_from_config() == 'sync':
+    if settings.get_update_mode_from_config() == 'sync':
         data_dict['_skip_next_validation'] = True,
 
     t.get_action('resource_patch')(

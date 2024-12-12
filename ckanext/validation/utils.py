@@ -1,10 +1,11 @@
 import os
 import logging
-import cgi
 
-from ckan.plugins import PluginImplementations
-from ckan.lib.uploader import ResourceUpload
-from ckantoolkit import config, asbool
+from six import string_types, ensure_str
+
+import ckan.plugins as plugins
+import ckan.lib.uploader as uploader
+from ckan import model
 
 from ckanext.validation.interfaces import IPipeValidation
 
@@ -14,8 +15,6 @@ from . import settings
 import ckan.plugins as p
 import ckantoolkit as t
 
-from werkzeug.datastructures import FileStorage as FlaskFileStorage
-ALLOWED_UPLOAD_TYPES = (cgi.FieldStorage, FlaskFileStorage)
 
 def process_schema_fields(data_dict):
     u'''
@@ -35,14 +34,14 @@ def process_schema_fields(data_dict):
     schema_url = data_dict.pop(u'schema_url', None)
     schema_json = data_dict.pop(u'schema_json', None)
 
-    if isinstance(schema_upload, ALLOWED_UPLOAD_TYPES):
-        uploaded_file = _get_underlying_file(schema_upload)
-        data_dict[u'schema'] = uploaded_file.read()
+    if isinstance(schema_upload, uploader.ALLOWED_UPLOAD_TYPES):
+        data_dict[u'schema'] = ensure_str(
+            uploader._get_underlying_file(schema_upload).read())
         if isinstance(data_dict["schema"], (bytes, bytearray)):
             data_dict["schema"] = data_dict["schema"].decode()
     elif schema_url:
 
-        if (not isinstance(schema_url, str) or
+        if (not isinstance(schema_url, string_types) or
                 not schema_url.lower()[:4] == u'http'):
             raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
         data_dict[u'schema'] = schema_url
@@ -51,23 +50,7 @@ def process_schema_fields(data_dict):
 
     return data_dict
 
-def _get_underlying_file(wrapper):
-    if isinstance(wrapper, FlaskFileStorage):
-        return wrapper.stream
-    return wrapper.file
-
-
-def _should_remove_unsupported_resource_validation_reports(res_dict):
-    if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
-        return False
-    return (not res_dict.get('format', u'').lower() in settings.SUPPORTED_FORMATS
-            and (res_dict.get('url_type') == 'upload'
-                or not res_dict.get('url_type'))
-            and (t.h.asbool(res_dict.get('validation_status', False))
-                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
-
-
-def _run_async_validation(resource_id):
+def run_async_validation(resource_id):
 
     try:
         t.get_action(u'resource_validation_run')(
@@ -80,7 +63,30 @@ def _run_async_validation(resource_id):
                 resource_id, e)
 
 
-def _remove_unsupported_resource_validation_reports(resource_id):
+
+def get_default_schema(package_id):
+    """Dataset could have a default_schema, that could be used
+    to validate resource"""
+
+    dataset = model.Package.get(package_id)
+
+    if not dataset:
+        return
+
+    return dataset.extras.get(u'default_data_schema')
+
+
+def should_remove_unsupported_resource_validation_reports(res_dict):
+    if not t.h.asbool(t.config.get('ckanext.validation.clean_validation_reports', False)):
+        return False
+    return (not res_dict.get('format', u'').lower() in settings.get_supported_formats()
+            and (res_dict.get('url_type') == 'upload'
+                or not res_dict.get('url_type'))
+            and (t.h.asbool(res_dict.get('validation_status', False))
+                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
+
+
+def remove_unsupported_resource_validation_reports(resource_id):
     """
     Callback to remove unsupported validation reports.
     Controlled by config value: ckanext.validation.clean_validation_reports.
@@ -94,7 +100,7 @@ def _remove_unsupported_resource_validation_reports(resource_id):
         log.error('Resource %s does not exist.', resource_id)
         return
 
-    if _should_remove_unsupported_resource_validation_reports(res):
+    if should_remove_unsupported_resource_validation_reports(res):
         log.info('Unsupported resource format "%s". Deleting validation reports for resource %s',
             res.get(u'format', u''), res['id'])
         try:
@@ -105,26 +111,6 @@ def _remove_unsupported_resource_validation_reports(resource_id):
             log.error('Validation reports for resource %s do not exist', res['id'])
 
 
-def get_update_mode_from_config():
-    if asbool(
-            config.get(u'ckanext.validation.run_on_update_sync', False)):
-        return u'sync'
-    elif asbool(
-            config.get(u'ckanext.validation.run_on_update_async', True)):
-        return u'async'
-    else:
-        return None
-
-
-def get_create_mode_from_config():
-    if asbool(
-            config.get(u'ckanext.validation.run_on_create_sync', False)):
-        return u'sync'
-    elif asbool(
-            config.get(u'ckanext.validation.run_on_create_async', True)):
-        return u'async'
-    else:
-        return None
 
 
 def get_local_upload_path(resource_id):
@@ -133,7 +119,7 @@ def get_local_upload_path(resource_id):
 
     Note: it does not check if the resource or file actually exists
     '''
-    upload = ResourceUpload({u'url': u'foo'})
+    upload = uploader.ResourceUpload({u'url': u'foo'})
     return upload.get_path(resource_id)
 
 
@@ -187,7 +173,7 @@ def validation_dictize(validation):
 
 
 def send_validation_report(validation_report):
-    for observer in PluginImplementations(IPipeValidation):
+    for observer in plugins.PluginImplementations(IPipeValidation):
         try:
             observer.receive_validation_report(validation_report)
         except Exception as ex:

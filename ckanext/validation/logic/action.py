@@ -14,13 +14,7 @@ import ckantoolkit as t
 from ckanext.validation.model import Validation
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation.jobs import run_validation_job
-from ckanext.validation import settings
-from ckanext.validation.utils import (
-    get_create_mode_from_config,
-    get_update_mode_from_config,
-    delete_local_uploaded_file,
-    validation_dictize,
-)
+from ckanext.validation import settings, utils
 
 
 log = logging.getLogger(__name__)
@@ -39,12 +33,6 @@ def get_actions():
     return {"{}".format(func.__name__): func for func in validators}
 
 
-def enqueue_job(*args, **kwargs):
-    try:
-        return t.enqueue_job(*args, **kwargs)
-    except AttributeError:
-        from ckanext.rq.jobs import enqueue as enqueue_job_legacy
-        return enqueue_job_legacy(*args, **kwargs)
 
 
 # Actions
@@ -77,11 +65,11 @@ def resource_validation_run(context, data_dict):
     async_job = data_dict.get(u'async', True)
 
     # Ensure format is supported
-    if not resource.get(u'format', u'').lower() in settings.SUPPORTED_FORMATS:
+    if not resource.get(u'format', u'').lower() in settings.get_supported_formats():
         raise t.ValidationError(
             {u'format': u'Unsupported resource format.' +
              u'Must be one of {}'.format(
-                 u','.join(settings.SUPPORTED_FORMATS))})
+                 u','.join(settings.get_supported_formats()))})
 
     # Ensure there is a URL or file upload
     if not resource.get(u'url') and not resource.get(u'url_type') == u'upload':
@@ -116,6 +104,9 @@ def resource_validation_run(context, data_dict):
     else:
         run_validation_job(resource)
 
+
+def enqueue_job(*args, **kwargs):
+    return t.enqueue_job(*args, **kwargs)
 
 @t.side_effect_free
 def resource_validation_show(context, data_dict):
@@ -157,7 +148,7 @@ def resource_validation_show(context, data_dict):
         raise t.ObjectNotFound(
             'No validation report exists for this resource')
 
-    return validation_dictize(validation)
+    return utils.validation_dictize(validation)
 
 
 def resource_validation_delete(context, data_dict):
@@ -281,7 +272,7 @@ def resource_validation_run_batch(context, data_dict):
                 for resource in dataset['resources']:
 
                     if (not resource.get(u'format', u'').lower()
-                            in settings.SUPPORTED_FORMATS):
+                            in settings.get_supported_formats()):
                         continue
 
                     try:
@@ -381,7 +372,7 @@ def _add_default_formats(search_data_dict):
 
     filter_formats = []
 
-    for _format in settings.DEFAULT_SUPPORTED_FORMATS:
+    for _format in settings.get_supported_formats():
         filter_formats.extend([_format, _format.upper()])
 
     filter_formats_query = ['+res_format:"{0}"'.format(_format)
@@ -403,7 +394,7 @@ def resource_create(up_func, context, data_dict):
 
     '''
 
-    if get_create_mode_from_config() != 'sync':
+    if settings.get_create_mode_from_config() != 'sync':
         return up_func(context, data_dict)
 
     model = context['model']
@@ -509,7 +500,7 @@ def resource_update(up_func, context, data_dict):
 
     '''
 
-    if get_update_mode_from_config() != 'sync':
+    if settings.get_update_mode_from_config() != 'sync':
         return up_func(context, data_dict)
 
     model = context['model']
@@ -641,7 +632,7 @@ def _run_sync_validation(resource_id, local_upload=False, new_resource=True):
 
             # Delete uploaded file
             if local_upload:
-                delete_local_uploaded_file(resource_id)
+                utils.delete_local_uploaded_file(resource_id)
 
             if new_resource:
                 # Delete resource
