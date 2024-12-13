@@ -23,15 +23,19 @@ jobs:
         include: #ckan-image see https://github.com/ckan/ckan-docker-base, ckan-version controls other image tags
           - ckan-version: "2.11"
             ckan-image: "2.11-py3.10"
+            ckan-solr: "2.11-solr9"
             experimental: false
           - ckan-version: "2.10"
             ckan-image: "2.10-py3.10"
+            ckan-solr: "2.10-solr9"
             experimental: false
           - ckan-version: "2.9"
             ckan-image: "2.9-py3.9"
+            ckan-solr: "2.9-solr8"
             experimental: false
           - ckan-version: "master"
             ckan-image: "master"
+            ckan-solr: "master-solr9"
             experimental: true  # master is unstable, good to know if we are compatible or not
       fail-fast: false
 
@@ -42,7 +46,7 @@ jobs:
       options: --user root
     services:
       solr:
-        image: ckan/ckan-solr:${{ matrix.ckan-version }}-solr9
+        image: ckan/ckan-solr:${{ matrix.ckan-solr }}
       postgres:
         image: ckan/ckan-postgres-dev:${{ matrix.ckan-version }}
         env:
