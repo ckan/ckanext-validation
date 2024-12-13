@@ -27,11 +27,11 @@ jobs:
             experimental: false
           - ckan-version: "2.10"
             ckan-image: "2.10-py3.10"
-            ckan-solr: "2.10-solr9"
+            ckan-solr: "2.10-solr8" # update to "2.10-solr9" once image is fixed
             experimental: false
           - ckan-version: "2.9"
             ckan-image: "2.9-py3.9"
-            ckan-solr: "2.9-solr8"
+            ckan-solr: "2.9-solr8" # update to "2.9-solr9" once image is fixed
             experimental: false
           - ckan-version: "master"
             ckan-image: "master"
