@@ -33,11 +33,7 @@ def get_actions():
     return {"{}".format(func.__name__): func for func in validators}
 
 
-
-
 # Actions
-
-
 def resource_validation_run(context, data_dict):
     u'''
     Start a validation job against a resource.
@@ -67,7 +63,7 @@ def resource_validation_run(context, data_dict):
     # Ensure format is supported
     if not resource.get(u'format', u'').lower() in settings.get_supported_formats():
         raise t.ValidationError(
-            {u'format': u'Unsupported resource format.' +
+            {u'format': u'Unsupported resource format.'
              u'Must be one of {}'.format(
                  u','.join(settings.get_supported_formats()))})
 
@@ -107,6 +103,7 @@ def resource_validation_run(context, data_dict):
 
 def enqueue_job(*args, **kwargs):
     return t.enqueue_job(*args, **kwargs)
+
 
 @t.side_effect_free
 def resource_validation_show(context, data_dict):
@@ -285,9 +282,9 @@ def resource_validation_run_batch(context, data_dict):
 
                     except t.ValidationError as e:
                         log.warning(
-                            u'Could not run validation for resource %s ' +
+                            u'Could not run validation for resource %s '
                             u'from dataset %s: %s',
-                                resource['id'], dataset['name'], e)
+                            resource['id'], dataset['name'], e)
 
             if len(query['results']) < page_size:
                 break
@@ -363,8 +360,8 @@ def _update_search_params(search_data_dict, user_search_params=None):
         else:
             search_data_dict['fq'] = user_search_params['fq']
 
-    if (user_search_params.get('fq_list') and
-            isinstance(user_search_params['fq_list'], list)):
+    if (user_search_params.get('fq_list')
+            and isinstance(user_search_params['fq_list'], list)):
         search_data_dict['fq_list'].extend(user_search_params['fq_list'])
 
 

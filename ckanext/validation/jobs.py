@@ -140,8 +140,8 @@ def run_validation_job(resource):
 
     t.get_action('resource_patch')(
         {'ignore_auth': True,
-        'user': t.get_action('get_site_user')({'ignore_auth': True})['name'],
-        '_validation_performed': True},
+         'user': t.get_action('get_site_user')({'ignore_auth': True})['name'],
+         '_validation_performed': True},
         data_dict)
     utils.send_validation_report(utils.validation_dictize(validation))
 

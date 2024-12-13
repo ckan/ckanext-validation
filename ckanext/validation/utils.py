@@ -3,17 +3,14 @@ import logging
 
 from six import string_types, ensure_str
 
-import ckan.plugins as plugins
-import ckan.lib.uploader as uploader
-from ckan import model
-
-from ckanext.validation.interfaces import IPipeValidation
-
-log = logging.getLogger(__name__)
-
-from . import settings
 import ckan.plugins as p
 import ckantoolkit as t
+import ckan.lib.uploader as uploader
+from ckan import model
+from .interfaces import IPipeValidation
+from . import settings
+
+log = logging.getLogger(__name__)
 
 
 def process_schema_fields(data_dict):
@@ -41,14 +38,15 @@ def process_schema_fields(data_dict):
             data_dict["schema"] = data_dict["schema"].decode()
     elif schema_url:
 
-        if (not isinstance(schema_url, string_types) or
-                not schema_url.lower()[:4] == u'http'):
+        if (not isinstance(schema_url, string_types)
+                or not schema_url.lower()[:4] == u'http'):
             raise t.ValidationError({u'schema_url': 'Must be a valid URL'})
         data_dict[u'schema'] = schema_url
     elif schema_json:
         data_dict[u'schema'] = schema_json
 
     return data_dict
+
 
 def run_async_validation(resource_id):
 
@@ -60,8 +58,7 @@ def run_async_validation(resource_id):
     except t.ValidationError as e:
         log.warning(
             u'Could not run validation for resource %s: %s',
-                resource_id, e)
-
+            resource_id, e)
 
 
 def get_default_schema(package_id):
@@ -81,9 +78,9 @@ def should_remove_unsupported_resource_validation_reports(res_dict):
         return False
     return (not res_dict.get('format', u'').lower() in settings.get_supported_formats()
             and (res_dict.get('url_type') == 'upload'
-                or not res_dict.get('url_type'))
+                 or not res_dict.get('url_type'))
             and (t.h.asbool(res_dict.get('validation_status', False))
-                or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
+                 or t.h.asbool(res_dict.get('extras', {}).get('validation_status', False))))
 
 
 def remove_unsupported_resource_validation_reports(resource_id):
@@ -102,15 +99,13 @@ def remove_unsupported_resource_validation_reports(resource_id):
 
     if should_remove_unsupported_resource_validation_reports(res):
         log.info('Unsupported resource format "%s". Deleting validation reports for resource %s',
-            res.get(u'format', u''), res['id'])
+                 res.get(u'format', u''), res['id'])
         try:
             p.toolkit.get_action('resource_validation_delete')(context, {
                 "resource_id": res['id']})
             log.info('Validation reports deleted for resource %s', res['id'])
         except t.ObjectNotFound:
             log.error('Validation reports for resource %s do not exist', res['id'])
-
-
 
 
 def get_local_upload_path(resource_id):
@@ -173,7 +168,7 @@ def validation_dictize(validation):
 
 
 def send_validation_report(validation_report):
-    for observer in plugins.PluginImplementations(IPipeValidation):
+    for observer in p.PluginImplementations(IPipeValidation):
         try:
             observer.receive_validation_report(validation_report)
         except Exception as ex:

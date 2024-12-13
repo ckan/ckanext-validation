@@ -64,7 +64,6 @@ def get_supported_formats():
     return supported_formats or DEFAULT_SUPPORTED_FORMATS
 
 
-
 def get_update_mode_from_config():
     if asbool(
             config.get(u'ckanext.validation.run_on_update_sync', False)):
