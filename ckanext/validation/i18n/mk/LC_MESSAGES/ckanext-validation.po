@@ -1,0 +1,156 @@
+# Macedonian translations for ckanext-validation.
+# Copyright (C) 2018 ORGANIZATION
+# This file is distributed under the same license as the ckanext-validation
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ckanext-validation 0.0.4\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2018-07-11 10:15+0200\n"
+"PO-Revision-Date: 2018-07-09 16:23+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: mk\n"
+"Language-Team: mk <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ckanext/validation/controller.py:36
+msgid "Unauthorized to read this validation report"
+msgstr "Не сте авторизирани за да го погледнете извештајот од валидација."
+
+#: ckanext/validation/controller.py:39
+msgid "No validation report exists for this resource"
+msgstr "Не постои извештај од валидација за овој ресурс"
+
+#: ckanext/validation/helpers.py:18
+msgid "success"
+msgstr "валидни"
+
+#: ckanext/validation/helpers.py:19
+msgid "failure"
+msgstr "погрешни"
+
+#: ckanext/validation/helpers.py:20
+msgid "invalid"
+msgstr "невалидни"
+
+#: ckanext/validation/helpers.py:21
+msgid "error"
+msgstr "погрешни"
+
+#: ckanext/validation/helpers.py:22
+msgid "unknown"
+msgstr "непознати"
+
+#: ckanext/validation/helpers.py:26
+msgid "Valid data"
+msgstr "Валидни податоци"
+
+#: ckanext/validation/helpers.py:27 ckanext/validation/helpers.py:28
+msgid "Invalid data"
+msgstr "Невалидни податоци"
+
+#: ckanext/validation/helpers.py:29
+msgid "Error during validation"
+msgstr "Грешка при валидација"
+
+#: ckanext/validation/helpers.py:30
+msgid "Data validation unknown"
+msgstr "Непозната валидација на податоци"
+
+#: ckanext/validation/helpers.py:50
+msgid "data"
+msgstr "податоците се"
+
+#: ckanext/validation/helpers.py:66
+msgid ""
+"\n"
+"There are validation issues with this file, please see the\n"
+"<a {params}>report</a> for details. Once you have resolved the issues,\n"
+"click the button below to replace the file."
+msgstr ""
+"\n"
+"Постојат грешки при валидација на оваа датотека, Ве молиме погледнете го\n"
+"<a {params}>извештајот</a> за детали. Штом ги поправивте грешките,\n"
+"кликнете на подолното копче за да ја заменете датотеката."
+
+#: ckanext/validation/logic.py:539 ckanext/validation/logic.py:553
+msgid "Resource was not found."
+msgstr "Ресурсот не беше пронајден."
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:68
+msgid "Upload"
+msgstr "Прикачете"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:69
+msgid "Upload a Data Schema file from your computer"
+msgstr "Прикачете датотека од вашиот компјутер која содржи податочна шема"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:76
+msgid "Link"
+msgstr "Линк"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:77
+msgid "URL for a Data Schema file available on the Internet"
+msgstr "Линк до датотека која содржи податочна шема достапна на Интернет"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:84
+msgid "JSON"
+msgstr "JSON"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:85
+msgid "Enter manually a Table Schema JSON object"
+msgstr "Внесете рачно JSON објект која содржи табеларна шема"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:89
+msgid "Clear"
+msgstr "Отстранете"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:178
+#: ckanext/validation/templates/scheming/form_snippets/resource_schema.html:16
+msgid "Data Schema"
+msgstr "Податочна шема"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:180
+msgid "Data Schema URL"
+msgstr "URL до податочна шема"
+
+#: ckanext/validation/fanstatic/js/module-resource-schema.js:236
+msgid "Uploaded Data Schema"
+msgstr "Прикачена податочна шема"
+
+#: ckanext/validation/templates/scheming/form_snippets/validation_options.html:16
+msgid ""
+" You can pass a JSON object of validation options. See <a "
+"href=\"https://github.com/frictionlessdata/ckanext-validation#validation-"
+"options\">here</a> for more information."
+msgstr ""
+" Можете да ставите JSON објект кој содржи опции за валидација. Погледнете"
+" <a href=\"https://github.com/frictionlessdata/ckanext-validation"
+"#validation-options\">тука</a> за повеќе информации."
+
+#: ckanext/validation/templates/validation/validation_read.html:5
+msgid "Validation Report"
+msgstr "Извештај од валидација"
+
+#: ckanext/validation/templates/validation/validation_read.html:28
+msgid "Validation timestamp"
+msgstr "Временска ознака од валидација"
+
+#: ckanext/validation/templates/validation/validation_read.html:30
+msgid "Duration"
+msgstr "Времетраење"
+
+#: ckanext/validation/templates/validation/snippets/validation_report_dialog.html:6
+#: ckanext/validation/templates/validation/snippets/validation_report_dialog_bs2.html:4
+msgid "Data Validation Report"
+msgstr "Извештај од валидација на податоци"
+
+#~ msgid "Validation options"
+#~ msgstr "Опции за валидација"
+
