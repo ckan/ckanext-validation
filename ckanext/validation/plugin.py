@@ -17,7 +17,7 @@ from ckanext.validation import views, cli
 log = logging.getLogger(__name__)
 
 
-class ValidationPlugin(p.SingletonPlugin):
+class ValidationPlugin(p.SingletonPlugin, DefaultTranslation):
     p.implements(p.IConfigurer)
     p.implements(p.IActions)
     p.implements(p.IAuthFunctions)
@@ -25,6 +25,7 @@ class ValidationPlugin(p.SingletonPlugin):
     p.implements(p.IPackageController, inherit=True)
     p.implements(p.ITemplateHelpers)
     p.implements(p.IValidators)
+    p.implements(p.ITranslation, inherit=True)
     p.implements(p.IBlueprint)
     p.implements(p.IClick)
 
@@ -37,6 +38,14 @@ class ValidationPlugin(p.SingletonPlugin):
 
     def get_commands(self):
         return cli.get_commands()
+
+    # ITranslation
+    def i18n_directory(self):
+        u'''Change the directory of the .mo translation files'''
+        return os.path.join(
+            os.path.dirname(__file__),
+            'i18n'
+        )
 
     # IConfigurer
 

@@ -4,17 +4,16 @@ import datetime
 import logging
 import json
 
-from sqlalchemy.orm.exc import NoResultFound
-
-import ckan.plugins as plugins
-import ckan.lib.uploader as uploader
-
 import ckantoolkit as tk
+from six import string_types
 
-from ckanext.validation.model import Validation
-from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation.jobs import run_validation_job
 from ckanext.validation import settings, utils
+from sqlalchemy.orm.exc import NoResultFound
+import ckan.plugins as plugins
+import ckan.lib.uploader as uploader
+from ckanext.validation.model import Validation
+from ckanext.validation.interfaces import IDataValidation
 
 
 log = logging.getLogger(__name__)
@@ -51,21 +50,31 @@ def resource_validation_run(context, data_dict):
 
     tk.check_access(u'resource_validation_run', context, data_dict)
 
-    if not data_dict.get(u'resource_id'):
+    resource_id = data_dict.get(u'resource_id')
+    if not resource_id:
         raise tk.ValidationError({u'resource_id': u'Missing value'})
 
-    resource = tk.get_action(u'resource_show')(
-        {}, {u'id': data_dict[u'resource_id']})
+    resource = tk.get_action(u'resource_show')(context, {u'id': resource_id})
+
+    # if not resource.get('schema'):
+    #     try:
+    #         tk.get_action(u'resource_validation_delete')(context, data_dict)
+    #     except tk.ObjectNotFound:
+    #         pass
+    #     return
 
     # TODO: limit to sysadmins
     async_job = data_dict.get(u'async', True)
 
+    supported_formats = settings.get_supported_formats()
+
     # Ensure format is supported
-    if not resource.get(u'format', u'').lower() in settings.get_supported_formats():
-        raise tk.ValidationError(
-            {u'format': u'Unsupported resource format.'
-             u'Must be one of {}'.format(
-                 u','.join(settings.get_supported_formats()))})
+    if not resource.get(u'format', u'').lower() in supported_formats:
+        raise tk.ValidationError({
+            u'format':
+            u'Unsupported resource format.'
+            u'Must be one of {}'.format(u','.join(supported_formats))
+        })
 
     # Ensure there is a URL or file upload
     if not resource.get(u'url') and not resource.get(u'url_type') == u'upload':
@@ -73,12 +82,10 @@ def resource_validation_run(context, data_dict):
             {u'url': u'Resource must have a valid URL or an uploaded file'})
 
     # Check if there was an existing validation for the resource
-
-    Session = context['model'].Session
-
     try:
-        validation = Session.query(Validation).filter(
-            Validation.resource_id == data_dict['resource_id']).one()
+        session = context['model'].Session
+        validation = session.query(Validation).filter(
+            Validation.resource_id == resource_id).one()
     except NoResultFound:
         validation = None
 
@@ -92,8 +99,8 @@ def resource_validation_run(context, data_dict):
     else:
         validation = Validation(resource_id=resource['id'])
 
-    Session.add(validation)
-    Session.commit()
+    session.add(validation)
+    session.commit()
 
     if async_job:
         enqueue_job(run_validation_job, [resource])
@@ -133,10 +140,9 @@ def resource_validation_show(context, data_dict):
     if not data_dict.get(u'resource_id'):
         raise tk.ValidationError({u'resource_id': u'Missing value'})
 
-    Session = context['model'].Session
-
     try:
-        validation = Session.query(Validation).filter(
+        session = context['model'].Session
+        validation = session.query(Validation).filter(
             Validation.resource_id == data_dict['resource_id']).one()
     except NoResultFound:
         validation = None
@@ -165,10 +171,9 @@ def resource_validation_delete(context, data_dict):
     if not data_dict.get(u'resource_id'):
         raise tk.ValidationError({u'resource_id': u'Missing value'})
 
-    Session = context['model'].Session
-
+    session = context['model'].Session
     try:
-        validation = Session.query(Validation).filter(
+        validation = session.query(Validation).filter(
             Validation.resource_id == data_dict['resource_id']).one()
     except NoResultFound:
         validation = None
@@ -177,8 +182,8 @@ def resource_validation_delete(context, data_dict):
         raise tk.ObjectNotFound(
             'No validation report exists for this resource')
 
-    Session.delete(validation)
-    Session.commit()
+    session.delete(validation)
+    session.commit()
 
 
 def resource_validation_run_batch(context, data_dict):
@@ -235,26 +240,26 @@ def resource_validation_run_batch(context, data_dict):
     count_resources = 0
 
     dataset_ids = data_dict.get('dataset_ids')
-    if isinstance(dataset_ids, str):
+    if isinstance(dataset_ids, string_types):
         try:
             dataset_ids = json.loads(dataset_ids)
         except ValueError:
             dataset_ids = [dataset_ids]
 
     search_params = data_dict.get('query')
-    if isinstance(search_params, str):
+    if isinstance(search_params, string_types):
         try:
             search_params = json.loads(search_params)
         except ValueError:
-            msg = 'Error parsing search parameters {0}'.format(search_params)
+            msg = 'Error parsing search parameters: {}'.format(search_params)
             return {'output': msg}
 
     while True:
 
-        query = _search_datasets(
-            page, page_size=page_size,
-            dataset_ids=dataset_ids,
-            search_params=search_params)
+        query = _search_datasets(page,
+                                 page_size=page_size,
+                                 dataset_ids=dataset_ids,
+                                 search_params=search_params)
 
         if page == 1 and query['count'] == 0:
             msg = 'No suitable datasets for validation'
@@ -267,23 +272,24 @@ def resource_validation_run_batch(context, data_dict):
                     continue
 
                 for resource in dataset['resources']:
-
-                    if (not resource.get(u'format', u'').lower()
-                            in settings.get_supported_formats()):
+                    res_format = resource.get(u'format', u'').lower()
+                    if res_format not in settings.get_supported_formats():
                         continue
 
                     try:
                         tk.get_action(u'resource_validation_run')(
-                            {u'ignore_auth': True},
-                            {u'resource_id': resource['id'],
-                             u'async': True})
+                            {
+                                u'ignore_auth': True
+                            }, {
+                                u'resource_id': resource['id'],
+                                u'async': True
+                            })
 
                         count_resources += 1
 
                     except tk.ValidationError as e:
                         log.warning(
-                            u'Could not run validation for resource %s '
-                            u'from dataset %s: %s',
+                            u'Could not run validation for resource %s from dataset %s: %s',
                             resource['id'], dataset['name'], e)
 
             if len(query['results']) < page_size:
@@ -299,8 +305,10 @@ def resource_validation_run_batch(context, data_dict):
     return {'output': msg}
 
 
-def _search_datasets(
-        page=1, page_size=100, dataset_ids=None, search_params=None):
+def _search_datasets(page=1,
+                     page_size=100,
+                     dataset_ids=None,
+                     search_params=None):
     '''
     Perform a query with `package_search` and return the result
 
@@ -318,10 +326,10 @@ def _search_datasets(
 
     if dataset_ids:
 
-        search_data_dict['q'] = ' OR '.join(
-            ['id:{0} OR name:"{0}"'.format(dataset_id)
-             for dataset_id in dataset_ids]
-        )
+        search_data_dict['q'] = ' OR '.join([
+            'id:{0} OR name:"{0}"'.format(dataset_id)
+            for dataset_id in dataset_ids
+        ])
 
     elif search_params:
         _update_search_params(search_data_dict, search_params)
@@ -369,11 +377,12 @@ def _add_default_formats(search_data_dict):
 
     filter_formats = []
 
-    for _format in settings.get_supported_formats():
+    for _format in settings.DEFAULT_SUPPORTED_FORMATS:
         filter_formats.extend([_format, _format.upper()])
 
-    filter_formats_query = ['+res_format:"{0}"'.format(_format)
-                            for _format in filter_formats]
+    filter_formats_query = [
+        '+res_format:"{0}"'.format(_format) for _format in filter_formats
+    ]
     search_data_dict['fq_list'].append(' OR '.join(filter_formats_query))
 
 
