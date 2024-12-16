@@ -1,11 +1,32 @@
 # encoding: utf-8
 import json
 
-from ckan.lib.helpers import url_for_static
+from six.moves.urllib.parse import urlparse
+from six import string_types
 from ckantoolkit import url_for, _, config, asbool, literal, h
+
+from ckanext.validation.utils import get_default_schema
+
+def get_helpers():
+    validators = (
+        get_validation_badge,
+        validation_extract_report_from_errors,
+        dump_json_value,
+        bootstrap_version,
+        validation_hide_source,
+        is_url_valid
+    )
+
+    return {"{}".format(func.__name__): func for func in validators}
 
 
 def get_validation_badge(resource, in_listing=False):
+
+    # afterDate = config.get('ckanext.validation.show_badges_after_last_modified_date', "")
+    # if afterDate and (not resource.get('last_modified')
+    #                   or h.date_str_to_datetime(afterDate)
+    #                   >= h.date_str_to_datetime(resource['last_modified'])):
+    #     return ''
 
     if in_listing and not asbool(
             config.get('ckanext.validation.show_badges_in_listings', True)):
@@ -14,34 +35,60 @@ def get_validation_badge(resource, in_listing=False):
     if not resource.get('validation_status'):
         return ''
 
+    # if not _get_schema_or_default_schema(resource):
+    #     return ''
+
+    statuses = {
+        'success': _('valid'),
+        'failure': _('invalid'),
+        'invalid': _('invalid'),
+        'error': _('error'),
+        'unknown': _('unknown'),
+    }
+
     messages = {
         'success': _('Valid data'),
         'failure': _('Invalid data'),
+        'invalid': _('invalid data'),
         'error': _('Error during validation'),
         'unknown': _('Data validation unknown'),
     }
 
-    if resource['validation_status'] in ['success', 'failure', 'error']:
+    if resource['validation_status'] in ['success', 'failure', 'invalid', 'error']:
         status = resource['validation_status']
     else:
         status = 'unknown'
 
+    action = 'validation.read'
+
     validation_url = url_for(
-        'validation_read',
+        action,
         id=resource['package_id'],
         resource_id=resource['id'])
 
-    badge_url = url_for_static(
-        '/images/badges/data-{}-flat.svg'.format(status))
-
-    return '''
-<a href="{validation_url}" class="validation-badge">
-    <img src="{badge_url}" alt="{alt}" title="{title}"/>
+    return u'''
+<a href="{validation_url}" class="validation-badge" title="{alt} {title}">
+    <span class="prefix">{prefix}</span><span class="status {status}">{status_title}</span>
 </a>'''.format(
         validation_url=validation_url,
-        badge_url=badge_url,
+        prefix=_('data'),
+        status=status,
+        status_title=statuses[status],
         alt=messages[status],
         title=resource.get('validation_timestamp', ''))
+
+
+def _get_schema_or_default_schema(resource):
+
+    if asbool(resource.get('align_default_schema')):
+        schema = get_default_schema(resource['package_id'])
+    else:
+        schema = resource.get('schema')
+
+    if schema and isinstance(schema, string_types):
+        schema = schema if is_url_valid(schema) else json.loads(schema)
+
+    return schema
 
 
 def validation_extract_report_from_errors(errors):
@@ -72,8 +119,6 @@ click the button below to replace the file.''')
 
     return report, errors
 
-def validation_dict(validation_json):
-    return json.loads(validation_json)
 
 def dump_json_value(value, indent=None):
     """
@@ -97,5 +142,25 @@ def bootstrap_version():
         return '2'
 
 
-def use_webassets():
-    return int(h.ckan_version().split('.')[1]) >= 9
+def validation_hide_source(type):
+    """
+    Returns True if the given source type must be hidden on form.
+    Type is one of: upload, url or json.
+    For any unexpected type returns False
+    """
+    return asbool(config.get(
+        "ckanext.validation.form.hide_{}_source".format(type),
+    ))
+
+
+def is_url_valid(url):
+    """Basic checks for url validity"""
+    if not isinstance(url, string_types):
+        return False
+
+    try:
+        tokens = urlparse(url)
+    except ValueError:
+        return False
+
+    return all([getattr(tokens, attr) for attr in ('scheme', 'netloc')])

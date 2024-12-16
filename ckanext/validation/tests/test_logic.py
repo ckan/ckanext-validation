@@ -47,7 +47,7 @@ class TestResourceValidationRun(object):
 
             call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert "Unsupported resource format" in str(e)
+        assert "Unsupported resource format" in str(e.value)
 
     def test_resource_validation_no_url_or_upload(self):
 
@@ -57,16 +57,16 @@ class TestResourceValidationRun(object):
 
             call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert "Resource must have a valid URL" in str(e)
+        assert "Resource must have a valid URL" in str(e.value)
 
-    @mock.patch("ckanext.validation.logic.enqueue_job")
+    @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_resource_validation_with_url(self, mock_enqueue_job):
 
         resource = factories.Resource(url="http://example.com", format="csv")
 
         call_action("resource_validation_run", resource_id=resource["id"])
 
-    @mock.patch("ckanext.validation.logic.enqueue_job")
+    @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_resource_validation_with_upload(self, mock_enqueue_job):
 
         resource = factories.Resource(url="", url_type="upload", format="csv")
@@ -85,7 +85,7 @@ class TestResourceValidationRun(object):
 
         assert len(jobs_after) == len(jobs) + 1
 
-    @mock.patch("ckanext.validation.logic.enqueue_job")
+    @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_resource_validation_creates_validation_object(self, mock_enqueue_job):
 
         resource = factories.Resource(format="csv")
@@ -106,7 +106,7 @@ class TestResourceValidationRun(object):
         assert validation.error is None
 
     @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
-    @mock.patch("ckanext.validation.logic.enqueue_job")
+    @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_resource_validation_resets_existing_validation_object(
         self, mock_enqueue_job
     ):
@@ -145,7 +145,7 @@ class TestResourceValidationRun(object):
         assert validation.report is None
         assert validation.error is None
 
-    @mock.patch("ckanext.validation.logic.enqueue_job")
+    @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_resource_validation_only_called_on_resource_created(
         self, mock_enqueue_job
     ):
@@ -170,7 +170,7 @@ class TestResourceValidationRun(object):
         assert mock_enqueue_job.call_count == 1
         assert mock_enqueue_job.call_args[0][1][0]["id"] == resource2["id"]
 
-    @mock.patch("ckanext.validation.logic.enqueue_job")
+    @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_resource_validation_only_called_on_resource_updated(
         self, mock_enqueue_job
     ):
@@ -197,7 +197,6 @@ class TestResourceValidationRun(object):
 
         assert mock_enqueue_job.call_count == 1
         assert mock_enqueue_job.call_args[0][1][0]["id"] == resource_1_id
-
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
@@ -530,8 +529,8 @@ class TestResourceValidationOnCreate(object):
             )
 
         assert "validation" in e.value.error_dict
-        assert "missing-cell" in str(e)
-        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
+        assert "missing-cell" in str(e.value)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e.value)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
@@ -542,7 +541,7 @@ class TestResourceValidationOnCreate(object):
 
         dataset = factories.Dataset()
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
+        io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
 
         validation_count_before = model.Session.query(Validation).count()
 
@@ -626,8 +625,8 @@ class TestResourceValidationOnUpdate(object):
                 )
 
         assert "validation" in e.value.error_dict
-        assert "missing-cell" in str(e)
-        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
+        assert "missing-cell" in str(e.value)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e.value)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
