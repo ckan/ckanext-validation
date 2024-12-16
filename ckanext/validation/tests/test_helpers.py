@@ -96,7 +96,6 @@ class TestBadges(object):
         assert '<span class="prefix">data</span><span class="status error">error</span>' in out
         assert 'title="Error during validation {}"'.format(resource["validation_timestamp"]) in out
 
-
     def test_get_validation_badge_other(self):
 
         resource = factories.Resource(

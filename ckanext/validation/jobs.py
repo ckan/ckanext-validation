@@ -117,7 +117,7 @@ def run_validation_job(resource):
         validation.report = json.dumps(report)
     else:
         validation.report = json.dumps(report)
-        if 'errors' in report and report['errors']: 
+        if 'errors' in report and report['errors']:
             validation.status = 'error'
             validation.error = {
                 'message': [str(err) for err in report['errors']]}
@@ -140,8 +140,8 @@ def run_validation_job(resource):
 
     t.get_action('resource_patch')(
         {'ignore_auth': True,
-        'user': t.get_action('get_site_user')({'ignore_auth': True})['name'],
-        '_validation_performed': True},
+         'user': t.get_action('get_site_user')({'ignore_auth': True})['name'],
+         '_validation_performed': True},
         data_dict)
     utils.send_validation_report(utils.validation_dictize(validation))
 
@@ -149,7 +149,7 @@ def run_validation_job(resource):
 def _validate_table(source, _format=u'csv', schema=None, **options):
 
     # This option is needed to allow Frictionless Framework to validate absolute paths
-    frictionless_context = { 'trusted': True }
+    frictionless_context = {'trusted': True}
     http_session = options.pop('http_session', None) or requests.Session()
 
     use_proxy = 'ckan.download_proxy' in t.config

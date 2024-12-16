@@ -3,19 +3,16 @@
 import json
 import logging
 
-
-
 import ckan.plugins as p
 import ckantoolkit as tk
 
-from . import settings as s, utils, validators, utils
+from . import settings as s, utils, validators
 from .helpers import get_helpers
 from .logic import action, auth
 from .model import tables_exist
 
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation import views, cli
-
 
 log = logging.getLogger(__name__)
 
@@ -82,14 +79,12 @@ Please run the following to create the database tables:
     resources_to_validate = {}
     packages_to_skip = {}
 
-
     # CKAN < 2.10
     def before_create(self, context, data_dict):
         return self.before_resource_create(context, data_dict)
 
     # CKAN >= 2.10
     def before_resource_create(self, context, data_dict):
-
         is_dataset = self._data_dict_is_dataset(data_dict)
         if not is_dataset:
             context["_resource_create_call"] = True
@@ -104,7 +99,6 @@ Please run the following to create the database tables:
 
     # CKAN >= 2.10
     def after_resource_create(self, context, data_dict):
-
         is_dataset = self._data_dict_is_dataset(data_dict)
 
         if not s.get_create_mode_from_config() == u'async':
@@ -130,14 +124,13 @@ Please run the following to create the database tables:
         needs_validation = False
         if ((
             # File uploaded
-            resource.get(u'url_type') == u'upload' or
+            resource.get(u'url_type') == u'upload'
             # URL defined
-            resource.get(u'url')
-            ) and (
+            or resource.get(u'url')
+        ) and (
             # Make sure format is supported
-            resource.get(u'format', u'').lower() in
-                s.get_supported_formats()
-                )):
+            resource.get(u'format', u'').lower() in s.get_supported_formats()
+        )):
             needs_validation = True
 
         if needs_validation:
@@ -173,20 +166,17 @@ Please run the following to create the database tables:
         needs_validation = False
         if ((
             # New file uploaded
-            updated_resource.get(u'upload') or
+            updated_resource.get(u'upload')
             # External URL changed
-            updated_resource.get(u'url') != current_resource.get(u'url') or
+            or updated_resource.get(u'url') != current_resource.get(u'url')
             # Schema changed
-            (updated_resource.get(u'schema') !=
-             current_resource.get(u'schema')) or
+            or updated_resource.get(u'schema') != current_resource.get(u'schema')
             # Format changed
-            (updated_resource.get(u'format', u'').lower() !=
-             current_resource.get(u'format', u'').lower())
-            ) and (
+            or updated_resource.get(u'format', u'').lower() != current_resource.get(u'format', u'').lower()
+        ) and (
             # Make sure format is supported
-            updated_resource.get(u'format', u'').lower() in
-                s.get_supported_formats()
-                )):
+            updated_resource.get(u'format', u'').lower() in s.get_supported_formats()
+        )):
             needs_validation = True
 
         if needs_validation:
