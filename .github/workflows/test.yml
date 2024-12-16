@@ -31,7 +31,7 @@ jobs:
             experimental: false
           - ckan-version: "2.9"
             ckan-image: "2.9-py3.9"
-            ckan-solr: "2.9-solr9"
+            ckan-solr: "2.9-solr8"
             experimental: false
 #          - ckan-version: "master"
 #            ckan-image: "master"
