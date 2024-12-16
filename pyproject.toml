@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-validation"
-version = "2.1.0"
+version = "2.2.0"
 description = "Data description and validation for CKAN with Frictionless Data tools."
 classifiers = [ "Development Status :: 5 - Production/Stable",
     "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
