@@ -5,10 +5,10 @@ import uuid
 import logging
 
 from sqlalchemy import Column, Unicode, DateTime
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import JSON
 from six import text_type
 
+from ckan import model
 from ckan.model.meta import metadata
 
 log = logging.getLogger(__name__)
@@ -18,10 +18,7 @@ def make_uuid():
     return text_type(uuid.uuid4())
 
 
-Base = declarative_base(metadata=metadata)
-
-
-class Validation(Base):
+class Validation(model.DomainObject):
     __tablename__ = u'validation'
 
     id = Column(Unicode, primary_key=True, default=make_uuid)
@@ -44,10 +41,11 @@ class Validation(Base):
 
 
 def create_tables():
-    Validation.__table__.create()
+
+    metadata.create_all(model.meta.engine)
 
     log.info(u'Validation database tables created')
 
 
 def tables_exist():
-    return Validation.__table__.exists()
+    return u'validation' not in metadata.tables
