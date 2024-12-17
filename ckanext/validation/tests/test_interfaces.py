@@ -4,8 +4,6 @@ import pytest
 from ckan import plugins as p
 from ckan.tests import helpers, factories
 
-import ckantoolkit as t
-
 from ckanext.validation.interfaces import IDataValidation
 from ckanext.validation.tests.helpers import VALID_REPORT
 
@@ -40,12 +38,11 @@ class BaseTestInterfaces(object):
         for plugin in p.PluginImplementations(IDataValidation):
             return plugin.reset_counter()
 
+
 @pytest.fixture
 def reset_counter():
     for plugin in p.PluginImplementations(IDataValidation):
         return plugin.reset_counter()
-
-
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins", "reset_counter")
@@ -129,6 +126,7 @@ class TestInterfaceSync():
         assert _get_plugin_calls() == 1
 
         assert not mock_validation.called
+
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins", "reset_counter")
 @pytest.mark.ckan_config("ckan.plugins", "validation test_validation_plugin scheming_datasets")

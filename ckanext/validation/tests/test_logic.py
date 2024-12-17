@@ -47,7 +47,7 @@ class TestResourceValidationRun(object):
 
             call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert "Unsupported resource format" in str(e)
+        assert "Unsupported resource format" in str(e.value)
 
     def test_resource_validation_no_url_or_upload(self):
 
@@ -57,7 +57,7 @@ class TestResourceValidationRun(object):
 
             call_action("resource_validation_run", resource_id=resource["id"])
 
-        assert "Resource must have a valid URL" in str(e)
+        assert "Resource must have a valid URL" in str(e.value)
 
     @mock.patch("ckanext.validation.logic.enqueue_job")
     def test_resource_validation_with_url(self, mock_enqueue_job):
@@ -197,7 +197,6 @@ class TestResourceValidationRun(object):
 
         assert mock_enqueue_job.call_count == 1
         assert mock_enqueue_job.call_args[0][1][0]["id"] == resource_1_id
-
 
 
 @pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
@@ -347,8 +346,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset["id"])
 
         context = {"user": user["name"], "model": model}
 
@@ -357,7 +357,7 @@ class TestAuth(object):
             call_auth,
             "resource_validation_run",
             context=context,
-            resource_id=dataset["resources"][0]["id"],
+            resource_id=resource["id"],
         )
 
     def test_run_auth_user(self):
@@ -367,8 +367,9 @@ class TestAuth(object):
             users=[{"name": user["name"], "capacity": "editor"}]
         )
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset["id"])
 
         context = {"user": user["name"], "model": model}
 
@@ -376,7 +377,7 @@ class TestAuth(object):
             call_auth(
                 "resource_validation_run",
                 context=context,
-                resource_id=dataset["resources"][0]["id"],
+                resource_id=resource["id"],
             )
             is True
         )
@@ -416,8 +417,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset["id"])
 
         context = {"user": user["name"], "model": model}
 
@@ -426,7 +428,7 @@ class TestAuth(object):
             call_auth,
             "resource_validation_delete",
             context=context,
-            resource_id=dataset["resources"][0]["id"],
+            resource_id=resource["id"],
         )
 
     def test_delete_auth_user(self):
@@ -436,8 +438,9 @@ class TestAuth(object):
             users=[{"name": user["name"], "capacity": "editor"}]
         )
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()]
+            owner_org=org["id"]
         )
+        resource = factories.Resource(package_id=dataset["id"])
 
         context = {"user": user["name"], "model": model}
 
@@ -445,7 +448,7 @@ class TestAuth(object):
             call_auth(
                 "resource_validation_delete",
                 context=context,
-                resource_id=dataset["resources"][0]["id"],
+                resource_id=resource["id"],
             )
             is True
         )
@@ -468,8 +471,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()], private=False
+            owner_org=org["id"], private=False
         )
+        resource = factories.Resource(package_id=dataset["id"])
 
         context = {"user": user["name"], "model": model}
 
@@ -477,7 +481,7 @@ class TestAuth(object):
             call_auth(
                 "resource_validation_show",
                 context=context,
-                resource_id=dataset["resources"][0]["id"],
+                resource_id=resource["id"],
             )
             is True
         )
@@ -487,8 +491,9 @@ class TestAuth(object):
         user = factories.User()
         org = factories.Organization()
         dataset = factories.Dataset(
-            owner_org=org["id"], resources=[factories.Resource()], private=True
+            owner_org=org["id"], private=True
         )
+        resource = factories.Resource(package_id=dataset["id"])
 
         context = {"user": user["name"], "model": model}
 
@@ -497,7 +502,7 @@ class TestAuth(object):
             call_auth,
             "resource_validation_run",
             context=context,
-            resource_id=dataset["resources"][0]["id"],
+            resource_id=resource["id"],
         )
 
 
@@ -524,8 +529,8 @@ class TestResourceValidationOnCreate(object):
             )
 
         assert "validation" in e.value.error_dict
-        assert "missing-cell" in str(e)
-        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
+        assert "missing-cell" in str(e.value)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e.value)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
@@ -536,7 +541,7 @@ class TestResourceValidationOnCreate(object):
 
         dataset = factories.Dataset()
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
+        io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
 
         validation_count_before = model.Session.query(Validation).count()
 
@@ -620,8 +625,8 @@ class TestResourceValidationOnUpdate(object):
                 )
 
         assert "validation" in e.value.error_dict
-        assert "missing-cell" in str(e)
-        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e)
+        assert "missing-cell" in str(e.value)
+        assert 'Row at position "2" has a missing cell in field "d" at position "4"' in str(e.value)
 
     @pytest.mark.usefixtures("mock_uploads")
     def test_validation_fails_no_validation_object_stored(self):
