@@ -9,6 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import JSON
 from six import text_type
 
+from ckan import model
 from ckan.model.meta import metadata
 
 log = logging.getLogger(__name__)
@@ -44,10 +45,11 @@ class Validation(Base):
 
 
 def create_tables():
-    Validation.__table__.create()
+    metadata.create_all(model.meta.engine)
 
     log.info(u'Validation database tables created')
 
 
 def tables_exist():
-    return Validation.__table__.exists()
+    return 'validation' in metadata.tables \
+        and metadata.tables['validation'].exists()
