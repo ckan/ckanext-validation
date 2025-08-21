@@ -1,5 +1,5 @@
 ckantoolkit>=0.0.3
-frictionless==5.18.0
+frictionless==5.18.1
 markupsafe
 jinja2<3.2
 tableschema
