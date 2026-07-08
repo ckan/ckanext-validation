@@ -51,5 +51,11 @@ def create_tables():
 
 
 def tables_exist():
+    from sqlalchemy import inspect
+    engine = model.meta.engine
+    if engine is None:
+        # Engine not initialised yet (plugin update_config runs before
+        # model.init_model on first load); `validation init-db` creates it.
+        return True
     return 'validation' in metadata.tables \
-        and metadata.tables['validation'].exists()
+        and inspect(engine).has_table('validation')
