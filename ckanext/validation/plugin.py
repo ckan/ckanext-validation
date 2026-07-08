@@ -262,6 +262,14 @@ Please run the following to create the database tables:
             if utils.should_remove_unsupported_resource_validation_reports(data_dict):
                 p.toolkit.enqueue_job(fn=utils.remove_unsupported_resource_validation_reports, args=[resource_id])
 
+    # CKAN >= 2.10: IPackageController fires the *_dataset_* hook names; the
+    # dataset-flavoured branches live in the after_resource_* methods above.
+    def after_dataset_create(self, context, data_dict):
+        return self.after_resource_create(context, data_dict)
+
+    def after_dataset_update(self, context, data_dict):
+        return self.after_resource_update(context, data_dict)
+
     # IPackageController
 
     # CKAN < 2.10
