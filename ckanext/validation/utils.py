@@ -3,6 +3,7 @@ import logging
 
 from six import string_types, ensure_str
 
+from werkzeug.datastructures import FileStorage as FlaskFileStorage
 import ckan.plugins as plugins
 import ckan.lib.uploader as uploader
 from ckan import model
@@ -34,9 +35,9 @@ def process_schema_fields(data_dict):
     schema_url = data_dict.pop(u'schema_url', None)
     schema_json = data_dict.pop(u'schema_json', None)
 
-    if isinstance(schema_upload, uploader.ALLOWED_UPLOAD_TYPES):
+    if isinstance(schema_upload, FlaskFileStorage):
         data_dict[u'schema'] = ensure_str(
-            uploader._get_underlying_file(schema_upload).read())
+            schema_upload.stream.read())
         if isinstance(data_dict["schema"], (bytes, bytearray)):
             data_dict["schema"] = data_dict["schema"].decode()
     elif schema_url:
