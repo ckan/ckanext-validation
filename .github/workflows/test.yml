@@ -21,14 +21,14 @@ jobs:
     strategy:
       matrix:
         include: #ckan-image see https://github.com/ckan/ckan-docker-base, ckan-version controls other image tags
-#          - ckan-version: "2.11"
-#            ckan-image: "2.11-py3.10"
-#            ckan-solr: "2.11-solr9"
-#            experimental: false
-#          - ckan-version: "2.10"
-#            ckan-image: "2.10-py3.10"
-#            ckan-solr: "2.10-solr9"
-#            experimental: false
+          - ckan-version: "2.11"
+            ckan-image: "2.11-py3.10"
+            ckan-solr: "2.11-solr9"
+            experimental: false
+          - ckan-version: "2.10"
+            ckan-image: "2.10-py3.10"
+            ckan-solr: "2.10-solr9"
+            experimental: false
           - ckan-version: "2.9"
             ckan-image: "2.9-py3.9"
             ckan-solr: "2.9-solr8"
@@ -64,6 +64,7 @@ jobs:
       CKAN_DATASTORE_READ_URL: postgresql://datastore_read:pass@postgres/datastore_test
       CKAN_SOLR_URL: http://solr:8983/solr/ckan
       CKAN_REDIS_URL: redis://redis:6379/1
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
     - uses: actions/checkout@v4
@@ -106,6 +107,9 @@ jobs:
 
     - name: "Upload coverage report to codecov flag: ${{ matrix.ckan-version }}"
       uses: codecov/codecov-action@v5
+      # secrets are unavailable on pull_request runs from forks; skip the
+      # upload rather than failing the job
+      if: ${{ env.CODECOV_TOKEN != '' }}
       continue-on-error: ${{ matrix.experimental }}
       with:
         file: ./coverage.xml

@@ -51,5 +51,17 @@ def create_tables():
 
 
 def tables_exist():
-    return 'validation' in metadata.tables \
-        and metadata.tables['validation'].exists()
+    from sqlalchemy import inspect
+    engine = model.meta.engine
+    if engine is None:
+        # Engine not initialised yet (plugin update_config runs before
+        # model.init_model on first load); `validation init-db` creates it.
+        return True
+    inspector = inspect(engine)
+    if hasattr(inspector, 'has_table'):
+        # SQLAlchemy >= 1.4 (CKAN >= 2.10)
+        has_table = inspector.has_table
+    else:
+        # SQLAlchemy 1.3 (CKAN 2.9); Table.exists() is gone in 1.4
+        has_table = engine.has_table
+    return 'validation' in metadata.tables and has_table('validation')

@@ -212,9 +212,9 @@ class TestValidationJob(object):
 
         resource = factories.Resource(format="csv", upload=mock_upload)
 
-        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
+        invalid_stream = lambda *a, **kw: io.BufferedReader(io.BytesIO(invalid_csv.encode("utf8")))
 
-        with mock.patch("io.open", return_value=invalid_stream):
+        with mock.patch("io.open", side_effect=invalid_stream):
             run_validation_job(resource)
 
         validation = (
@@ -258,9 +258,9 @@ a;b;c
             format="csv", upload=mock_upload, validation_options=validation_options
         )
 
-        invalid_stream = io.BufferedReader(io.BytesIO(invalid_csv.encode('utf8')))
+        invalid_stream = lambda *a, **kw: io.BufferedReader(io.BytesIO(invalid_csv.encode("utf8")))
 
-        with mock.patch("io.open", return_value=invalid_stream):
+        with mock.patch("io.open", side_effect=invalid_stream):
 
             run_validation_job(resource)
 

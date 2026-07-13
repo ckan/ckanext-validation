@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from unittest import mock
 
@@ -191,7 +193,7 @@ class TestPackageControllerHooksCreate(object):
     @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_validation_run_with_upload(self, mock_enqueue):
 
-        resource = {"id": "test-resource-id", "format": "CSV", "url_type": "upload"}
+        resource = {"id": str(uuid.uuid4()), "format": "CSV", "url_type": "upload"}
         factories.Dataset(resources=[resource])
 
         assert mock_enqueue.call_count == 1
@@ -203,7 +205,7 @@ class TestPackageControllerHooksCreate(object):
     def test_validation_run_with_url(self, mock_enqueue):
 
         resource = {
-            "id": "test-resource-id",
+            "id": str(uuid.uuid4()),
             "format": "CSV",
             "url": "http://some.data",
         }
@@ -218,12 +220,12 @@ class TestPackageControllerHooksCreate(object):
     def test_validation_run_only_supported_formats(self, mock_enqueue):
 
         resource1 = {
-            "id": "test-resource-id-1",
+            "id": str(uuid.uuid4()),
             "format": "CSV",
             "url": "http://some.data",
         }
         resource2 = {
-            "id": "test-resource-id-2",
+            "id": str(uuid.uuid4()),
             "format": "PDF",
             "url": "http://some.doc",
         }
@@ -244,11 +246,11 @@ class TestPackageControllerHooksUpdate(object):
     def test_validation_runs_with_url(self, mock_enqueue):
 
         resource = {
-            "id": "test-resource-id",
+            "id": str(uuid.uuid4()),
             "format": "CSV",
             "url": "http://some.data",
         }
-        dataset = factories.Dataset(resources=[resource], id="myid")
+        dataset = factories.Dataset(resources=[resource])
 
         mock_enqueue.assert_not_called()
 
@@ -265,7 +267,7 @@ class TestPackageControllerHooksUpdate(object):
     @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_validation_runs_with_upload(self, mock_enqueue):
 
-        resource = {"id": "test-resource-id", "format": "CSV", "url_type": "upload"}
+        resource = {"id": str(uuid.uuid4()), "format": "CSV", "url_type": "upload"}
         dataset = factories.Dataset(resources=[resource])
 
         mock_enqueue.assert_not_called()
@@ -283,7 +285,7 @@ class TestPackageControllerHooksUpdate(object):
     @mock.patch("ckanext.validation.logic.action.enqueue_job")
     def test_validation_does_not_run_on_other_formats(self, mock_enqueue):
 
-        resource = {"id": "test-resource-id", "format": "PDF", "url": "http://some.doc"}
+        resource = {"id": str(uuid.uuid4()), "format": "PDF", "url": "http://some.doc"}
         dataset = factories.Dataset(resources=[resource])
 
         mock_enqueue.assert_not_called()
@@ -299,12 +301,12 @@ class TestPackageControllerHooksUpdate(object):
     def test_validation_run_only_supported_formats(self, mock_enqueue):
 
         resource1 = {
-            "id": "test-resource-id-1",
+            "id": str(uuid.uuid4()),
             "format": "CSV",
             "url": "http://some.data",
         }
         resource2 = {
-            "id": "test-resource-id-2",
+            "id": str(uuid.uuid4()),
             "format": "PDF",
             "url": "http://some.doc",
         }
@@ -328,7 +330,7 @@ class TestPackageControllerHooksUpdate(object):
     def test_validation_does_not_run_when_config_false(self, mock_enqueue):
 
         resource = {
-            "id": "test-resource-id",
+            "id": str(uuid.uuid4()),
             "format": "CSV",
             "url": "http://some.data",
         }
@@ -337,3 +339,43 @@ class TestPackageControllerHooksUpdate(object):
         call_action("package_update", {}, **dataset)
 
         mock_enqueue.assert_not_called()
+
+
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+class TestDatasetControllerHooks(object):
+    # CKAN >= 2.10 fires after_dataset_create/after_dataset_update on
+    # IPackageController; without those methods async validation silently
+    # never runs for package-level calls (harvesters, API package_update).
+
+    @mock.patch("ckanext.validation.utils.run_async_validation")
+    def test_package_create_triggers_validation(self, mock_run):
+
+        factories.Dataset(
+            resources=[{"format": "CSV", "url": "https://example.com/d.csv"}]
+        )
+
+        assert mock_run.call_count == 1
+
+    @mock.patch("ckanext.validation.utils.run_async_validation")
+    def test_package_update_triggers_validation(self, mock_run):
+
+        dataset = factories.Dataset(
+            resources=[{"format": "CSV", "url": "https://example.com/d.csv"}]
+        )
+        mock_run.reset_mock()
+
+        dataset["resources"][0]["url"] = "https://example.com/d2.csv"
+        call_action("package_update", {}, **dataset)
+
+        assert mock_run.call_count == 1
+
+    @mock.patch("ckanext.validation.utils.run_async_validation")
+    def test_package_create_unsupported_format_does_not_validate(
+        self, mock_run
+    ):
+
+        factories.Dataset(
+            resources=[{"format": "PDF", "url": "https://example.com/d.pdf"}]
+        )
+
+        mock_run.assert_not_called()
