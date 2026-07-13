@@ -566,9 +566,9 @@ class TestResourceValidationOnCreate(object):
 
         dataset = factories.Dataset()
 
-        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV.encode('utf8')))
+        valid_stream = lambda *a, **kw: io.BufferedReader(io.BytesIO(VALID_CSV.encode("utf8")))
 
-        with mock.patch("io.open", return_value=valid_stream):
+        with mock.patch("io.open", side_effect=valid_stream):
 
             resource = call_action(
                 "resource_create",
@@ -611,9 +611,9 @@ class TestResourceValidationOnUpdate(object):
 
         mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
+        invalid_stream = lambda *a, **kw: io.BufferedReader(io.BytesIO(INVALID_CSV.encode("utf8")))
 
-        with mock.patch("io.open", return_value=invalid_stream):
+        with mock.patch("io.open", side_effect=invalid_stream):
 
             with pytest.raises(t.ValidationError) as e:
 
@@ -637,9 +637,9 @@ class TestResourceValidationOnUpdate(object):
 
         mock_upload = MockFieldStorage(invalid_file, "invalid.csv")
 
-        invalid_stream = io.BufferedReader(io.BytesIO(INVALID_CSV.encode('utf8')))
+        invalid_stream = lambda *a, **kw: io.BufferedReader(io.BytesIO(INVALID_CSV.encode("utf8")))
 
-        with mock.patch("io.open", return_value=invalid_stream):
+        with mock.patch("io.open", side_effect=invalid_stream):
 
             with pytest.raises(t.ValidationError):
 
@@ -663,9 +663,9 @@ class TestResourceValidationOnUpdate(object):
 
         mock_upload = MockFieldStorage(valid_file, "valid.csv")
 
-        valid_stream = io.BufferedReader(io.BytesIO(VALID_CSV.encode('utf8')))
+        valid_stream = lambda *a, **kw: io.BufferedReader(io.BytesIO(VALID_CSV.encode("utf8")))
 
-        with mock.patch("io.open", return_value=valid_stream):
+        with mock.patch("io.open", side_effect=valid_stream):
 
             resource = call_action(
                 "resource_update",

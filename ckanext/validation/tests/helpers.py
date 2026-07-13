@@ -134,7 +134,7 @@ def mock_uploads_fake_fs(func):
     @mock.patch.object(builtins, 'open',
                        side_effect=_mock_open_if_open_fails)
     @mock.patch.object(ckan.lib.uploader, '_storage_path',
-                       new='/doesnt_exist')
+                       new='/doesnt_exist', create=True)
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         return func(*args, **kwargs)

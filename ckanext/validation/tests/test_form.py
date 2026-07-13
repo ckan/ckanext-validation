@@ -31,7 +31,7 @@ def _get_resource_new_page_as_sysadmin(app, id):
     user = Sysadmin()
     env = {"REMOTE_USER": user["name"].encode("ascii")}
     response = app.get(
-        url="/dataset/new_resource/{}".format(id),
+        url=_new_resource_url(id),
         extra_environ=env,
     )
     return env, response
@@ -41,7 +41,7 @@ def _get_resource_update_page_as_sysadmin(app, id, resource_id):
     user = Sysadmin()
     env = {"REMOTE_USER": user["name"].encode("ascii")}
     response = app.get(
-        url="/dataset/{}/resource_edit/{}".format(id, resource_id),
+        url=_edit_resource_url(id, resource_id),
         extra_environ=env,
     )
     return env, response
