@@ -337,3 +337,43 @@ class TestPackageControllerHooksUpdate(object):
         call_action("package_update", {}, **dataset)
 
         mock_enqueue.assert_not_called()
+
+
+@pytest.mark.usefixtures("clean_db", "validation_setup", "with_plugins")
+class TestDatasetControllerHooks(object):
+    # CKAN >= 2.10 fires after_dataset_create/after_dataset_update on
+    # IPackageController; without those methods async validation silently
+    # never runs for package-level calls (harvesters, API package_update).
+
+    @mock.patch("ckanext.validation.utils.run_async_validation")
+    def test_package_create_triggers_validation(self, mock_run):
+
+        factories.Dataset(
+            resources=[{"format": "CSV", "url": "https://example.com/d.csv"}]
+        )
+
+        assert mock_run.call_count == 1
+
+    @mock.patch("ckanext.validation.utils.run_async_validation")
+    def test_package_update_triggers_validation(self, mock_run):
+
+        dataset = factories.Dataset(
+            resources=[{"format": "CSV", "url": "https://example.com/d.csv"}]
+        )
+        mock_run.reset_mock()
+
+        dataset["resources"][0]["url"] = "https://example.com/d2.csv"
+        call_action("package_update", {}, **dataset)
+
+        assert mock_run.call_count == 1
+
+    @mock.patch("ckanext.validation.utils.run_async_validation")
+    def test_package_create_unsupported_format_does_not_validate(
+        self, mock_run
+    ):
+
+        factories.Dataset(
+            resources=[{"format": "PDF", "url": "https://example.com/d.pdf"}]
+        )
+
+        mock_run.assert_not_called()

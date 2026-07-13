@@ -159,3 +159,36 @@ class TestFiles(object):
             delete_local_uploaded_file(resource_id)
 
         patcher.tearDown()
+
+
+class TestProcessSchemaFields(object):
+    # CKAN 2.11 removed uploader.ALLOWED_UPLOAD_TYPES and
+    # uploader._get_underlying_file, which this function relied on to read
+    # an uploaded schema file; uploads arrive as werkzeug FileStorage on
+    # every supported CKAN version.
+
+    def test_schema_upload_filestorage_is_read(self):
+        from io import BytesIO
+
+        from werkzeug.datastructures import FileStorage
+
+        from ckanext.validation.utils import process_schema_fields
+
+        schema = b'{"fields": [{"name": "code"}]}'
+        data_dict = process_schema_fields(
+            {
+                "schema_upload": FileStorage(
+                    BytesIO(schema), filename="schema.json"
+                )
+            }
+        )
+
+        assert data_dict["schema"] == schema.decode()
+        assert "schema_upload" not in data_dict
+
+    def test_schema_json_still_wins_without_upload(self):
+        from ckanext.validation.utils import process_schema_fields
+
+        data_dict = process_schema_fields({"schema_json": '{"fields": []}'})
+
+        assert data_dict["schema"] == '{"fields": []}'
