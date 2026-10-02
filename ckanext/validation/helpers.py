@@ -3,9 +3,10 @@ import json
 
 from six.moves.urllib.parse import urlparse
 from six import string_types
-from ckantoolkit import url_for, _, config, asbool, literal, h
+from ckan.plugins.toolkit import url_for, _, config, asbool, literal, h
 
 from ckanext.validation.utils import get_default_schema
+
 
 def get_helpers():
     validators = (
@@ -22,11 +23,11 @@ def get_helpers():
 
 def get_validation_badge(resource, in_listing=False):
 
-    # afterDate = config.get('ckanext.validation.show_badges_after_last_modified_date', "")
-    # if afterDate and (not resource.get('last_modified')
-    #                   or h.date_str_to_datetime(afterDate)
-    #                   >= h.date_str_to_datetime(resource['last_modified'])):
-    #     return ''
+    afterDate = config.get('ckanext.validation.show_badges_after_last_modified_date', "")
+    if afterDate and (not resource.get('last_modified')
+                      or h.date_str_to_datetime(afterDate)
+                      >= h.date_str_to_datetime(resource['last_modified'])):
+        return ''
 
     if in_listing and not asbool(
             config.get('ckanext.validation.show_badges_in_listings', True)):
@@ -35,27 +36,21 @@ def get_validation_badge(resource, in_listing=False):
     if not resource.get('validation_status'):
         return ''
 
-    # if not _get_schema_or_default_schema(resource):
-    #     return ''
+    if not _get_schema_or_default_schema(resource):
+        return ''
 
     statuses = {
         'success': _('valid'),
-        'failure': _('invalid'),
+        'failure': _('failure'),
         'invalid': _('invalid'),
         'error': _('error'),
         'unknown': _('unknown'),
     }
 
-    messages = {
-        'success': _('Valid data'),
-        'failure': _('Invalid data'),
-        'invalid': _('invalid data'),
-        'error': _('Error during validation'),
-        'unknown': _('Data validation unknown'),
-    }
-
-    if resource['validation_status'] in ['success', 'failure', 'invalid', 'error']:
+    if resource['validation_status'] in ['success', 'failure', 'error']:
         status = resource['validation_status']
+        if status == 'failure':
+            status = 'invalid'
     else:
         status = 'unknown'
 
@@ -67,14 +62,13 @@ def get_validation_badge(resource, in_listing=False):
         resource_id=resource['id'])
 
     return u'''
-<a href="{validation_url}" class="validation-badge" title="{alt} {title}">
+<a href="{validation_url}" class="validation-badge" title="{title}">
     <span class="prefix">{prefix}</span><span class="status {status}">{status_title}</span>
 </a>'''.format(
         validation_url=validation_url,
         prefix=_('data'),
         status=status,
         status_title=statuses[status],
-        alt=messages[status],
         title=resource.get('validation_timestamp', ''))
 
 
@@ -99,9 +93,11 @@ def validation_extract_report_from_errors(errors):
             report = errors[error][0]
             # Remove full path from table source
             if 'tasks' in report:
+                # Handle Frictionless version
                 source = report['tasks'][0]['place']
                 report['tasks'][0]['place'] = source.split('/')[-1]
             elif 'tables' in report:
+                # Handle GoodTables version
                 source = report['tables'][0]['source']
                 report['tables'][0]['source'] = source.split('/')[-1]
             msg = _('''

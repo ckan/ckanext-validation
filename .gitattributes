@@ -1,0 +1,6 @@
+# Ignore files for distribution archives.
+/.docker             export-ignore
+/.env                export-ignore
+/.gitatributes       export-ignore
+/docker-compose.yml  export-ignore
+/test                export-ignore

@@ -2,7 +2,7 @@
 
 import sys
 
-from ckantoolkit import CkanCommand
+from ckan.plugins.toolkit import CkanCommand
 
 from ckanext.validation import common
 

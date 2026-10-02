@@ -14,7 +14,6 @@ develop-eggs/
 dist/
 downloads/
 eggs/
-.eggs/
 lib/
 lib64/
 parts/
@@ -24,6 +23,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.eggs
+src/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -45,10 +46,6 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
-
-# Translations
-*.mo
-*.pot
 
 # Django stuff:
 *.log
@@ -99,4 +96,20 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+# generated from template
+Dockerfile.ckan
+docker-compose.yml
+
+# bdd tests
+/test/screenshots
+/gcm
+/mail
+/sms
+
 .idea
+
+## Junit test outputs
+/TESTS*.xml
+/coverage.xml
+/reports

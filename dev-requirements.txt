@@ -1,3 +1,11 @@
-pyfakefs==4.6.*
+Appium-Python-Client==2.10.1
+beautifulsoup4==4.9.1
+behaving==3.3.*
+ckanapi>=4.7
+faker==18.3.0
+flake8==7.3.*
+mock
 pytest-ckan
 pytest-cov
+typing-extensions>=4.14.1  # for pydantic
+ckanext-scheming>=3.1.0

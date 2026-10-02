@@ -1,0 +1,34 @@
+FROM ckan/ckan-dev:{CKAN_VERSION}
+
+# swap between root and unprivileged user
+ARG ORIGINAL_USER
+RUN ORIGINAL_USER=$(id -un)
+
+ARG SITE_URL=http://ckan:5000/
+ENV PYTHON_VERSION={PYTHON_VERSION}
+ENV CKAN_VERSION={CKAN_VERSION}
+ENV SOLR_VERSION={SOLR_VERSION}
+ENV CKAN_SITE_URL="${SITE_URL}"
+ENV PYTHON={PYTHON}
+
+WORKDIR "${APP_DIR}"
+
+COPY .docker/test.ini $CKAN_INI
+
+COPY . "${APP_DIR}"/
+
+USER root
+
+COPY bin/ckan_cli /usr/bin/
+
+RUN chmod +x "${APP_DIR}"/bin/*.sh /usr/bin/ckan_cli
+
+RUN (which ps && which wget) || (apt-get update && apt-get install -y procps wget)
+RUN pip install uv
+
+USER "$ORIGINAL_USER"
+
+# Init current extension.
+RUN "${APP_DIR}"/bin/init-ext.sh
+
+CMD ["/srv/app/bin/serve.sh"]

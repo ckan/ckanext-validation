@@ -1,113 +1,106 @@
+---
 name: Tests
 on:
   push:
   pull_request:
+    branches:
+      - master
 
 jobs:
+  # Quick check so we don't waste minutes if there's a Flake8 error
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
-          python-version: '3.10'
+          python-version: '3.x'
       - name: Install requirements
         run: pip install flake8 pycodestyle
       - name: Check syntax
-        run: flake8 . --count --select=E901,E999,F821,F822,F823 --show-source --statistics --extend-exclude ckan
+        run: flake8
 
   test:
     needs: lint
     strategy:
-      matrix:
-        include: #ckan-image see https://github.com/ckan/ckan-docker-base, ckan-version controls other image tags
-#          - ckan-version: "2.11"
-#            ckan-image: "2.11-py3.10"
-#            ckan-solr: "2.11-solr9"
-#            experimental: false
-#          - ckan-version: "2.10"
-#            ckan-image: "2.10-py3.10"
-#            ckan-solr: "2.10-solr9"
-#            experimental: false
-          - ckan-version: "2.9"
-            ckan-image: "2.9-py3.9"
-            ckan-solr: "2.9-solr8"
-            experimental: false
-#          - ckan-version: "master"
-#            ckan-image: "master"
-#            ckan-solr: "master-solr9"
-#            experimental: true  # master is unstable, good to know if we are compatible or not
       fail-fast: false
+      matrix:
+        ckan-version: ['2.12', '2.11', '2.10']
+        experimental: [false]
+        include:
+          - ckan-version: 'master'
+            experimental: true  # master is unstable, good to know if we are compatible or not
 
-    name: CKAN ${{ matrix.ckan-version }}
+    name: ${{ matrix.experimental && '**Fail_Ignored** ' || '' }} CKAN ${{ matrix.ckan-version }} - Continuous Integration build
     runs-on: ubuntu-latest
-    container:
-      image: ckan/ckan-dev:${{ matrix.ckan-image }}
-      options: --user root
-    services:
-      solr:
-        image: ckan/ckan-solr:${{ matrix.ckan-solr }}
-      postgres:
-        image: ckan/ckan-postgres-dev:${{ matrix.ckan-version }}
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-          image: redis:3
     env:
-      CKAN_SQLALCHEMY_URL: postgresql://ckan_default:pass@postgres/ckan_test
-      CKAN_DATASTORE_WRITE_URL: postgresql://datastore_write:pass@postgres/datastore_test
-      CKAN_DATASTORE_READ_URL: postgresql://datastore_read:pass@postgres/datastore_test
-      CKAN_SOLR_URL: http://solr:8983/solr/ckan
-      CKAN_REDIS_URL: redis://redis:6379/1
+      CKAN_VERSION: ${{ matrix.ckan-version }}
 
     steps:
-    - uses: actions/checkout@v4
-      continue-on-error: ${{ matrix.experimental }}
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        timeout-minutes: 2
+        continue-on-error: ${{ matrix.experimental }}
 
-    - name: Pin setuptools for ckan 2.9 only
-      if: ${{ matrix.ckan-version == 2.9 }}
-      run: pip install "setuptools>=44.1.0,<71"
-      continue-on-error: ${{ matrix.experimental }}
+      - name: Build
+        run: ./build.sh
+        timeout-minutes: 15
+        continue-on-error: ${{ matrix.experimental }}
 
-    - name: Install requirements
-      continue-on-error: ${{ matrix.experimental }}
-      run: |
-        pip install -r dev-requirements.txt
-        pip install -r requirements.txt
-        pip install -e .
-        # Replace default path to CKAN core config file with the one on the container
-        sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
+      - name: Lint
+        run: ./build.sh lint
+        timeout-minutes: 1
+        continue-on-error: ${{ matrix.experimental }}
 
-    - name: Pin jinja2 for ckan 2.9 only (last jinja version that had escape class)
-      if: ${{ matrix.ckan-version == 2.9 }}
-      run: pip install "jinja2<3.1"
-      continue-on-error: ${{ matrix.experimental }}
+      - name: Unit test
+        run: ./build.sh test_unit
+        timeout-minutes: 5
+        continue-on-error: ${{ matrix.experimental }}
 
-    - name: Setup extension
-      continue-on-error: ${{ matrix.experimental }}
-      run: |
-        ckan -c test.ini db init
+      - name: Scenario test
+        run: ./build.sh test_bdd
+        timeout-minutes: 10
+        continue-on-error: ${{ matrix.experimental }}
 
-    - name: Run tests
-      continue-on-error: ${{ matrix.experimental }}
-      run: pytest --ckan-ini=test.ini --cov=ckanext.validation --cov-report=xml --cov-append --disable-warnings ckanext/validation/tests -vv  --junit-xml=/tmp/artifacts/junit/results.xml
+      - name: Retrieve logs
+        if: always()
+        run: ./build.sh logs
+        timeout-minutes: 1
+        continue-on-error: ${{ matrix.experimental }}
 
-    - name: Test Summary
-      uses: test-summary/action@v2
-      continue-on-error: ${{ matrix.experimental }}
-      with:
-        paths: "/tmp/artifacts/junit/*.xml"
-      if: always()
+      - name: Retrieve results
+        if: always()
+        run: ./build.sh process_artifacts
+        timeout-minutes: 1
+        continue-on-error: ${{ matrix.experimental }}
 
-    - name: "Upload coverage report to codecov flag: ${{ matrix.ckan-version }}"
-      uses: codecov/codecov-action@v5
-      continue-on-error: ${{ matrix.experimental }}
-      with:
-        file: ./coverage.xml
-        token: ${{ secrets.CODECOV_TOKEN }}
-        flags: "${{ matrix.ckan-version }}"
+      - name: Test Summary
+        uses: test-summary/action@37b508cfee6d4d080eedd00b5bb240a6a784a6a5  # v2.6
+        continue-on-error: ${{ matrix.experimental }}
+        with:
+          paths: "/tmp/artifacts/junit/*.xml"
+        if: always()
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: CKAN ${{ matrix.ckan-version }} screenshots
+          path: /tmp/artifacts/behave/screenshots
+        timeout-minutes: 1
+        continue-on-error: ${{ matrix.experimental }}
+
+      - name: Test Summary
+        uses: test-summary/action@37b508cfee6d4d080eedd00b5bb240a6a784a6a5  # v2.6
+        with:
+          paths: "TESTS-*.xml"
+        if: always()
+        continue-on-error: ${{ matrix.experimental }}
+
+      - name: "Upload coverage report to codecov flag: ${{ matrix.ckan-version }}"
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v6.0.2
+        continue-on-error: ${{ matrix.experimental }}
+        with:
+          file: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: "${{ matrix.ckan-version }}"

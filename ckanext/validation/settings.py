@@ -1,9 +1,10 @@
 # encoding: utf-8
 import json
 
-import ckantoolkit as tk
+import ckan.plugins as plugins
+import ckan.plugins.toolkit as tk
 
-from ckantoolkit import config, asbool
+from ckanext.validation.interfaces import IDataValidation
 
 try:
     from tabulator.config import PARSERS
@@ -28,6 +29,18 @@ except NameError:
 SUPPORTED_FORMATS_KEY = u"ckanext.validation.formats"
 DEFAULT_SUPPORTED_FORMATS = [u'csv', u'xls', u'xlsx']
 DEFAULT_VALIDATION_OPTIONS_KEY = "ckanext.validation.default_validation_options"
+
+SYNC_MODE = u"sync"
+ASYNC_MODE = u"async"
+SUPPORTED_MODES = [SYNC_MODE, ASYNC_MODE]
+
+ASYNC_UPDATE_KEY = "ckanext.validation.run_on_update_async"
+ASYNC_CREATE_KEY = "ckanext.validation.run_on_create_async"
+
+CREATE_MODE = u"ckanext.validation.default_create_mode"
+UPDATE_MODE = u"ckanext.validation.default_update_mode"
+DEFAULT_CREATE_MODE = ASYNC_MODE
+DEFAULT_UPDATE_MODE = ASYNC_MODE
 
 PASS_AUTH_HEADER = u"ckanext.validation.pass_auth_header"
 PASS_AUTH_HEADER_DEFAULT = True
@@ -64,24 +77,29 @@ def get_supported_formats():
     return supported_formats or DEFAULT_SUPPORTED_FORMATS
 
 
+def get_update_mode(context, resource_data):
+    is_async = tk.asbool(tk.config.get(ASYNC_UPDATE_KEY))
 
-def get_update_mode_from_config():
-    if asbool(
-            config.get(u'ckanext.validation.run_on_update_sync', False)):
-        return u'sync'
-    elif asbool(
-            config.get(u'ckanext.validation.run_on_update_async', True)):
-        return u'async'
-    else:
-        return None
+    mode = ASYNC_MODE if is_async else SYNC_MODE
+
+    for plugin in plugins.PluginImplementations(IDataValidation):
+        mode = plugin.set_update_mode(context, resource_data, mode)
+
+    assert mode in SUPPORTED_MODES, u"Mode '{}' is not supported".format(
+        mode)
+
+    return mode
 
 
-def get_create_mode_from_config():
-    if asbool(
-            config.get(u'ckanext.validation.run_on_create_sync', False)):
-        return u'sync'
-    elif asbool(
-            config.get(u'ckanext.validation.run_on_create_async', True)):
-        return u'async'
-    else:
-        return None
+def get_create_mode(context, resource_data):
+    is_async = tk.asbool(tk.config.get(ASYNC_CREATE_KEY))
+
+    mode = ASYNC_MODE if is_async else SYNC_MODE
+
+    for plugin in plugins.PluginImplementations(IDataValidation):
+        mode = plugin.set_create_mode(context, resource_data, mode)
+
+    assert mode in SUPPORTED_MODES, u"Mode '{}' is not supported".format(
+        mode)
+
+    return mode

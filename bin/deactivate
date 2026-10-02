@@ -1,0 +1,3 @@
+if [ "$VENV_DIR" != "" ]; then
+  deactivate
+fi

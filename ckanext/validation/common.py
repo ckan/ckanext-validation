@@ -5,13 +5,11 @@ import logging
 import six
 import sys
 
-from ckantoolkit import (c, NotAuthorized,
-                         ObjectNotFound, abort, _,
-                         render, get_action, config)
+from ckan.plugins.toolkit import c, NotAuthorized, ObjectNotFound, abort, _, render, get_action, config
 
 from ckanext.validation import settings
 from ckanext.validation.logic.action import _search_datasets
-from ckanext.validation.model import create_tables, tables_exist
+from ckanext.validation.model import create_tables
 
 
 log = logging.getLogger(__name__)
@@ -77,9 +75,6 @@ def error(msg):
 
 
 def init_db():
-    if tables_exist():
-        print(u'Validation tables already exist')
-        sys.exit(0)
     create_tables()
     print(u'Validation tables created')
 

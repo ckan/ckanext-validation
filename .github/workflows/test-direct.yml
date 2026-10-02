@@ -1,0 +1,200 @@
+---
+name: Tests (direct)
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  # Quick check so we don't waste minutes if there's a Flake8 error
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
+        with:
+          python-version: '3.x'
+      - name: Install requirements
+        run: pip install flake8 pycodestyle
+      - name: Check syntax
+        run: flake8
+
+  test:
+    needs: lint
+    strategy:
+      matrix:
+        include: #ckan-image see https://github.com/ckan/ckan-docker-base, ckan-version controls other image tags
+          - ckan-version: "2.11"
+            ckan-image: "2.11-py3.10"
+            ckan-solr: "2.11-solr9"
+            experimental: true
+          - ckan-version: "2.10"
+            ckan-image: "2.10-py3.10"
+            ckan-solr: "2.10-solr9"
+            experimental: true
+          - ckan-version: "master"
+            ckan-image: "master"
+            ckan-solr: "master-solr9"
+            experimental: true  # master is unstable, good to know if we are compatible or not
+      fail-fast: false
+
+    name: ${{ matrix.experimental && '**Fail_Ignored** ' || '' }} CKAN ${{ matrix.ckan-version }}
+    runs-on: ubuntu-latest
+    container:
+      image: ckan/ckan-dev:${{ matrix.ckan-image }}
+      # --hostname ckan allows chrome container to access this container for bdd testing
+      options: --user root  --hostname ckan
+    services:
+      solr:
+        image: ckan/ckan-solr:${{ matrix.ckan-solr }}
+      postgres:
+        image: ckan/ckan-postgres-dev:${{ matrix.ckan-version }}
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+#        ports:
+#          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:3
+      chrome:
+        image: selenium/standalone-chrome:131.0-chromedriver-131.0-grid-4.27.0-20241225
+        options: --shm-size=1gb
+
+    env:
+      CKAN_SQLALCHEMY_URL: postgresql://ckan_default:pass@postgres/ckan_test
+      CKAN_DATASTORE_WRITE_URL: postgresql://datastore_write:pass@postgres/datastore_test
+      CKAN_DATASTORE_READ_URL: postgresql://datastore_read:pass@postgres/datastore_test
+      CKAN_SOLR_URL: http://solr:8983/solr/ckan
+      CKAN_REDIS_URL: redis://redis:6379/1
+      CKAN_SITE_URL: http://ckan:5000
+      CKAN__PLUGINS: "datastore envvars validation scheming_datasets test_validation_plugin"
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        timeout-minutes: 2
+        continue-on-error: ${{ matrix.experimental }}
+
+      - name: Install requirements
+        continue-on-error: ${{ matrix.experimental }}
+        run: |
+          pip install -r dev-requirements.txt
+          pip install -r requirements.txt
+          pip install -e .
+          # Replace default path to CKAN core config file with the one on the container
+          sed -i -e 's/use = config:.*/use = config:\/srv\/app\/src\/ckan\/test-core.ini/' test.ini
+
+      - name: Setup extension
+        continue-on-error: ${{ matrix.experimental }}
+        run: |
+          ckan -c test.ini db init
+          ckan -c test.ini validation init-db
+
+      - name: Run tests
+        run: pytest --ckan-ini=test.ini --cov=ckanext.validation --cov-report=xml:coverage.xml --cov-append --disable-warnings ckanext/validation/tests -vv  --junit-xml=TESTS-results.xml
+        continue-on-error: ${{ matrix.experimental }}
+
+      - name: Config for BDD testing
+        run: |
+          echo "::group::ckan config"
+          ## Since we are using the ckan-dev as the running container, we need to manually setup the system
+          ## https://github.com/ckan/ckan-docker-base/blob/main/ckan-2.11/setup/start_ckan_development.sh
+          export CKAN_INI=/srv/app/ckan.ini
+
+          echo "Setting beaker.session.secret in ini file"
+          ckan config-tool $CKAN_INI "beaker.session.secret=$(python3 -c 'import secrets; print(secrets.token_urlsafe())')"
+          ckan config-tool $CKAN_INI "SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe())')"
+          ckan config-tool $CKAN_INI "WTF_CSRF_SECRET_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe())')"
+          JWT_SECRET=$(python3 -c 'import secrets; print("string:" + secrets.token_urlsafe())')
+          ckan config-tool $CKAN_INI "api_token.jwt.encode.secret=${JWT_SECRET}"
+          ckan config-tool $CKAN_INI "api_token.jwt.decode.secret=${JWT_SECRET}"
+
+          ckan config-tool $CKAN_INI "ckan.plugins = datastore envvars validation scheming_datasets test_validation_plugin"
+          ckan config-tool $CKAN_INI "ckan.site_url = http://ckan:5000/"
+          ckan config-tool $CKAN_INI  -s server:main "host = 0.0.0.0"
+          ckan config-tool $CKAN_INI  -s server:main "port = 5000"
+
+          echo "::endgroup::"
+
+          echo "::group::ckan debug output"
+          echo "cat /srv/app/ckan.ini"
+          cat /srv/app/ckan.ini
+          echo "/etc/hosts"
+          #        if ! grep -q "127.0.0.1 ckan" /etc/hosts; then
+          #          echo "" >> /etc/hosts
+          #          echo "127.0.0.1 ckan" >> /etc/hosts
+          #        fi
+          cat /etc/hosts
+          echo "::endgroup::"
+
+          echo "::group::Install curl, procps"
+          if [ -f /etc/alpine-release ]; then
+            apk add --no-cache procps curl
+          elif [ -f /etc/debian_version ]; then
+            apt-get update
+            apt-get install -y --no-install-recommends build-essential curl procps
+          fi
+          echo "::endgroup::"
+
+          pip install -r test/dev-requirements.txt
+
+      - name: Run BDD tests
+        continue-on-error: ${{ matrix.experimental }}
+        run: |
+          rm -rf test/screenshots/*
+          mkdir -p test/screenshots
+
+          export CKAN_INI=/srv/app/ckan.ini
+          export CKAN_SITE_URL=http://ckan:5000/
+
+          ckan -c $CKAN_INI run -H 0.0.0.0 > test/screenshots/ckan.log 2>&1 &
+          ckan -c $CKAN_INI jobs worker > test/screenshots/ckan-worker.log 2>&1  &
+          sleep 5
+
+          echo "::group::ckan clean db and init"
+          ckan db clean --yes
+          ckan db init
+          echo "validation init-db"
+          ckan validation init-db
+          echo "::endgroup::"
+
+          echo "::group::create test data"
+          chmod +x ./bin/*
+          echo "create test data"
+          ./bin/create-test-data.sh
+          echo "::endgroup::"
+
+          #        curl -v http://ckan:5000
+          #        echo "login"
+          #        curl -v http://ckan:5000/user/login
+
+          echo "::group::BDD Tests"
+          behave --junit  --junit-directory . --summary -k ${*:-test/features} $EXTRA_TAGS --tags=${BEHAVE_TAG:--format_autocomplete}
+          echo "::endgroup::"
+
+      - name: Upload BDD outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CKAN ${{ matrix.ckan-version }} BDD outputs
+          path: test/screenshots
+        timeout-minutes: 1
+        continue-on-error: ${{ matrix.experimental }}
+
+      - name: Test Summary
+        uses: test-summary/action@37b508cfee6d4d080eedd00b5bb240a6a784a6a5  # v2.6
+        with:
+          paths: "./TEST*.xml"
+        if: always()
+        continue-on-error: ${{ matrix.experimental }}
+
+      - name: "Upload coverage report to codecov flag: ${{ matrix.ckan-version }}"
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f  # v6.0.2
+        continue-on-error: ${{ matrix.experimental }}
+        with:
+          file: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: "${{ matrix.ckan-version }}"

@@ -1,161 +1,134 @@
-import os
-import uuid
-from unittest import mock
+# encoding: utf-8
 
+import io
+import json
 import pytest
-from pyfakefs import fake_filesystem_unittest
 
-from ckanext.validation.tests.helpers import mock_uploads_fake_fs
-from ckanext.validation import settings as s
-from ckanext.validation.utils import (
-    get_local_upload_path,
-    delete_local_uploaded_file,
-)
+from ckan.tests.helpers import change_config
+
+from ckanext.validation import settings as s, utils
+
+from .helpers import MockFileStorage, SCHEMA
 
 
-class TestConfig(object):
+class TestConfigValidationMode(object):
+
     def test_config_defaults(self):
 
-        assert s.get_update_mode_from_config() == "async"
-        assert s.get_create_mode_from_config() == "async"
+        assert s.get_update_mode({}, {}) == s.SYNC_MODE
+        assert s.get_create_mode({}, {}) == s.SYNC_MODE
 
-    @pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", True)
-    def test_config_update_true_sync(self):
+    @change_config(s.ASYNC_CREATE_KEY, True)
+    def test_set_async_as_default_create_mode(self):
 
-        assert s.get_update_mode_from_config() == "sync"
+        assert s.get_create_mode({}, {}) == s.ASYNC_MODE
 
-    @pytest.mark.ckan_config("ckanext.validation.run_on_update_sync", False)
-    def test_config_update_false_sync(self):
+    @change_config(s.ASYNC_UPDATE_KEY, True)
+    def test_set_async_as_default_update_mode(self):
 
-        assert s.get_update_mode_from_config() == "async"
+        assert s.get_update_mode({}, {}) == s.ASYNC_MODE
 
-    @pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", True)
-    def test_config_create_true_sync(self):
+    @change_config(s.ASYNC_CREATE_KEY, False)
+    def test_set_sync_as_default_create_mode(self):
 
-        assert s.get_create_mode_from_config() == "sync"
+        assert s.get_create_mode({}, {}) == s.SYNC_MODE
 
-    @pytest.mark.ckan_config("ckanext.validation.run_on_create_sync", False)
-    def test_config_create_false_sync(self):
+    @change_config(s.ASYNC_UPDATE_KEY, False)
+    def test_set_sync_as_default_update_mode(self):
 
-        assert s.get_create_mode_from_config() == "async"
+        assert s.get_update_mode({}, {}) == s.SYNC_MODE
 
-    @pytest.mark.ckan_config("ckanext.validation.run_on_update_async", True)
-    def test_config_update_true_async(self):
+    @change_config(s.ASYNC_CREATE_KEY, False)
+    @change_config(s.ASYNC_UPDATE_KEY, False)
+    def test_set_sync_as_default_both_create_and_update(self):
 
-        assert s.get_update_mode_from_config() == "async"
-
-    @pytest.mark.ckan_config("ckanext.validation.run_on_update_async", False)
-    def test_config_update_false_async(self):
-
-        assert s.get_update_mode_from_config() is None
-
-    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", True)
-    def test_config_create_true_async(self):
-
-        assert s.get_create_mode_from_config() == "async"
-
-    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
-    def test_config_create_false_async(self):
-
-        assert s.get_create_mode_from_config() is None
-
-    @pytest.mark.ckan_config("ckanext.validation.run_on_update_async", False)
-    @pytest.mark.ckan_config("ckanext.validation.run_on_create_async", False)
-    def test_config_both_false(self):
-
-        assert s.get_update_mode_from_config() is None
-        assert s.get_create_mode_from_config() is None
+        assert s.get_create_mode({}, {}) == s.SYNC_MODE
+        assert s.get_update_mode({}, {}) == s.SYNC_MODE
 
 
-class TestFiles(object):
-    @mock_uploads_fake_fs
-    def test_local_path(self, mock_open):
+class TestConfigSupportedFormats(object):
 
-        resource_id = str(uuid.uuid4())
+    def test_default_supported_formats(self):
+        assert s.DEFAULT_SUPPORTED_FORMATS == s.get_supported_formats()
 
-        assert get_local_upload_path(
-            resource_id
-        ) == "/doesnt_exist/resources/{}/{}/{}".format(
-            resource_id[0:3], resource_id[3:6], resource_id[6:]
-        )
+    @change_config(s.SUPPORTED_FORMATS_KEY, "")
+    def test_empty_supported_formats(self):
+        assert s.DEFAULT_SUPPORTED_FORMATS == s.get_supported_formats()
 
-    @mock_uploads_fake_fs
-    def test_delete_upload_file(self, mock_open):
+    @change_config(s.SUPPORTED_FORMATS_KEY, "ttf")
+    def test_set_unsupported_format(self):
+        with pytest.raises(AssertionError, match="Format ttf is not supported"):
+            s.get_supported_formats()
 
-        resource_id = str(uuid.uuid4())
-        path = "/doesnt_exist/resources/{}/{}/{}".format(
-            resource_id[0:3], resource_id[3:6], resource_id[6:]
-        )
+    @change_config(s.SUPPORTED_FORMATS_KEY, "csv xlsx")
+    def test_set_supported_formats(self):
+        assert s.get_supported_formats() == ["csv", "xlsx"]
 
-        patcher = fake_filesystem_unittest.Patcher()
-        patcher.setUp()
-        patcher.fs.CreateFile(path)
 
-        assert os.path.exists(path)
+def _assert_schema_inputs_cleared(data_dict):
+    assert 'schema_upload' not in data_dict
+    assert 'schema_url' not in data_dict
+    assert 'schema_json' not in data_dict
 
-        delete_local_uploaded_file(resource_id)
 
-        assert not os.path.exists(path)
+@pytest.mark.usefixtures("with_plugins")
+class TestProcessingSchemaFields(object):
 
-        patcher.tearDown()
+    schema_url = 'https://github.com/qld-gov-au/ckanext-validation/raw/refs/heads/master/test/fixtures/test_schema.json'
+    mock_schema_json = '{"fields": [{"type": "integer", "name": "foo", "format": "default"}]}'
+    mock_schema = '{"fields": [{"type": "string", "name": "baz", "format": "default"}]}'
 
-    @mock_uploads_fake_fs
-    def test_delete_file_not_deleted_if_resources_first(self, mock_open):
+    def test_schema_upload_populates_schema_first(self):
+        data_dict = {
+            'schema_upload': MockFileStorage(io.StringIO(json.dumps(SCHEMA)), "mock-schema-upload"),
+            'schema_url': self.schema_url,
+            'schema_json': self.mock_schema_json,
+            'schema': self.mock_schema
+        }
 
-        resource_id = str(uuid.uuid4())
-        path = "/doesnt_exist/resources/{}".format(resource_id)
+        result = utils.process_schema_fields(data_dict)
+        assert json.loads(result['schema']) == SCHEMA
+        _assert_schema_inputs_cleared(data_dict)
 
-        patcher = fake_filesystem_unittest.Patcher()
-        patcher.setUp()
-        patcher.fs.CreateFile(path)
+    def test_schema_url_populates_schema_second(self):
+        data_dict = {
+            'schema_upload': None,
+            'schema_url': self.schema_url,
+            'schema_json': self.mock_schema_json,
+            'schema': self.mock_schema
+        }
 
-        assert os.path.exists(path)
-        with mock.patch(
-            "ckanext.validation.utils.get_local_upload_path", return_value=path
-        ):
-            delete_local_uploaded_file(resource_id)
+        result = utils.process_schema_fields(data_dict)
+        assert result['schema'] == {"fields": [{"name": "field1", "type": "string"}, {"name": "field2", "type": "string"}]}
+        _assert_schema_inputs_cleared(data_dict)
 
-        assert not os.path.exists(path)
-        assert os.path.exists("/doesnt_exist/resources")
+    def test_schema_json_populates_schema_third(self):
+        data_dict = {
+            'schema_upload': None,
+            'schema_url': None,
+            'schema_json': self.mock_schema_json,
+            'schema': self.mock_schema
+        }
 
-        patcher.tearDown()
+        result = utils.process_schema_fields(data_dict)
+        assert result['schema'] == self.mock_schema_json
+        _assert_schema_inputs_cleared(data_dict)
 
-    @mock_uploads_fake_fs
-    def test_delete_file_not_deleted_if_resources_second(self, mock_open):
+    def test_schema_is_retained_without_other_fields(self):
+        data_dict = {
+            'schema': self.mock_schema
+        }
 
-        resource_id = str(uuid.uuid4())
-        path = "/doesnt_exist/resources/data/{}".format(resource_id)
+        result = utils.process_schema_fields(data_dict)
+        assert result['schema'] == self.mock_schema
+        _assert_schema_inputs_cleared(data_dict)
 
-        patcher = fake_filesystem_unittest.Patcher()
-        patcher.setUp()
-        patcher.fs.CreateFile(path)
+    def test_schema_is_overwritten_by_empty_json_field(self):
+        data_dict = {
+            'schema_json': ' ',
+            'schema': self.mock_schema
+        }
 
-        assert os.path.exists(path)
-        with mock.patch(
-            "ckanext.validation.utils.get_local_upload_path", return_value=path
-        ):
-            delete_local_uploaded_file(resource_id)
-
-        assert not os.path.exists(path)
-        assert os.path.exists("/doesnt_exist/resources")
-
-        patcher.tearDown()
-
-    @mock_uploads_fake_fs
-    def test_delete_passes_if_os_exeception(self, mock_open):
-
-        resource_id = str(uuid.uuid4())
-        path = "/doesnt_exist/resources/{}/{}/{}".format(
-            resource_id[0:3], resource_id[3:6], resource_id[6:]
-        )
-
-        patcher = fake_filesystem_unittest.Patcher()
-        patcher.setUp()
-        patcher.fs.CreateFile(path)
-
-        assert os.path.exists(path)
-        with mock.patch("ckanext.validation.utils.os.remove", side_effect=OSError):
-
-            delete_local_uploaded_file(resource_id)
-
-        patcher.tearDown()
+        result = utils.process_schema_fields(data_dict)
+        assert not result['schema']
+        _assert_schema_inputs_cleared(data_dict)

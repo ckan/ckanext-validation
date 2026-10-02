@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from ckantoolkit import BaseController
+from ckan.plugins.toolkit import BaseController
 
 from ckanext.validation import common
 

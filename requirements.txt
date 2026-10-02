@@ -1,6 +1,6 @@
-ckantoolkit>=0.0.3
 frictionless==5.18.0
+six>=1.13.0
 markupsafe
-jinja2<3.2
+jinja2
 tableschema
--e git+https://github.com/ckan/ckanext-scheming.git#egg=ckanext-scheming
+ckanext-scheming

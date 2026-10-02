@@ -1,0 +1,8 @@
+beautifulsoup4>=4.9.1
+behave>=1.2.6
+selenium>=4.27.1
+git+https://github.com/duttonw/behaving.git@main#egg=behaving
+#behaving>=3.1.5
+# behaving 3.1.5 depends on splinter<0.19.0 and >=0.18.1
+#splinter<0.19.0
+splinter>=0.21.0

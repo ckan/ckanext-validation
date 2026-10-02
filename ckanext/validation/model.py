@@ -1,55 +1,41 @@
 # encoding: utf-8
-
 import datetime
-import uuid
 import logging
 
 from sqlalchemy import Column, Unicode, DateTime
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import JSON
-from six import text_type
 
 from ckan import model
+from ckan.model import types as _types
 from ckan.model.meta import metadata
+from ckan.plugins.toolkit import BaseModel as Base
 
 log = logging.getLogger(__name__)
-
-
-def make_uuid():
-    return text_type(uuid.uuid4())
-
-
-Base = declarative_base(metadata=metadata)
 
 
 class Validation(Base):
     __tablename__ = u'validation'
 
-    id = Column(Unicode, primary_key=True, default=make_uuid)
-    resource_id = Column(Unicode)
+    id = Column('id', Unicode, primary_key=True, default=_types.make_uuid)
+    resource_id = Column('resource_id', Unicode, nullable=False)
     #  status can be one of these values:
     #     created: Job created and put onto queue
     #     running: Job picked up by worker and being processed
     #     success: Validation Successful and report attached
     #     failure: Validation Failed and report attached
     #     error: Validation Job could not create validation report
-    status = Column(Unicode, default=u'created')
+    status = Column('status', Unicode, default=u'created', nullable=False)
     # created is when job was added
-    created = Column(DateTime, default=datetime.datetime.utcnow)
+    created = Column('created', DateTime, default=datetime.datetime.utcnow, nullable=False)
     # finished is when report was generated, is None when new or restarted
-    finished = Column(DateTime)
+    finished = Column('finished', DateTime, nullable=True)
     # json object of report, can be None
-    report = Column(JSON)
+    report = Column('report', JSON, nullable=True)
     # json object of error, can be None
-    error = Column(JSON)
+    error = Column('error', JSON, nullable=True)
 
 
 def create_tables():
     metadata.create_all(model.meta.engine)
 
     log.info(u'Validation database tables created')
-
-
-def tables_exist():
-    return 'validation' in metadata.tables \
-        and metadata.tables['validation'].exists()

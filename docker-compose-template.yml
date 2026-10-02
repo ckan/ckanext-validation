@@ -1,0 +1,90 @@
+x-project:
+  &project "${PROJECT}"
+
+x-volumes:
+  &default-volumes
+  volumes:
+    - /app/ckan ### Local overrides to mount host filesystem. Automatically removed in CI and PROD.
+    - ./ckanext:/app/ckanext:${VOLUME_FLAGS:-delegated} ### Local overrides to mount host filesystem. Automatically removed in CI and PROD.
+    - ./test:/app/test:${VOLUME_FLAGS:-delegated} ### Local overrides to mount host filesystem. Automatically removed in CI and PROD.
+    ##- /app/filestore # Override for environment without host mounts. Automatically uncommented in CI.
+
+x-environment:
+  &default-environment
+  AMAZEEIO: AMAZEEIO
+  no_proxy: "ckan,postgres,postgres-datastore,redis,solr,chrome,mailhog.docker.amazee.io"
+
+services:
+
+  ckan:
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile.ckan
+    depends_on:
+      postgres:
+        condition: service_healthy
+      solr:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      - amazeeio-network
+      - default
+    ports:
+      - "5000"
+    image: *project
+    <<: *default-volumes
+    environment:
+      <<: *default-environment
+      AMAZEEIO_HTTP_PORT: 5000
+      LAGOON_LOCALDEV_URL: "http://${PROJECT}.docker.amazee.io"
+      AMAZEEIO_URL: "${PROJECT}.docker.amazee.io"
+
+  postgres:
+    image: ckan/ckan-postgres-dev:${CKAN_VERSION:-2.11}
+    ports:
+      - "5432"
+    networks:
+      - amazeeio-network
+      - default
+    environment:
+      <<: *default-environment
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+
+  redis:
+    image: redis:6-alpine
+    environment:
+      <<: *default-environment
+    networks:
+      - amazeeio-network
+      - default
+
+  solr:
+    image: ckan/ckan-solr:${CKAN_VERSION:-2.11}-solr${SOLR_VERSION:-9}
+    ports:
+      - "8983"
+    environment:
+      <<: *default-environment
+    networks:
+      - amazeeio-network
+      - default
+
+  chrome:
+    image: selenium/standalone-chrome:131.0-chromedriver-131.0-grid-4.27.0-20241225
+    shm_size: '1gb'
+    depends_on:
+      - ckan
+    <<: *default-volumes
+    environment:
+      <<: *default-environment
+    networks:
+      - amazeeio-network
+      - default
+
+volumes:
+  solr-data: {}
+
+networks:
+  amazeeio-network:
+    external: true

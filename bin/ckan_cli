@@ -1,0 +1,75 @@
+#!/bin/sh
+
+# Call either 'ckan' (from CKAN >= 2.9) or 'paster' (from CKAN <= 2.8)
+# with appropriate syntax, depending on what is present on the system.
+# This is intended to smooth the upgrade process from 2.8 to 2.9.
+# Eg:
+#   ckan_cli jobs list
+# could become either:
+#   paster --plugin=ckan jobs list -c /etc/ckan/default/production.ini
+# or:
+#   ckan -c /etc/ckan/default/production.ini jobs list
+
+# This script is aware of the VIRTUAL_ENV environment variable, and will
+# attempt to respect it with similar behaviour to commands like 'pip'.
+# Eg placing this script in a virtualenv 'bin' directory will cause it
+# to call the 'ckan' or 'paster' command in that directory, while
+# placing this script elsewhere will cause it to rely on the VIRTUAL_ENV
+# variable, or if that is not set, the system PATH.
+
+# Since the positioning of the CKAN configuration file is central to the
+# differences between 'paster' and 'ckan', this script needs to be aware
+# of the config file location. It will use the CKAN_INI environment
+# variable if it exists, or default to /etc/ckan/default/production.ini.
+
+# If 'paster' is being used, the default plugin is 'ckan'. A different
+# plugin can be specified by setting the PASTER_PLUGIN environment
+# variable. This variable is irrelevant if using the 'ckan' command.
+
+CKAN_INI="${CKAN_INI:-/etc/ckan/default/production.ini}"
+PASTER_PLUGIN="${PASTER_PLUGIN:-ckan}"
+# First, look for a command alongside this file
+ENV_DIR=$(dirname "$0")
+if [ -f "$ENV_DIR/ckan" ]; then
+    COMMAND=ckan
+elif [ -f "$ENV_DIR/paster" ]; then
+    COMMAND=paster
+elif [ "$VIRTUAL_ENV" != "" ]; then
+    # If command not found alongside this file, check the virtualenv
+    ENV_DIR="$VIRTUAL_ENV/bin"
+    if [ -f "$ENV_DIR/ckan" ]; then
+        COMMAND=ckan
+    elif [ -f "$ENV_DIR/paster" ]; then
+        COMMAND=paster
+    fi
+else
+    # if no virtualenv is active, try the system path
+    if (which ckan > /dev/null 2>&1); then
+        ENV_DIR=$(dirname $(which ckan))
+        COMMAND=ckan
+    elif (which paster > /dev/null 2>&1); then
+        ENV_DIR=$(dirname $(which paster))
+        COMMAND=paster
+    else
+        echo "Unable to locate 'ckan' or 'paster' command" >&2
+        exit 1
+    fi
+fi
+
+if [ "$COMMAND" = "ckan" ]; then
+    # adjust args to match ckan expectations
+    COMMAND=$(echo "$1" | sed -e 's/create-test-data/seed/')
+    shift
+    echo "Using 'ckan' command from $ENV_DIR with config ${CKAN_INI} to run $COMMAND $1..." >&2
+    exec $ENV_DIR/ckan -c ${CKAN_INI} $COMMAND "$@" $CLICK_ARGS
+elif [ "$COMMAND" = "paster" ]; then
+    # adjust args to match paster expectations
+    COMMAND=$1
+    shift
+    echo "Using 'paster' command from $ENV_DIR with config ${CKAN_INI} to run $COMMAND $1..." >&2
+    if [ "$1" = "show" ]; then shift; fi
+    exec $ENV_DIR/paster --plugin=$PASTER_PLUGIN $COMMAND "$@" -c ${CKAN_INI}
+else
+    echo "Unable to locate 'ckan' or 'paster' command in $ENV_DIR" >&2
+    exit 1
+fi

@@ -1,0 +1,4 @@
+{"fields": [
+    {"name": "field1", "title": "First column", "type": "string"},
+    {"name": "field2", "title": "Second column", "type": "string"}
+]}
